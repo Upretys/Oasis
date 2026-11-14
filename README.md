@@ -57,6 +57,34 @@ that are genuinely vacant right now.
 ```
 
 Open `http://127.0.0.1:5050`. Keys and `COSTAR_KIT_PATH` are read from `.env`.
+If port 5050 is busy, run `PORT=5051 .venv/bin/python3 demo/webapp.py` and
+open `http://127.0.0.1:5051`.
+
+MapLibre renders the OpenFreeMap city basemap. When Oasis has a Vexcel
+footprint, it uses that outline for the selected building and its ground
+highlight. Extrusion height comes from the matching basemap building when
+available, or is estimated from the floor count. CoStar supplies property
+and lease data when configured.
+
+### Connecting another backend
+
+The frontend lives in `demo/static/` and calls same-origin JSON endpoints
+through `api()` in `app.js`. When integrating a separately hosted backend,
+route `/api/*` through the same origin using a proxy. Use the Flask handlers
+in `demo/webapp.py` as the reference for request and response shapes.
+
+- The portfolio starts at `GET /api/overview`, which supplies buildings and
+  their stable `property_id` values, source availability, and boardroom agents.
+- `POST /api/analyze` takes `property_id` and optional `floor_name`. Its
+  response identifies the result source as `live`, `saved`, or `scan`.
+- `GET /api/floors` and `GET /api/area` take `property_id` in the query.
+  `POST /api/floorplan` takes `property_id` and an optional unit `mix`.
+- Analysis errors return JSON with `error` and `message`. Plan for missing
+  source data and preserve the result source flags so the UI can describe it.
+
+Before deploying for multiple users, replace the in-process analysis cache
+with shared storage if analyses need to persist across workers, and add
+authentication and authorization around contractor email sending.
 
 The screens: a 3D map of Houston with search and "near a hospital / school /
 grocery store / highway" filters; a building view with tabs for the verdict

@@ -91,6 +91,14 @@ def registry() -> dict:
         entry["scan"] = {"verdict": s["verdict"], "value_skipped": s["value_skipped"],
                          "impact_low": s["value_impact_low"], "impact_high": s["value_impact_high"]}
     for entry in reg.values():
+        path = oasis.find_vexcel_file(entry["latitude"], entry["longitude"], entry.get("vexcel_file"))
+        if path and not PIPELINE_ERROR:
+            try:
+                with open(path) as f:
+                    entry["footprint"] = oasis.ground_footprint_lonlat(
+                        json.load(f), entry["latitude"], entry["longitude"])
+            except (OSError, ValueError, AttributeError):
+                app.logger.warning("Could not load footprint for property %s", entry["property_id"])
         entry["near"] = oasis.nearest_by_kind(entry["latitude"], entry["longitude"])
     _registry = reg
     return reg
@@ -106,7 +114,7 @@ def public(b: dict) -> dict:
         "floor_name": b.get("floor_name"), "stories": b.get("stories"),
         "typical_floor_sqft": b.get("typical_floor_sqft"),
         "verdict": scan.get("verdict") or saved.get("geometry_verdict"),
-        "confidence": saved.get("geometry_confidence"),
+        "confidence": saved.get("geometry_confidence"), "footprint": b.get("footprint"),
         "convertible_fraction": saved.get("convertible_fraction"),
         "impact_low": lo, "impact_high": hi, "near": b.get("near", {}),
     }
@@ -120,6 +128,67 @@ def index():
 @app.route("/static/<path:name>")
 def static_files(name):
     return send_from_directory(STATIC_DIR, name)
+
+
+@app.get("/api/map-config")
+def map_config():
+    return jsonify(google_browser_key=os.environ.get("GOOGLE_MAPS_DEMO_KEY", "").strip(),
+                   vexcel_imagery=oasis.has_key("VEXCEL_IMAGERY_API_KEY") or oasis.has_key("VEXCEL_API_KEY"))
+
+
+@app.get("/api/map/vexcel/photo/<int:property_id>/<view>")
+def vexcel_photo(property_id, view):
+    import requests
+    from flask import Response
+
+    building = registry().get(property_id)
+    key = os.environ.get("VEXCEL_IMAGERY_API_KEY") or os.environ.get("VEXCEL_API_KEY")
+    if not key or not building or view not in ("ortho", "oblique-north"):
+        return "", 404
+    ring = building.get("footprint")
+    if ring:
+        coordinates = ", ".join(f"{lon} {lat}" for lon, lat in ring)
+        wkt = f"POLYGON(({coordinates}))"
+    else:
+        wkt = f"POINT({building['longitude']} {building['latitude']})"
+    oblique = view == "oblique-north"
+    endpoint = "oriented/extract" if oblique else "ortho/extract"
+    params = {"wkt": wkt, "srid": 4326, "buffer-meter": 25,
+              "layer": "urban" if oblique else "urban,urban-r,wide-area,urban-g",
+              "image-format": "jpeg"}
+    if oblique:
+        params.update({"product-type": view, "rotation": "natural"})
+    try:
+        photo = requests.post(f"https://api.vexcelgroup.com/v2/{endpoint}",
+                              headers={"X-API-KEY": key.strip()}, json=params, timeout=15)
+    except requests.RequestException:
+        return "", 502
+    content_type = photo.headers.get("Content-Type", "").split(";")[0]
+    if not photo.ok or content_type not in ("image/jpeg", "image/png"):
+        return "", 404 if photo.status_code == 404 else 502
+    return Response(photo.content, mimetype=content_type, headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/map/vexcel/<int:z>/<int:x>/<int:y>.png")
+def vexcel_tile(z, x, y):
+    import requests
+    from flask import Response
+
+    key = (os.environ.get("VEXCEL_IMAGERY_API_KEY") or os.environ.get("VEXCEL_API_KEY", "")).strip()
+    if not key or not 10 <= z <= 21 or max(x, y) >= 2**z:
+        return "", 404
+    try:
+        tile = requests.get("https://api.vexcelgroup.com/v2/ortho/tile", timeout=8,
+                            headers={"X-API-KEY": key},
+                            params={"layer": "urban", "zoom": z, "tile-x": x, "tile-y": y,
+                                    "image-format": "png"})
+    except requests.RequestException:
+        return "", 502
+    if tile.status_code == 404:
+        return "", 404
+    if not tile.ok or not tile.headers.get("Content-Type", "").startswith("image/png"):
+        return "", 502
+    return Response(tile.content, mimetype="image/png", headers={"Cache-Control": "no-store"})
 
 
 @app.route("/api/overview")
@@ -173,6 +242,27 @@ class AnalysisError(Exception):
         self.code, self.message, self.status = code, message, status
 
 
+@app.errorhandler(AnalysisError)
+def handle_analysis_error(error):
+    return jsonify({"error": error.code, "message": error.message}), error.status
+
+
+def json_body():
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise AnalysisError("bad_request", "Expected a JSON object.")
+    return body
+
+
+def integer(value, field):
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        raise AnalysisError("bad_request", f"{field} must be an integer.")
+    try:
+        return int(value)
+    except ValueError as e:
+        raise AnalysisError("bad_request", f"{field} must be an integer.") from e
+
+
 def _vexcel(b: dict, timeline: list, t0: float, allow_fetch: bool):
     path = oasis.find_vexcel_file(b["latitude"], b["longitude"], b.get("vexcel_file"))
     if path:
@@ -200,7 +290,7 @@ def analyze(property_id: int, floor) -> dict:
     b = registry().get(property_id)
     if b is None:
         raise AnalysisError("unknown_building", "That building is not in the list.", 404)
-    floor = int(floor) if floor not in (None, "") else b.get("floor_name")
+    floor = integer(floor, "floor") if floor not in (None, "") else b.get("floor_name")
     timeline, t0 = [], time.time()
     live_ok = oasis.costar_available() and not PIPELINE_ERROR and b.get("typical_floor_sqft")
     vexcel = _vexcel(b, timeline, t0, allow_fetch=bool(live_ok))
@@ -269,24 +359,27 @@ def analyze(property_id: int, floor) -> dict:
 
 @app.route("/api/analyze", methods=["POST"])
 def api_analyze():
-    body = request.get_json(force=True)
+    body = json_body()
     try:
-        return jsonify(analyze(int(body["property_id"]), body.get("floor_name")))
+        return jsonify(analyze(integer(body.get("property_id"), "property_id"), body.get("floor_name")))
     except AnalysisError as e:
         return jsonify({"error": e.code, "message": e.message}), e.status
 
 
 @app.route("/api/floorplan", methods=["POST"])
 def api_floorplan():
-    body = request.get_json(force=True)
-    b = registry().get(int(body["property_id"]))
+    body = json_body()
+    b = registry().get(integer(body.get("property_id"), "property_id"))
     if b is None or not b.get("typical_floor_sqft") or PIPELINE_ERROR:
         return jsonify({"error": "no_plan", "message": "No floor area on record for this building, so a plan can't be drawn."}), 404
     path = oasis.find_vexcel_file(b["latitude"], b["longitude"], b.get("vexcel_file"))
     if not path:
         return jsonify({"error": "no_footprint", "message": "No aerial footprint is cached for this building."}), 404
+    mix = body.get("mix", "balanced")
+    if not isinstance(mix, str):
+        raise AnalysisError("bad_request", "mix must be a string.")
     with open(path) as f:
-        plan = oasis.floor_plan(json.load(f), b["latitude"], b["longitude"], float(b["typical_floor_sqft"]), body.get("mix", "balanced"))
+        plan = oasis.floor_plan(json.load(f), b["latitude"], b["longitude"], float(b["typical_floor_sqft"]), mix)
     if plan is None:
         return jsonify({"error": "no_footprint", "message": "No structure was found at this location."}), 404
     return jsonify(plan)
@@ -294,7 +387,7 @@ def api_floorplan():
 
 @app.route("/api/floors")
 def api_floors():
-    b = registry().get(int(request.args["property_id"]))
+    b = registry().get(integer(request.args.get("property_id"), "property_id"))
     if b is None:
         return jsonify({"error": "unknown_building"}), 404
     out = oasis.floors_for(b["property_id"], b.get("floor_name"), b.get("stories"))
@@ -304,7 +397,7 @@ def api_floors():
 
 @app.route("/api/area")
 def api_area():
-    b = registry().get(int(request.args["property_id"]))
+    b = registry().get(integer(request.args.get("property_id"), "property_id"))
     if b is None:
         return jsonify({"error": "unknown_building"}), 404
     return jsonify({"places": oasis.places_near(b["latitude"], b["longitude"]),
@@ -316,7 +409,10 @@ def api_area():
 # ---------------------------------------------------------------------------
 
 def _facts(property_id: int, floor) -> dict:
-    a = ANALYSES.get((property_id, int(floor) if floor not in (None, "") else None))
+    building = registry().get(property_id)
+    default_floor = building.get("floor_name") if building else None
+    floor = integer(floor, "floor") if floor not in (None, "") else default_floor
+    a = ANALYSES.get((property_id, floor))
     if a is None:
         a = analyze(property_id, floor)
     notes = a.get("notes") or []
@@ -333,9 +429,9 @@ def _facts(property_id: int, floor) -> dict:
 
 @app.route("/api/boardroom/turn", methods=["POST"])
 def api_board_turn():
-    body = request.get_json(force=True)
+    body = json_body()
     try:
-        facts = _facts(int(body["property_id"]), body.get("floor"))
+        facts = _facts(integer(body.get("property_id"), "property_id"), body.get("floor"))
         turn = oasis.board_turn(body["agent"], facts, int(body.get("round", 1)), body.get("transcript") or [])
     except AnalysisError as e:
         return jsonify({"error": e.code, "message": e.message}), e.status
@@ -346,9 +442,9 @@ def api_board_turn():
 
 @app.route("/api/quotes/draft", methods=["POST"])
 def api_quotes_draft():
-    body = request.get_json(force=True)
+    body = json_body()
     try:
-        facts = _facts(int(body["property_id"]), body.get("floor"))
+        facts = _facts(integer(body.get("property_id"), "property_id"), body.get("floor"))
     except AnalysisError as e:
         return jsonify({"error": e.code, "message": e.message}), e.status
     draft = oasis.draft_email(facts, body.get("sender") or "")
@@ -359,7 +455,7 @@ def api_quotes_draft():
 
 @app.route("/api/quotes/send", methods=["POST"])
 def api_quotes_send():
-    body = request.get_json(force=True)
+    body = json_body()
     subject, text = (body.get("subject") or "").strip(), (body.get("body") or "").strip()
     ids = body.get("contractor_ids") or []
     if not subject or not text or not ids:
@@ -376,8 +472,8 @@ def api_quotes_send():
 def api_analyze_agent():
     """Real tool-calling LLM run (kept from the first demo). Needs
     ANTHROPIC_API_KEY, the CoStar kit and a Vexcel footprint."""
-    body = request.get_json(force=True)
-    b = registry().get(int(body["property_id"]))
+    body = json_body()
+    b = registry().get(integer(body.get("property_id"), "property_id"))
     if not oasis.has_key("ANTHROPIC_API_KEY"):
         return jsonify({"error": "anthropic_key_missing", "message": "ANTHROPIC_API_KEY is not set."}), 400
     if b is None or PIPELINE_ERROR or not oasis.costar_available():

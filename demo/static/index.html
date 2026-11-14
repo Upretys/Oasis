@@ -18,7 +18,7 @@
   </a>
   <div class="top-right">
     <span>Welcome back</span>
-    <button class="avatar" id="profileBtn" aria-label="Open profile and data sources" aria-expanded="false" data-act="profile"></button>
+    <button class="avatar" id="profileBtn" aria-label="Open Sam’s profile" aria-expanded="false" data-act="profile"></button>
     <div class="popover" id="profilePop" hidden></div>
   </div>
 </header>
@@ -30,7 +30,7 @@
       <label class="search">
         <span class="sr">Search buildings</span>
         <span id="searchIcon"></span>
-        <input type="search" id="q" placeholder="Search an address or building" autocomplete="off">
+        <input type="search" id="q" placeholder="Building or address" autocomplete="off">
       </label>
       <button class="icon-btn" data-act="toggle-filters" aria-label="Filter by what is nearby" aria-expanded="false" id="filterBtn"></button>
     </div>
@@ -39,6 +39,14 @@
 
   <section class="mapwrap" id="mapwrap" aria-label="3D map of Houston office buildings">
     <div id="map"></div>
+    <div id="google-map" hidden></div>
+    <label class="map-mode glass"><span class="sr">Map mode</span>
+      <select id="mapMode">
+        <option value="dark">Dark map</option>
+        <option value="google">Normal mode</option>
+        <option value="vexcel">Vexcel aerial imagery</option>
+      </select>
+    </label>
     <div id="mapui"></div>
   </section>
 </main>

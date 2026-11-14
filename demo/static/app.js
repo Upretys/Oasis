@@ -50,6 +50,7 @@ async function api(path, body) {
   let data = null;
   try { data = await res.json(); } catch (e) { /* not JSON */ }
   if (!res.ok) throw new Error((data && data.message) || `The server answered ${res.status}.`);
+  if (data === null) throw new Error('The server returned an invalid JSON response.');
   return data;
 }
 
@@ -68,12 +69,13 @@ function download(name, text, type) {
 
 // ---------- state ----------
 const S = {
-  ov: null, byId: {}, view: 'home', tab: 'verdict', full: false,
+  ov: null, byId: Object.create(null), view: 'home', tab: 'verdict', full: false,
   q: '', showFilters: false, near: { hospital: false, school: false, grocery: false, highway: false }, dist: 1, positiveOnly: false, showAll: false,
   sel: null, armed: false, an: null, anLoading: false, anErr: null, floorErr: null,
   floors: null, floor: null, area: null, areaErr: null, placeKind: 'all',
   plan: null, planOpen: false, planMix: 'balanced', planView: 'after', planUnit: null, planLoading: false,
-  board: newBoard(), modal: false, preview: true, quotes: null,
+  selection: 0, analysisRequest: 0, planRequest: 0, drafting: false,
+  board: newBoard(), minimized: new Set(), closed: new Set(), modal: false, preview: true, quotes: null,
 };
 function newBoard() { return { turns: [], speaking: null, running: false, done: false, token: 0, err: null }; }
 
@@ -93,8 +95,11 @@ const go = hash => { if (location.hash === hash) route(); else location.hash = h
 const bHash = (tab, id = S.sel && S.sel.property_id) => `#/b/${id}/${tab}`;
 
 function route() {
+  if (!S.ov) return;
   const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   S.modal = false;
+  S.minimized.clear();
+  S.closed.clear();
   if (parts[0] === 'b' && S.byId[parts[1]]) {
     const b = S.byId[parts[1]], tab = parts[2] || 'verdict';
     if (!S.sel || S.sel.property_id !== b.property_id) selectBuilding(b, true);
@@ -114,6 +119,13 @@ function route() {
 
 // ---------- selection and analysis ----------
 function clearSelection() {
+  S.selection++;
+  S.minimized.clear();
+  S.closed.clear();
+  S.anLoading = S.planLoading = S.drafting = false;
+  S.floorErr = S.areaErr = null;
+  S.modal = false;
+  S.placeKind = 'all';
   S.sel = null; S.an = null; S.armed = false; S.anErr = null; S.floors = null; S.area = null; S.plan = null; S.planOpen = false;
   S.board.token++; S.board = newBoard(); S.quotes = null;
   M.clearSelection();
@@ -126,24 +138,40 @@ function selectBuilding(b, analyzeNow) {
   if (analyzeNow) runAnalysis(b.floor_name);
 }
 
+function selectMapBuilding(building) {
+  if (!building || (S.sel === building && (S.an || S.anLoading))) return;
+  S.full = false;
+  selectBuilding(building, false);
+  S.view = 'building';
+  S.tab = 'verdict';
+  history.replaceState(null, '', bHash('verdict', building.property_id));
+  render();
+}
+
 async function runAnalysis(floor) {
-  const b = S.sel;
+  const b = S.sel, selection = S.selection, request = ++S.analysisRequest;
+  const current = () => S.selection === selection && S.analysisRequest === request;
   S.armed = false; S.anLoading = true; S.anErr = null; S.floorErr = null;
   M.closeCallout();
   render();
   try {
-    const [an, floors] = await Promise.all([
-      api('/api/analyze', { property_id: b.property_id, floor_name: floor }),
-      S.floors ? Promise.resolve(S.floors) : api(`/api/floors?property_id=${b.property_id}`).catch(() => null),
-    ]);
-    if (S.sel !== b) return;
-    S.an = an; S.floors = floors; S.floor = an.floor; S.plan = an.floorplan; S.planMix = 'balanced'; S.planUnit = null;
-    S.board.token++; S.board = newBoard(); S.area = S.area;
+    if (!S.floors) {
+      api(`/api/floors?property_id=${b.property_id}`).then(floors => {
+        if (!current()) return;
+        S.floors = floors;
+        render();
+      }).catch(() => {});
+    }
+    const an = await api('/api/analyze', { property_id: b.property_id, floor_name: floor });
+    if (!current()) return;
+    S.an = an; S.floor = an.floor; S.plan = an.floorplan; S.planMix = 'balanced'; S.planUnit = null;
+    S.board.token++; S.board = newBoard(); S.quotes = null;
+    S.planRequest++; S.planLoading = S.drafting = false;
     M.drawStack();
     if (S.tab === 'boardroom') startBoard();
     if (S.tab === 'area') loadArea();
   } catch (e) {
-    if (S.sel !== b) return;
+    if (!current()) return;
     if (S.an) { S.floorErr = e.message; } else { S.anErr = e.message; }
   }
   S.anLoading = false;
@@ -152,9 +180,10 @@ async function runAnalysis(floor) {
 
 async function loadArea() {
   if (S.area || !S.sel) return;
-  const b = S.sel;
-  try { const a = await api(`/api/area?property_id=${b.property_id}`); if (S.sel === b) { S.area = a; } }
-  catch (e) { if (S.sel === b) S.areaErr = e.message; }
+  const b = S.sel, selection = S.selection;
+  S.areaErr = null;
+  try { const a = await api(`/api/area?property_id=${b.property_id}`); if (S.selection === selection) { S.area = a; } }
+  catch (e) { if (S.selection === selection) S.areaErr = e.message; }
   render();
 }
 
@@ -170,9 +199,17 @@ function floorList() {
 const STATUS_TEXT = { vacant: 'Vacant', occupied: 'Leased', no_record: 'No lease record', unknown: 'Lease status not checked' };
 
 async function loadPlan(mix) {
+  const selection = S.selection, request = ++S.planRequest;
+  const current = () => S.selection === selection && S.planRequest === request;
   S.planLoading = true; S.planUnit = null; render();
-  try { S.plan = await api('/api/floorplan', { property_id: S.sel.property_id, mix }); S.planMix = S.plan.mix; }
-  catch (e) { toast(e.message); }
+  try {
+    const plan = await api('/api/floorplan', { property_id: S.sel.property_id, mix });
+    if (!current()) return;
+    S.plan = plan; S.planMix = plan.mix;
+  } catch (e) {
+    if (!current()) return;
+    toast(e.message);
+  }
   S.planLoading = false; render();
 }
 
@@ -221,14 +258,21 @@ async function startBoard(force) {
 function scrollPanel() { const p = $('#panel'); if (S.tab === 'boardroom' && S.board.running) p.scrollTop = p.scrollHeight; }
 
 // ---------- quotes ----------
+const PROFILE = { name: 'Sam', email: 'sam@example.com', phone: '(713) 555-0142', location: 'Houston, TX' };
+
 async function openQuotes() {
-  const b = S.sel;
-  S.modal = false;
+  if (S.drafting) return;
+  const b = S.sel, selection = S.selection, analysis = S.an;
+  const current = () => S.selection === selection && S.an === analysis;
+  S.drafting = true; S.modal = false; render();
   try {
-    const d = await api('/api/quotes/draft', { property_id: b.property_id, floor: S.an.floor });
+    const d = await api('/api/quotes/draft', { property_id: b.property_id, floor: S.an.floor, sender: PROFILE.name });
+    if (!current()) return;
     S.quotes = { stage: 'draft', subject: d.subject, body: d.body, live: d.live, contractors: d.contractors, picked: new Set(d.contractors.map(c => c.id)), willSend: d.will_send, results: null, sending: false };
-    if (!S.preview) { go(bHash('quotes')); await sendQuotes(); } else go(bHash('quotes'));
-  } catch (e) { toast(e.message); render(); }
+    go(bHash('quotes'));
+    if (!S.preview) await sendQuotes();
+  } catch (e) { if (current()) toast(e.message); }
+  finally { if (current()) S.drafting = false; }
 }
 function readDraft() {
   const s = $('#mailSubject'), t = $('#mailBody');
@@ -237,6 +281,7 @@ function readDraft() {
 }
 async function sendQuotes() {
   const q = S.quotes;
+  if (!q || q.sending || q.stage !== 'draft') return;
   readDraft();
   if (!q.picked.size) { toast('Pick at least one contractor.'); return; }
   q.sending = true; render();
@@ -325,10 +370,13 @@ function render() {
   fb.classList.toggle('on', S.showFilters || filtersActive());
   fb.setAttribute('aria-expanded', String(S.showFilters));
   fb.innerHTML = ic('filter', 20) + (filterCount() ? `<span class="badge">${filterCount()}</span>` : '');
-  $('#panel').innerHTML = S.view === 'home' ? homePanel() : S.view === 'quotes' ? quotesPanel() : buildingPanel();
+  const panel = $('#panel');
+  const priorFloors = panel.querySelector('.floorlist');
+  const floorScroll = priorFloors?.dataset.building === String(S.sel?.property_id) ? priorFloors.scrollTop : 0;
+  panel.innerHTML = S.view === 'home' ? homePanel() : S.view === 'quotes' ? quotesPanel() : buildingPanel();
   $('#mapui').innerHTML = mapUi();
-  const pressed = $('.floorlist .floor[aria-pressed="true"]');
-  if (pressed) pressed.scrollIntoView({ block: 'nearest' });
+  const floors = panel.querySelector('.floorlist');
+  if (floors) floors.scrollTop = floorScroll;
   M.sync();
 }
 
@@ -435,7 +483,8 @@ function floorsPanel() {
   return `${head('Floors')}${tabs()}
     <p class="muted">${real ? 'Teal floors are vacant, so they convert without giving up office rent.' : `Only floor ${a.floor} has been analyzed so far, so it is the one marked Best.`} Click a floor on the building or pick one here.</p>
     <div class="row between"><h2 class="h2">Floors</h2><span class="tag ${real ? 'pass' : 'neutral'}">${real ? 'Real lease history' : `${fl.length} floors, lease data not loaded`}</span></div>
-    <div class="floorlist">${fl.map(f => `<button class="floor" data-act="floor" data-floor="${f.floor}" aria-pressed="${f.floor === S.floor}">
+    <div class="floor-legend" aria-label="Floor colors"><span><span class="swatch" style="background:#45D3BC;margin-right:7px"></span>Best to convert</span><span><span class="swatch" style="background:#DDA033;margin-right:7px"></span>Other floors</span><span><span class="swatch" style="background:#fff;border:1px solid var(--muted);margin-right:7px"></span>Selected</span></div>
+    <div class="floorlist" data-building="${S.sel.property_id}" tabindex="0" role="region" aria-label="Building floors">${fl.map(f => `<button class="floor" data-act="floor" data-floor="${f.floor}" aria-pressed="${f.floor === S.floor}">
       <span class="fn">Floor ${f.floor}</span>${f.best ? '<span class="tag pass">Best</span>' : ''}<span class="fs">${f.analyzed ? 'Analyzed' : STATUS_TEXT[f.status]}</span>
       ${f.analyzed && a.confidence != null ? `<b>${Math.round(a.confidence * 100)}%</b>` : ''}</button>`).join('') || '<div class="notice info">This building was only screened, so its floors are not listed yet.</div>'}</div>
     ${same ? `<div class="card grid3">
@@ -575,65 +624,95 @@ function quotesPanel() {
 }
 
 // ---------- map overlays ----------
+function overlayControls(id, label) {
+  return `<span class="overlay-controls">
+    <button class="icon-btn" data-act="overlay-minimize" data-overlay="${id}" aria-label="Minimize ${label}">${ic('minus', 16)}</button>
+    <button class="icon-btn" data-act="overlay-close" data-overlay="${id}" aria-label="Close ${label}">${ic('x', 16)}</button>
+  </span>`;
+}
+
 function mapUi() {
-  if (!M.ok) return `<div class="map-fallback"><div><b>The 3D map could not start in this browser.</b><br>Everything else works: pick a building from the list on the left.</div></div>`;
+  if (!M.ok && M.mode !== 'google') return `<div class="map-fallback"><div><b>The 3D map could not start in this browser.</b><br>Everything else works: pick a building from the list on the left.</div></div>`;
   const a = S.an, fab = (act, icon, label) => `<button class="glass fab" data-act="${act}" aria-label="${label}">${ic(icon, 20)}</button>`;
   let html = `<div class="m-tl">${S.full ? fab('toggle-full', 'menu', 'Show the sidebar') : ''}${fab('toggle-full', S.full ? 'shrink' : 'expand', S.full ? 'Shrink the map' : 'Expand the map to full width')}
-    ${S.full ? `<label class="glass m-search">${ic('search')}<span class="sr">Search buildings</span><input type="search" id="q2" placeholder="Search an address or building" value="${esc(S.q)}" autocomplete="off"></label>` : ''}</div>
-    <div class="m-br">${fab('rotate', 'compass', 'Rotate the map')}${fab('zoom-in', 'plus', 'Zoom in')}${fab('zoom-out', 'minus', 'Zoom out')}${S.sel ? fab('recenter', 'pin', 'Centre on the building') : ''}</div>`;
+    ${S.full ? `<label class="glass m-search">${ic('search')}<span class="sr">Search buildings</span><input type="search" id="q2" placeholder="Building or address" value="${esc(S.q)}" autocomplete="off"></label>` : ''}</div>
+    <div class="map-tilt" role="group" aria-label="Map tilt">
+      <button class="glass fab" data-act="tilt-down" aria-label="Tilt toward overhead" title="Tilt toward overhead">−</button>
+      <button class="glass fab" data-act="tilt-up" aria-label="Tilt toward horizon" title="Tilt toward horizon">+</button>
+    </div>
+    ${M.mode === 'google' ? '' : `<div class="m-br">${fab('rotate-left', 'compass', 'Rotate map left 45 degrees')}${fab('rotate', 'compass', 'Rotate map right 45 degrees')}${fab('zoom-in', 'plus', 'Zoom in')}${fab('zoom-out', 'minus', 'Zoom out')}${S.sel ? fab('recenter', 'pin', 'Centre on the building') : ''}</div>`}`;
+
+  const visible = id => !S.minimized.has(id) && !S.closed.has(id);
+  const restore = (id, label) => S.minimized.has(id)
+    ? `<button class="glass overlay-restore" data-act="overlay-restore" data-overlay="${id}">${label}</button>` : '';
+  const restoreButtons = [['matches','Search results'], ['numbers','The numbers'], ['plan','Floor plan'],
+    ['nearby','Nearby places'], ['quotes','Quote email'], ['confirm','Quote confirmation'], ['selection','Selected building']]
+    .filter(([id]) => id !== 'matches').map(([id, label]) => restore(id, label)).join('');
+  if (S.minimized.has('matches')) html += `<div class="overlay-dock left">${restore('matches', 'Search results')}</div>`;
+  if (restoreButtons) html += `<div class="overlay-dock">${restoreButtons}</div>`;
 
   if (S.view === 'home') {
     const active = Object.keys(S.near).filter(k => S.near[k]);
     html += `<div class="glass m-tc">${active.length ? active.map(k => `<span class="glyph" style="width:20px;height:20px;font-size:11px;background:${KIND[k].color}">${KIND[k].letter}</span>`).join('') + `Buildings within ${S.dist} mi of ${active.map(k => 'a ' + KIND[k].label.toLowerCase()).join(' and ')}`
-      : `<span style="color:#5FE0CB">${ic('pin', 16)}</span>Click any building to analyze it`}</div>
+      : M.mode === 'google' ? 'Select an Oasis property pin' : `<span style="color:#5FE0CB">${ic('pin', 16)}</span>Click any building to analyze it`}</div>
       <div class="glass m-bl"><span><span class="legend-dot" style="background:${SRC_COLOR.cached}"></span>Analyzed in full</span>${S.ov.buildings.some(b => b.source === 'live') ? `<span><span class="legend-dot" style="background:${SRC_COLOR.live}"></span>Untested, runs live</span>` : ''}<span><span class="legend-dot" style="background:${SRC_COLOR.scan}"></span>Screened only</span></div>`;
-    if (S.full && searching()) {
+    if (S.full && searching() && visible('matches')) {
       const list = S.ov.buildings.filter(matches).slice(0, 6);
-      html += `<div class="m-tr" style="left:16px;right:auto;top:76px;width:320px"><span class="eyebrow">${list.length ? 'Matches' : 'No matches'}</span><div class="list">${list.map(buildingRow).join('')}</div></div>`;
+      html += `<div class="m-tr" style="left:16px;right:auto;top:76px;width:320px"><span class="eyebrow">${list.length ? 'Matches' : 'No matches'}</span>${overlayControls('matches', 'search results')}<div class="list">${list.map(buildingRow).join('')}</div></div>`;
     }
     return html;
   }
 
-  if (a && (S.tab === 'verdict' || S.tab === 'boardroom') && S.view === 'building' && !S.modal) {
+  if (a && (S.tab === 'verdict' || S.tab === 'boardroom') && S.view === 'building' && !S.modal && visible('numbers')) {
     const n = a.numbers;
-    html += `<div class="m-tr"><div class="row between"><span class="eyebrow">The numbers</span></div>
+    html += `<div class="m-tr"><div class="row between"><span class="eyebrow">The numbers</span>${overlayControls('numbers', 'the numbers')}</div>
+      ${M.mode === 'google' && S.ov.sources.vexcel ? `<div class="row" style="flex-wrap:wrap">
+        <a href="/api/map/vexcel/photo/${S.sel.property_id}/ortho" target="_blank" rel="noopener">Vexcel aerial photo</a>
+        <a href="/api/map/vexcel/photo/${S.sel.property_id}/oblique-north" target="_blank" rel="noopener">Angled photo</a>
+      </div>` : ''}
       <div class="money"><div class="l">Total cost of renovation</div><div class="v">${n.reno_low ? range(n.reno_low, n.reno_high) : 'Not available'}</div><div class="s">${n.viable_sqft ? `${num(n.viable_sqft)} sq ft at $150 to $220 a sq ft` : 'Needs the full analysis'}</div></div>
       <div class="hr"></div>
       <div class="money"><div class="l">Expected return</div><div class="v">${n.uplift_low != null ? `${money((n.uplift_low + n.uplift_high) / 2)} a year` : 'Not available'}</div><div class="s">${n.uplift_low != null ? `Extra rent, ${range(n.uplift_low, n.uplift_high)}` : 'Needs the full analysis'}</div></div>
       <div class="card" style="padding:10px 12px;background:${n.impact_low > 0 ? 'var(--teal-soft)' : n.impact_high < 0 ? 'var(--red-soft)' : 'var(--amber-soft)'}"><div class="small muted">Value added after construction</div><div class="stat-num sm">${range(n.impact_low, n.impact_high)}</div></div></div>`;
   }
   if (a && a.source !== 'scan' && S.tab === 'floors' && S.view === 'building') {
-    html += `<div class="glass m-tc"><span style="color:#5FE0CB">${ic('layers', 16)}</span>Click a floor to select it</div>
-      <div class="glass m-bl"><span><span class="swatch" style="background:#45D3BC;margin-right:7px"></span>Best to convert</span><span><span class="swatch" style="background:#DDA033;margin-right:7px"></span>Other floors</span><span><span class="swatch" style="background:#fff;margin-right:7px"></span>Selected</span></div>`;
-    if (S.planOpen && S.plan) {
+    html += `<div class="glass m-tc"><span style="color:#5FE0CB">${ic('layers', 16)}</span>${M.mode === 'google' ? 'Select a floor in the sidebar' : 'Click a floor · Drag to pan · Right-drag to orbit'}</div>`;
+    if (S.planOpen && S.plan && visible('plan')) {
       const p = S.plan, u = S.planUnit != null ? p.units[S.planUnit] : null, rent = a.numbers.residential_rent;
       html += `<div class="shade"></div><div class="sheet"><div class="row between" style="flex-wrap:wrap;gap:12px">
         <div><h2 style="font-size:20px">Floor ${S.floor}, tentative plan</h2><div class="muted" style="font-size:13.5px">${p.units.length} apartments · ${num(p.viable_sqft)} usable sq ft of ${num(p.floor_sqft)}</div></div>
         <div class="row"><div class="seg" role="group" aria-label="View"><button data-act="plan-view" data-view="after" aria-pressed="${S.planView === 'after'}">After</button><button data-act="plan-view" data-view="before" aria-pressed="${S.planView === 'before'}">Office today</button></div>
-        <button class="icon-btn" data-act="plan-close" aria-label="Close floor plan">${ic('x', 20)}</button></div></div>
+        ${overlayControls('plan', 'floor plan')}</div></div>
         <div class="plan">${S.planLoading ? '<div class="loading"><span class="spinner"></span>Drawing the plan…</div>' : planSvg(p, S.planView, S.planUnit)}</div>
         <div class="row" style="flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)">${Object.keys(UNIT).filter(t => p.unit_counts[t]).map(t => `<span class="row" style="gap:7px"><span class="swatch" style="width:14px;height:14px;background:${UNIT[t].color};border:1px solid var(--ink)"></span>${UNIT[t].long}</span>`).join('')}
           <span class="row" style="gap:7px"><span class="swatch" style="width:14px;height:14px;background:#D5DDDF;border:1px solid var(--ink)"></span>Core</span>
           <b style="color:var(--ink)" aria-live="polite">${u ? `${(UNIT[u.type] || {}).long || u.type}: ${num(u.area_sqft)} sq ft${rent ? `, about $${num(u.area_sqft * rent / 12)} a month` : ''}` : 'Click an apartment to see its size and rent.'}</b></div></div>`;
     }
   }
-  if (a && S.tab === 'area' && S.view === 'building' && S.area && S.area.places.available) {
+  if (a && S.tab === 'area' && S.view === 'building' && S.area && S.area.places.available && visible('nearby')) {
     const k = S.area.places.kinds;
-    html += `<div class="m-tr" style="width:240px"><span class="eyebrow">Within 1 mile</span><div class="grid2 small">${Object.keys(KIND).map(x => `<span class="row" style="gap:6px"><span class="glyph" style="width:20px;height:20px;font-size:11px;background:${KIND[x].color}">${KIND[x].letter}</span>${k[x].within_1mi} ${KIND[x].label.replace(' store', '').replace('Major ', '').toLowerCase()}${k[x].within_1mi === 1 ? '' : 's'}</span>`).join('')}</div></div>
+    html += `<div class="m-tr" style="width:240px"><div class="row between"><span class="eyebrow">Within 1 mile</span>${overlayControls('nearby', 'nearby places')}</div><div class="grid2 small">${Object.keys(KIND).map(x => `<span class="row" style="gap:6px"><span class="glyph" style="width:20px;height:20px;font-size:11px;background:${KIND[x].color}">${KIND[x].letter}</span>${k[x].within_1mi} ${KIND[x].label.replace(' store', '').replace('Major ', '').toLowerCase()}${k[x].within_1mi === 1 ? '' : 's'}</span>`).join('')}</div></div>
       <div class="glass m-bl">Rings mark half a mile and one mile from the building</div>`;
   }
-  if (S.view === 'quotes' && S.quotes) {
+  if (S.view === 'quotes' && S.quotes && visible('quotes')) {
     const q = S.quotes, sent = q.stage === 'sent';
     html += `<div class="shade" style="background:rgba(13,25,32,.45)"></div><div class="sheet narrow">
-      <div class="row between"><h2 style="font-size:18px">${sent ? 'The email that went out' : 'Quote request email'}</h2>${q.live ? `<span class="tag pass">${ic('spark', 14)}Written by the email agent</span>` : ''}</div>
+      <div class="row between"><h2 style="font-size:18px">${sent ? (q.mode === 'outbox' ? 'Email saved to outbox' : 'Quote request email') : 'Quote request email'}</h2>${q.live ? `<span class="tag pass">${ic('spark', 14)}Written by the email agent</span>` : ''}${overlayControls('quotes', 'quote email')}</div>
       <div class="mail-meta"><span class="muted">To</span><span>${q.picked.size} verified contractor${q.picked.size === 1 ? '' : 's'}, one email each</span>
         <label class="muted" for="mailSubject">Subject</label>${sent ? `<b>${esc(q.subject)}</b>` : `<input class="field" id="mailSubject" value="${esc(q.subject)}">`}</div>
       ${sent ? `<div class="mail-body">${esc(q.body.replace('{contractor}', '[each contact’s name]'))}</div>` : `<label class="sr" for="mailBody">Email body</label><textarea class="field" id="mailBody">${esc(q.body)}</textarea><p class="small muted">{contractor} is replaced with each contact’s name.</p>`}
-      <div class="row" style="flex-wrap:wrap"><span class="attach">${ic('download', 16)}oasis-report.html</span>${S.plan ? `<span class="attach">${ic('layers', 16)}tentative-floor-plan.svg</span>` : ''}</div></div>`;
+      <div class="quote-actions">
+        <button class="attach" data-act="quote-report">${ic('download', 16)}oasis-report.html</button>
+        ${S.plan ? `<button class="attach" data-act="quote-plan">${ic('download', 16)}tentative-floor-plan.svg</button>` : ''}
+        ${sent ? '' : `<button class="btn primary" data-act="send" ${q.sending || !q.picked.size ? 'disabled' : ''}>
+          ${q.sending ? 'Working…' : q.willSend ? 'Send quote requests' : 'Save to outbox'}
+        </button>`}
+      </div></div>`;
+
   }
-  if (S.modal && a) {
+  if (S.modal && a && visible('confirm')) {
     html += `<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
-      <div class="row between" style="align-items:flex-start"><h2 id="mt">Proceed with converting ${flr(a)}?</h2><button class="icon-btn" data-act="modal-close" aria-label="Close" style="margin:-8px -8px 0 0">${ic('x', 20)}</button></div>
+      <div class="row between" style="align-items:flex-start"><h2 id="mt">Proceed with converting ${flr(a)}?</h2>${overlayControls('confirm', 'quote confirmation')}</div>
       <p class="muted" style="font-size:15px">If you say yes, the email agent asks verified local contractors from your database for quotes. You sign and pay nothing.</p>
       <div class="card col" style="gap:10px">${['Writes one email to each verified contractor', `Attaches the report${S.plan ? ' and the tentative floor plan' : ''}`, 'You compare the quotes when they come back'].map(t => `<span class="row" style="gap:10px;color:var(--ink)"><span style="color:var(--teal)">${ic('check', 18, 2.4)}</span>${t}</span>`).join('')}</div>
       <label class="row" style="gap:10px;min-height:44px"><input type="checkbox" id="preview" ${S.preview ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--teal)">Let me read the email before it is sent</label>
@@ -644,35 +723,52 @@ function mapUi() {
 
 // ---------- the map ----------
 const M = {
+  mode: 'dark', google: null, mapConfig: null, googleLoading: null,
   ok: false, map: null, ready: false, callout: null, tip: null, markers: [], hiddenId: null, osmHeight: 0, lastKey: '',
 
   init() {
     try {
-      this.map = new maplibregl.Map({ container: 'map', style: 'https://tiles.openfreemap.org/styles/dark', center: [-95.47, 29.83], zoom: 9.4, pitch: 45, bearing: -12, attributionControl: { compact: true } });
+      this.map = new maplibregl.Map({ container: 'map', style: 'https://tiles.openfreemap.org/styles/dark', center: [-95.47, 29.83], zoom: 9.4, pitch: 45, bearing: -12, dragPan: true, attributionControl: { compact: true } });
       this.ok = true;
     } catch (e) { this.ok = false; return; }
     const map = this.map;
+    map.on('error', event => {
+      if (this.mode === 'vexcel' && event.sourceId === 'vexcel') {
+        toast('Vexcel imagery is unavailable for this view.');
+      }
+    });
     map.on('load', () => {
       const firstSymbol = (map.getStyle().layers.find(l => l.type === 'symbol') || {}).id;
       map.addLayer({ id: 'oasis-3d', type: 'fill-extrusion', source: 'openmaptiles', 'source-layer': 'building', minzoom: 12.5,
         paint: { 'fill-extrusion-color': ['interpolate', ['linear'], ['coalesce', ['get', 'render_height'], 6], 0, '#22323A', 60, '#2F444E', 200, '#3F5863'],
           'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 6], 'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0], 'fill-extrusion-opacity': 0.92 } }, firstSymbol);
       const empty = { type: 'FeatureCollection', features: [] };
-      ['pts', 'halo', 'rings', 'stack'].forEach(id => map.addSource(id, { type: 'geojson', data: empty }));
+      ['pts', 'halo', 'outline', 'selected-building', 'rings', 'stack'].forEach(id => map.addSource(id, { type: 'geojson', data: empty }));
       map.addLayer({ id: 'halo-glow', type: 'circle', source: 'halo', paint: { 'circle-color': '#F5A524', 'circle-blur': 0.9, 'circle-opacity': 0.55, 'circle-pitch-alignment': 'map',
         'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 10, 14, 14, 44, 17, 190] } });
       map.addLayer({ id: 'halo-ring', type: 'circle', source: 'halo', paint: { 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': '#F5A524', 'circle-stroke-width': 2.2, 'circle-pitch-alignment': 'map',
         'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 10, 9, 14, 28, 17, 120] } });
+      map.addLayer({ id: 'outline-glow', type: 'line', source: 'outline',
+        paint: { 'line-color': '#F5A524', 'line-opacity': 0.6, 'line-width': 12, 'line-blur': 6 } });
+      map.addLayer({ id: 'outline', type: 'line', source: 'outline',
+        paint: { 'line-color': '#FFC25C', 'line-width': 2.5 } });
+      map.addLayer({ id: 'selected-building', type: 'fill-extrusion', source: 'selected-building',
+        paint: { 'fill-extrusion-color': '#C78A30', 'fill-extrusion-height': ['get', 'height'], 'fill-extrusion-opacity': 0.84 } });
       map.addLayer({ id: 'rings', type: 'line', source: 'rings', paint: { 'line-color': '#FFFFFF', 'line-opacity': 0.55, 'line-width': 1.4, 'line-dasharray': [3, 3] } });
       map.addLayer({ id: 'stack', type: 'fill-extrusion', source: 'stack', paint: { 'fill-extrusion-color': ['get', 'color'], 'fill-extrusion-height': ['get', 'top'], 'fill-extrusion-base': ['get', 'base'], 'fill-extrusion-opacity': 1 } });
       map.addLayer({ id: 'pts-match', type: 'circle', source: 'pts', filter: ['==', ['get', 'ring'], true], paint: { 'circle-radius': 15, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2 } });
       map.addLayer({ id: 'pts', type: 'circle', source: 'pts', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 5, 12, 8, 16, 10], 'circle-color': ['get', 'color'],
         'circle-stroke-color': '#0D1920', 'circle-stroke-width': 2, 'circle-opacity': ['get', 'op'], 'circle-stroke-opacity': ['get', 'op'] } });
 
+      map.dragPan.enable();
+      map.touchZoomRotate.enableRotation();
+      map.getCanvas().setAttribute('aria-label', 'Houston map. Drag or use arrow keys to pan. Right-drag to rotate and tilt.');
       let onStack = false;
       map.on('click', 'stack', e => { onStack = true; const f = e.features[0]; if (f && S.an) { S.floor = f.properties.floor; S.floorErr = null; if (S.tab !== 'floors' || S.view !== 'building') go(bHash('floors')); else render(); } });
-      map.on('click', 'pts', e => { if (onStack) { onStack = false; return; } const b = S.byId[e.features[0].properties.id]; if (!b) return;
-        if (S.sel && S.sel.property_id === b.property_id && S.an) return; selectBuilding(b, false); S.view = 'building'; S.tab = 'verdict'; history.replaceState(null, '', bHash('verdict', b.property_id)); render(); });
+      map.on('click', 'pts', e => {
+        if (onStack) return;
+        selectMapBuilding(S.byId[e.features[0].properties.id]);
+      });
       map.on('click', () => { onStack = false; });
       ['pts', 'stack'].forEach(l => { map.on('mouseenter', l, () => { map.getCanvas().style.cursor = 'pointer'; }); map.on('mouseleave', l, () => { map.getCanvas().style.cursor = ''; if (this.tip) { this.tip.remove(); this.tip = null; } }); });
       map.on('mousemove', 'pts', e => { const p = e.features[0].properties; if (!this.tip) this.tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12, className: 'hovertip' }).addTo(map);
@@ -685,9 +781,118 @@ const M = {
     });
   },
 
+  async changeMode(mode) {
+    const select = $('#mapMode');
+    select.disabled = true;
+    try {
+      if (mode !== 'dark') this.mapConfig ||= await api('/api/map-config');
+      if (mode === 'google') {
+        const key = this.mapConfig.google_browser_key;
+        if (!key) throw new Error('Add GOOGLE_MAPS_DEMO_KEY to .env and restart Oasis.');
+        if (!this.google) {
+          const script = document.createElement('script');
+          const loaded = new Promise((resolve, reject) => {
+            const fail = () => {
+              delete window.oasisGoogleReady;
+              script.remove();
+              reject(new Error('Google 3D could not load. Check the key and its website restrictions.'));
+            };
+            const timer = setTimeout(fail, 12000);
+            window.oasisGoogleReady = () => {
+              clearTimeout(timer);
+              delete window.oasisGoogleReady;
+              resolve();
+            };
+            script.onerror = () => { clearTimeout(timer); fail(); };
+          });
+          script.src = 'https://maps.googleapis.com/maps/api/js?' + new URLSearchParams({
+            key, loading: 'async', callback: 'oasisGoogleReady', libraries: 'maps3d',
+          });
+          document.head.append(script);
+          await loaded;
+          const { Map3DElement } = await google.maps.importLibrary('maps3d');
+          this.google = new Map3DElement({ mode: 'SATELLITE', tilt: 55 });
+          this.googleMarkers = new Map();
+          const { Marker3DInteractiveElement, Polyline3DElement } = await google.maps.importLibrary('maps3d');
+          for (const building of S.ov.buildings) {
+            const marker = new Marker3DInteractiveElement({
+              position: { lat: building.latitude, lng: building.longitude },
+              title: building.name, altitudeMode: 'CLAMP_TO_GROUND', drawsWhenOccluded: true,
+            });
+            marker.addEventListener('gmp-click', () => selectMapBuilding(building));
+            this.googleMarkers.set(building.property_id, marker);
+            this.google.append(marker);
+          }
+          this.googleOutline = new Polyline3DElement({
+            altitudeMode: 'RELATIVE_TO_GROUND', strokeColor: '#ffc25c',
+            outerColor: '#503000', outerWidth: 0.4, strokeWidth: 7, drawsOccludedSegments: true,
+          });
+          $('#google-map').append(this.google);
+        }
+        this.closeCallout();
+        this.centerGoogle(S.sel);
+      }
+      if (mode === 'vexcel') {
+        if (!this.mapConfig.vexcel_imagery) throw new Error('Add VEXCEL_IMAGERY_API_KEY with imagery access to .env and restart Oasis.');
+        if (!this.ready) throw new Error('Wait for the map to finish loading.');
+        if (!this.map.getSource('vexcel')) {
+          this.map.addSource('vexcel', { type: 'raster', tiles: [location.origin + '/api/map/vexcel/{z}/{x}/{y}.png'],
+            tileSize: 256, minzoom: 10, maxzoom: 21, attribution: 'Aerial imagery © Vexcel Imaging' });
+          this.map.addLayer({ id: 'vexcel', type: 'raster', source: 'vexcel' }, 'outline-glow');
+        }
+        if (this.map.getZoom() < 10) this.map.easeTo({ zoom: 11 });
+      }
+      if (this.map?.getLayer('vexcel')) this.map.setLayoutProperty('vexcel', 'visibility', mode === 'vexcel' ? 'visible' : 'none');
+      this.mode = mode;
+      $('#map').hidden = mode === 'google';
+      $('#google-map').hidden = mode !== 'google';
+      if (mode !== 'google') this.map?.resize();
+      render();
+    } catch (error) {
+      toast(error.message);
+    } finally {
+      select.value = this.mode;
+      select.disabled = false;
+    }
+  },
+
+  tiltBy(degrees) {
+    if (this.mode === 'google' && this.google) {
+      this.google.tilt = Math.max(0, Math.min(75, (this.google.tilt ?? 55) + degrees));
+    } else if (this.ready) {
+      this.map.easeTo({ pitch: Math.max(0, Math.min(this.map.getMaxPitch(), this.map.getPitch() + degrees)), duration: 250 });
+    }
+  },
+
+  centerGoogle(building) {
+    if (!this.google) return;
+    this.google.center = { lat: building?.latitude ?? 29.76, lng: building?.longitude ?? -95.37, altitude: 0 };
+    this.google.range = building ? 950 : 11000;
+  },
+
   set(id, features) { if (this.ready) this.map.getSource(id).setData({ type: 'FeatureCollection', features }); },
 
   sync() {
+    if (this.mode === 'google') {
+      const ring = S.an?.footprint || S.sel?.footprint;
+      for (const building of S.ov.buildings) {
+        const marker = this.googleMarkers.get(building.property_id);
+        const selected = building === S.sel;
+        marker.label = selected ? building.name : '';
+        const show = selected ? !ring : !searching() || matches(building);
+        if (show && !marker.parentNode) this.google.append(marker);
+        if (!show && marker.parentNode) marker.remove();
+      }
+      if (ring) {
+        const coordinates = ring.map(([lng, lat]) => ({ lat, lng, altitude: 1 }));
+        // Older Maps JavaScript channels expose coordinates instead of path.
+        if ('path' in this.googleOutline) this.googleOutline.path = coordinates;
+        else this.googleOutline.coordinates = coordinates;
+        if (!this.googleOutline.parentNode) this.google.append(this.googleOutline);
+      } else {
+        this.googleOutline.remove();
+      }
+    }
     if (!this.ready || !S.ov) return;
     const key = JSON.stringify([S.view, S.tab, S.q, S.near, S.dist, S.positiveOnly, S.sel && S.sel.property_id, S.floor, S.placeKind, !!S.area, !!S.an, S.full, S.floors && S.floors.floors.length]);
     if (key === this.lastKey) return;
@@ -697,7 +902,7 @@ const M = {
     this.set('pts', S.ov.buildings.map(b => {
       const m = !filtering || matches(b), isSel = S.sel && S.sel.property_id === b.property_id;
       return { type: 'Feature', geometry: { type: 'Point', coordinates: [b.longitude, b.latitude] },
-        properties: { id: b.property_id, name: b.name, color: SRC_COLOR[b.source], op: isSel && S.an && S.an.source !== 'scan' ? 0 : m ? 1 : 0.18, ring: filtering && m && filtersActive() } };
+        properties: { id: b.property_id, name: b.name, color: SRC_COLOR[b.source], op: isSel && !S.armed && (S.an?.footprint || S.sel.footprint) ? 0 : m ? 1 : 0.18, ring: filtering && m && filtersActive() } };
     }));
     this.colorStack();
     this.drawPlaces();
@@ -705,56 +910,89 @@ const M = {
     this.wasBuilding = !home;
   },
 
-  overview() { if (this.ready) this.map.flyTo({ center: [-95.47, 29.83], zoom: 9.4, pitch: 45, bearing: -12, duration: 900 }); },
+  overview() { if (this.mode === 'google') this.centerGoogle(null); if (this.ready) this.map.flyTo({ center: [-95.47, 29.83], zoom: 9.4, pitch: 45, bearing: -12, duration: 900 }); },
 
   focus(b, armed) {
+    if (this.mode === 'google') this.centerGoogle(b);
     if (!this.ready) return;
-    this.set('halo', [{ type: 'Feature', geometry: { type: 'Point', coordinates: [b.longitude, b.latitude] }, properties: {} }]);
-    this.map.flyTo({ center: [b.longitude, b.latitude], zoom: 16.2, pitch: 62, bearing: -24, duration: 1400, essential: true });
+    this.drawStack();
+    this.map.flyTo({ center: [b.longitude, b.latitude], zoom: 14.95, pitch: 40, bearing: -24, duration: 1400 });
     this.closeCallout();
-    if (armed) {
+    if (armed && this.mode !== 'google') {
       const el = document.createElement('div');
-      el.style.cssText = 'display:flex;align-items:center;gap:10px';
-      el.innerHTML = `<span>${esc(b.name)}</span><button class="btn amber" data-act="analyze">${ic('spark', 16)}Analyze</button>`;
-      this.callout = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 46, className: 'callout', anchor: 'bottom' }).setLngLat([b.longitude, b.latitude]).setDOMContent(el).addTo(this.map);
+      el.className = 'callout-row';
+      el.innerHTML = `<span>${esc(b.name)}</span><button class="btn amber" data-act="analyze">Analyze</button>${overlayControls('selection', 'building popup')}`;
+      this.callout = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 30, maxWidth: 'min(260px, 70vw)', className: 'callout', anchor: 'bottom' }).setLngLat([b.longitude, b.latitude]).setDOMContent(el).addTo(this.map);
     }
+  },
+
+  drawHighlight() {
+    const b = S.sel;
+    if (!b) return;
+    const ring = S.an?.footprint || b.footprint;
+    const outline = ring ? [{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } }] : [];
+    this.set('outline', outline);
+    this.set('halo', ring ? [] : [{ type: 'Feature', geometry: { type: 'Point', coordinates: [b.longitude, b.latitude] }, properties: {} }]);
   },
   closeCallout() { if (this.callout) { this.callout.remove(); this.callout = null; } },
 
   clearSelection() {
-    this.closeCallout(); this.set('halo', []); this.set('stack', []); this.set('rings', []);
+    this.closeCallout(); this.set('halo', []); this.set('outline', []); this.set('selected-building', []); this.set('stack', []); this.set('rings', []);
     this.markers.forEach(m => m.remove()); this.markers = [];
+    if (this.ready) this.map.setLayoutProperty('oasis-3d', 'visibility', 'visible');
     if (this.ready && this.hiddenId != null) { this.map.setFilter('oasis-3d', null); }
-    this.hiddenId = null; this.osmHeight = 0; this.ring = null; this.areaZoomed = null;
+    this.hiddenId = null; this.osmHeight = 0; this.areaZoomed = null;
   },
 
-  footprint() {
-    const b = S.sel, a = S.an;
-    if (a && a.footprint && a.footprint.length > 3) return a.footprint;
-    const side = Math.sqrt((b.typical_floor_sqft || 20000) * 0.0929) / 2, dLat = side / 111320, dLon = side / (111320 * Math.cos(b.latitude * Math.PI / 180));
-    return [[b.longitude - dLon, b.latitude - dLat], [b.longitude + dLon, b.latitude - dLat], [b.longitude + dLon, b.latitude + dLat], [b.longitude - dLon, b.latitude + dLat], [b.longitude - dLon, b.latitude - dLat]];
+  drawStack() {
+    if (!this.ready || !S.sel) return;
+    this.drawHighlight();
+    this.colorStack();
   },
-
-  drawStack() { if (this.ready && S.sel && S.an) { this.ring = this.footprint(); this.colorStack(); } },
 
   colorStack() {
-    if (!this.ready || !S.sel || !S.an || !this.ring) return;
-    const fl = floorList(); if (!fl.length || S.an.source === 'scan') { this.set('stack', []); return; }
-    const h = Math.max(3.9, (this.osmHeight + 1.5) / fl.length);
-    this.set('stack', fl.map((f, i) => ({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [this.ring] },
-      properties: { floor: f.floor, base: i * h + 0.25, top: (i + 1) * h - 0.25, color: f.floor === S.floor ? '#FFFFFF' : f.best ? '#45D3BC' : '#DDA033' } })));
+    if (!this.ready || !S.sel) return;
+    const ring = S.an?.footprint || S.sel.footprint;
+    const fl = floorList();
+    const height = this.osmHeight || (S.sel.stories || fl.length || S.sel.floor_name || 1) * 3.9;
+    const geometry = ring && { type: 'Polygon', coordinates: [ring] };
+    const showFloors = geometry && S.tab === 'floors' && S.an?.source !== 'scan' && fl.length;
+    const showSelectedBuilding = Boolean(geometry && height > 0);
+    const visibility = showSelectedBuilding ? 'none' : 'visible';
+    if (this.map.getLayoutProperty('oasis-3d', 'visibility') !== visibility) {
+      this.map.setLayoutProperty('oasis-3d', 'visibility', visibility);
+    }
+    this.set('selected-building', showSelectedBuilding && !showFloors
+      ? [{ type: 'Feature', geometry, properties: { height } }] : []);
+    const h = height / fl.length;
+    this.set('stack', showFloors ? fl.map((f, i) => ({ type: 'Feature', geometry,
+      properties: { floor: f.floor, base: i * h, top: (i + 1) * h - Math.min(0.25, h / 4), color: f.floor === S.floor ? '#FFFFFF' : f.best ? '#45D3BC' : '#DDA033' } })) : []);
   },
 
   hideOsmTwin() {
-    if (!S.sel || !S.an || S.an.source === 'scan' || this.hiddenId != null || this.map.getZoom() < 14 || this.map.isMoving()) return;
-    const pt = this.map.project([S.sel.longitude, S.sel.latitude]);
-    const feats = this.map.queryRenderedFeatures([[pt.x - 6, pt.y - 6], [pt.x + 6, pt.y + 6]], { layers: ['oasis-3d'] });
-    if (!feats.length) { this.hiddenId = -1; return; }
-    const tallest = feats.reduce((m, f) => Math.max(m, f.properties.render_height || 0), 0);
-    const ids = [...new Set(feats.map(f => f.id).filter(id => id != null))];
-    this.hiddenId = ids.length ? ids[0] : -1;
-    if (ids.length) this.map.setFilter('oasis-3d', ['!', ['in', ['id'], ['literal', ids]]]);
-    else this.osmHeight = tallest;
+    if (!S.sel || !(S.an?.footprint || S.sel.footprint) || this.hiddenId != null || this.map.getZoom() < 14 || this.map.isMoving()) return;
+    const [x, y] = [S.sel.longitude, S.sel.latitude];
+    const contains = ring => {
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i], [xj, yj] = ring[j];
+        if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+      }
+      return inside;
+    };
+    if (!this.map.getSource('openmaptiles')) return;
+    const candidates = this.map.querySourceFeatures('openmaptiles', { sourceLayer: 'building' });
+    const matches = candidates.filter(f => {
+      const polygons = f.geometry.type === 'Polygon' ? [f.geometry.coordinates]
+        : f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : [];
+      return polygons.some(([outer, ...holes]) => contains(outer) && !holes.some(contains));
+    });
+    const match = matches.reduce((best, f) => !best || (f.properties.render_height || 0) >
+      (best.properties.render_height || 0) ? f : best, null);
+    if (!match) return;
+    this.hiddenId = match.id ?? -1;
+    if (match.id != null) this.map.setFilter('oasis-3d', ['!=', ['id'], match.id]);
+    this.osmHeight = Number(match.properties.render_height) || 0;
     this.colorStack();
   },
 
@@ -780,6 +1018,27 @@ const M = {
 
 // ---------- events ----------
 const ACT = {
+  'overlay-minimize'(el) {
+    const id = el.dataset.overlay;
+    if (id === 'confirm') S.preview = $('#preview').checked;
+    if (id === 'selection') M.closeCallout();
+    S.minimized.add(id);
+    render();
+  },
+  'overlay-restore'(el) {
+    const id = el.dataset.overlay;
+    S.minimized.delete(id);
+    if (id === 'selection' && S.armed) M.focus(S.sel, true);
+    render();
+  },
+  'overlay-close'(el) {
+    const id = el.dataset.overlay;
+    if (id === 'quotes' || id === 'selection') { go('#/'); return; }
+    if (id === 'plan') { ACT['plan-close'](); return; }
+    if (id === 'confirm') { ACT['modal-close'](); return; }
+    S.closed.add(id);
+    render();
+  },
   'toggle-full'() { S.full = !S.full; render(); if (S.full) { const q2 = $('#q2'); if (q2 && searching()) q2.focus(); } },
   'toggle-filters'() { S.showFilters = !S.showFilters; if (S.showFilters && S.view !== 'home') { go('#/'); return; } render(); },
   'clear-filters'() { Object.keys(S.near).forEach(k => { S.near[k] = false; }); S.positiveOnly = false; render(); },
@@ -787,12 +1046,14 @@ const ACT = {
   positive() { S.positiveOnly = !S.positiveOnly; render(); },
   'show-all'() { S.showAll = !S.showAll; render(); },
   open(el) { if (S.full) S.full = false; go(bHash('verdict', el.dataset.id)); },
-  analyze() { runAnalysis(S.sel.floor_name); },
+  analyze() { if (S.sel && !S.anLoading) runAnalysis(S.sel.floor_name); },
   'analyze-floor'() { runAnalysis(S.floor); },
   report() { downloadReport(); },
+  'quote-report'() { download('oasis-report.html', buildReport(), 'text/html'); },
+  'quote-plan'() { if (S.plan) download('tentative-floor-plan.svg', planSvg(S.plan, 'after', null, true), 'image/svg+xml'); },
   floor(el) { S.floor = +el.dataset.floor; S.floorErr = null; render(); },
-  'plan-open'() { if (S.plan) { S.planOpen = true; S.planView = 'after'; render(); } },
-  'plan-close'() { S.planOpen = false; render(); },
+  'plan-open'() { if (S.plan) { S.minimized.delete('plan'); S.planOpen = true; S.planView = 'after'; render(); } },
+  'plan-close'() { S.minimized.delete('plan'); S.planOpen = false; render(); },
   'plan-view'(el) { S.planView = el.dataset.view; S.planUnit = null; render(); },
   'plan-regen'() { loadPlan(S.planMix); },
   'plan-download'() { download(`floor-${S.floor}-tentative-plan.svg`, planSvg(S.plan, 'after', null, true), 'image/svg+xml'); toast('Floor plan downloaded.'); },
@@ -800,33 +1061,38 @@ const ACT = {
   unit(el) { S.planUnit = +el.dataset.i; render(); },
   'place-kind'(el) { S.placeKind = el.dataset.kind; render(); },
   'board-again'() { startBoard(true); },
-  proceed() { S.modal = true; render(); const y = $('[data-act="proceed-yes"]'); if (y) y.focus(); },
+  proceed() { S.minimized.delete('confirm'); S.modal = true; render(); const y = $('[data-act="proceed-yes"]'); if (y) y.focus(); },
   decline() { toast('Okay. Nothing was sent.'); go(bHash('verdict')); },
-  'modal-close'() { S.modal = false; render(); },
+  'modal-close'() { S.minimized.delete('confirm'); S.modal = false; render(); },
   'proceed-yes'() { S.preview = $('#preview').checked; openQuotes(); },
   pick(el) { readDraft(); if (el.checked) S.quotes.picked.add(el.dataset.id); else S.quotes.picked.delete(el.dataset.id); render(); },
   send() { sendQuotes(); },
   profile() { const p = $('#profilePop'), open = p.hidden; p.hidden = !open; $('#profileBtn').setAttribute('aria-expanded', String(open)); },
-  rotate() { M.map.easeTo({ bearing: M.map.getBearing() + 45, duration: 600 }); },
-  'zoom-in'() { M.map.zoomIn(); }, 'zoom-out'() { M.map.zoomOut(); },
-  recenter() { if (S.sel) M.map.flyTo({ center: [S.sel.longitude, S.sel.latitude], zoom: 16.2, pitch: 62, bearing: -24, duration: 900 }); },
+  'rotate-left'() { if (M.ready) M.map.easeTo({ bearing: M.map.getBearing() - 45, duration: 600 }); },
+  rotate() { if (M.ready) M.map.easeTo({ bearing: M.map.getBearing() + 45, duration: 600 }); },
+  'zoom-in'() { if (M.ready) M.map.zoomIn(); }, 'zoom-out'() { if (M.ready) M.map.zoomOut(); },
+  'tilt-up'() { M.tiltBy(15); },
+  'tilt-down'() { M.tiltBy(-15); },
+  recenter() { if (M.ready && S.sel) M.map.flyTo({ center: [S.sel.longitude, S.sel.latitude], zoom: 14.95, pitch: 40, bearing: -24, duration: 900 }); },
 };
 
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   if (!$('#profilePop').hidden && !e.target.closest('#profilePop') && !(el && el.dataset.act === 'profile')) { $('#profilePop').hidden = true; $('#profileBtn').setAttribute('aria-expanded', 'false'); }
-  if (!el || el.disabled) return;
+  if (!el || el.disabled || !S.ov) return;
   if (el.tagName === 'INPUT' && el.type === 'checkbox') return;  // handled on change
   ACT[el.dataset.act] && ACT[el.dataset.act](el);
 });
 document.addEventListener('change', e => { const el = e.target; if (el.dataset && el.dataset.act === 'pick') ACT.pick(el); });
 document.addEventListener('input', e => {
+  if (!S.ov) return;
   const el = e.target;
+  if (el.id === 'mailSubject' || el.id === 'mailBody') { readDraft(); return; }
   if (el.id === 'q' || el.id === 'q2') {
     S.q = el.value; if (el.id === 'q2') $('#q').value = S.q;
     if (el.id === 'q' && S.view !== 'home') { go('#/'); return; }
-    const pos = el.selectionStart; render();
-    if (el.id === 'q2') { const n = $('#q2'); n.focus(); n.setSelectionRange(pos, pos); }
+    render();
+    if (el.id === 'q2') $('#q2')?.focus();
   } else if (el.id === 'dist') {
     S.dist = +el.value; $('#distLabel').textContent = `Within ${S.dist} mile${S.dist === 1 ? '' : 's'} of each`;
     clearTimeout(ACT.distT); ACT.distT = setTimeout(() => { const had = document.activeElement && document.activeElement.id === 'dist'; render(); if (had) $('#dist').focus(); }, 180);
@@ -834,7 +1100,7 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (S.modal) ACT['modal-close'](); else if (S.planOpen) ACT['plan-close'](); else if (!$('#profilePop').hidden) ACT.profile();
+  if (S.view === 'quotes') go('#/'); else if (S.modal) ACT['modal-close'](); else if (S.planOpen) ACT['plan-close'](); else if (!$('#profilePop').hidden) ACT.profile();
 });
 window.addEventListener('hashchange', route);
 
@@ -845,13 +1111,13 @@ window.addEventListener('hashchange', route);
   try { S.ov = await api('/api/overview'); }
   catch (e) { $('#panel').innerHTML = `<div class="notice err">Could not load the building list. ${esc(e.message)}</div>`; return; }
   S.ov.buildings.forEach(b => { S.byId[b.property_id] = b; });
-  const src = S.ov.sources, line = (ok, title, yes, no) => `<div class="src-row"><span style="color:${ok ? 'var(--teal)' : 'var(--amber-txt)'}">${ic(ok ? 'check' : 'alert', 18, 2.2)}</span><div><b>${title}</b><span>${ok ? yes : no}</span></div></div>`;
-  $('#profilePop').innerHTML = `<b style="font-size:15px">Demo account</b><span class="eyebrow">Data sources</span>
-    ${line(src.costar, 'CoStar lease and rent data', 'Loaded, analyses run live', 'Not on this machine, showing saved results')}
-    ${line(src.vexcel, 'Vexcel aerial footprints', 'Key set, new buildings fetch live', 'No key, cached footprints only')}
-    ${line(src.agents, 'AI agents', 'Live Claude agents', 'No key, boardroom is written by rule')}
-    ${line(src.places, 'Nearby places', 'OpenStreetMap, cached', 'Could not be loaded')}
-    ${line(src.census, 'Census demographics', 'Key set', 'Add CENSUS_API_KEY to turn on')}`;
+  $('#profilePop').innerHTML = `<b class="profile-name">${PROFILE.name}</b>
+    <dl class="profile-details">
+      <dt>Email</dt><dd>${PROFILE.email}</dd>
+      <dt>Phone</dt><dd>${PROFILE.phone}</dd>
+      <dt>Location</dt><dd>${PROFILE.location}</dd>
+    </dl>`;
   M.init();
+  $('#mapMode').addEventListener('change', e => M.changeMode(e.target.value));
   route();
 })();
