@@ -348,6 +348,7 @@ class FloorValueResult:
     implied_value_impact_low: float
     implied_value_impact_high: float
     local_apartment_vacancy_rate: float | None = None  # real leasing-risk signal
+    value_confidence: float = 0.0  # fraction of the dollar figure backed by real data vs. defaults
     reasoning_text: str = ""
     notes: list[str] = field(default_factory=list)
 
@@ -617,6 +618,19 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
     implied_low = value_uplift / cap_rate - cost_high
     implied_high = value_uplift / cap_rate - cost_low
 
+    # Real signal, not a one-off manual check: how much of THIS dollar figure
+    # rests on real data vs. stated defaults. Column depth is deliberately
+    # left out here - that's already penalized in geometry_confidence, and
+    # double-counting it would bias rank_score toward buildings that happen
+    # to have it for a reason unrelated to the VALUE math's own confidence.
+    # Reuses the source strings already computed above - no new lookups.
+    value_confidence = sum([
+        cap_rate_source.startswith("real"),
+        rent_source.startswith("real") or rent_source.startswith("floor confirmed vacant"),
+        cost_multiplier_source.startswith("real"),
+        not rent_comp_source.startswith("assumed") and not rent_comp_source.startswith("no location"),
+    ]) / 4.0
+
     reasoning = (
         f"Floor {floor_name}: office rent ${office_rent:.2f}/sf/yr ({rent_source}) vs. "
         f"residential ${residential_rent:.2f}/sf/yr ({rent_comp_source}) -> ${value_uplift:,.0f}/yr uplift on "
@@ -636,7 +650,7 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
         convertible_sqft=convertible_sqft, value_uplift_low=value_uplift * 0.85,
         value_uplift_high=value_uplift * 1.15, implied_value_impact_low=implied_low,
         implied_value_impact_high=implied_high, local_apartment_vacancy_rate=vacancy_rate,
-        reasoning_text=reasoning, notes=notes,
+        value_confidence=value_confidence, reasoning_text=reasoning, notes=notes,
     )
 
 

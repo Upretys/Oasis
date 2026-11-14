@@ -42,6 +42,7 @@ class PipelineResult:
     value_uplift_high: float | None
     implied_value_impact_low: float | None
     implied_value_impact_high: float | None
+    value_confidence: float
     reasoning_text: str
     notes: list[str]
 
@@ -82,7 +83,7 @@ def run_pipeline(
             window_to_core_max_ft=geo.window_to_core_max_ft, convertible_fraction=geo.convertible_fraction,
             value_skipped=True, value_uplift_low=None, value_uplift_high=None,
             implied_value_impact_low=None, implied_value_impact_high=None,
-            reasoning_text=reasoning, notes=notes,
+            value_confidence=0.0, reasoning_text=reasoning, notes=notes,
         )
 
     # Use real, apartment-sized viable square footage - not the raw geometric
@@ -126,7 +127,7 @@ def run_pipeline(
         value_uplift_low=round(val.value_uplift_low, 0), value_uplift_high=round(val.value_uplift_high, 0),
         implied_value_impact_low=round(val.implied_value_impact_low, 0),
         implied_value_impact_high=round(val.implied_value_impact_high, 0),
-        reasoning_text=reasoning, notes=notes,
+        value_confidence=val.value_confidence, reasoning_text=reasoning, notes=notes,
     )
 
 
