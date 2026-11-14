@@ -139,6 +139,19 @@ def test_falsifier_numbers_must_come_from_visible_evidence(falsifier, ok):
             llm.parse("engineer", 0, raw, seats.visible("engineer", EV), set())
 
 
+def test_the_buildings_own_street_number_is_not_an_invented_number():
+    name = (HERO.name,)   # "210 Commerce Street (demo)"
+    raw = {**GOOD, "claims": [{"text": "At 210 Commerce Street the deepest point is 153 ft from a window.",
+                               "evidence_ids": ["E-GEO-02"], "kind": "risk"}]}
+    vis = seats.visible("engineer", EV)
+    assert llm.parse("engineer", 0, raw, vis, set(), name)
+    with pytest.raises(ValueError, match="states 210"):
+        llm.parse("engineer", 0, raw, vis, set())                     # without the name it is flagged
+    raw["claims"][0]["text"] = "The plate is 210 ft deep."               # same number, not the address
+    with pytest.raises(ValueError, match="states 210 ft"):
+        llm.parse("engineer", 0, raw, vis, set(), name)
+
+
 @pytest.mark.parametrize("target,msg", [("ANL-0-9", "not an earlier claim"), ("ENG-0-1", "your own claim"),
                                         (None, "without target_claim_id")])
 def test_rebuttal_must_target_another_seats_real_claim(target, msg):

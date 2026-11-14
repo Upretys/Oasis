@@ -86,7 +86,7 @@ def run_seat(seat: SeatId, building: Building, rnd: int, transcript: list[Statem
     return llm.call_statement(
         seat, rnd, build_system_prompt(seat, building), build_user_prompt(building, rnd, list(transcript)),
         visible(seat, _evidence(building)), prior_claim_ids={c.id for st in transcript for c in st.claims},
-        building_id=building.building_id, client=client)
+        building_id=building.building_id, names=(building.name,), client=client)
 
 
 def golden_transcript(building_id: str, before_round: int) -> list[Statement]:

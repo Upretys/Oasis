@@ -78,13 +78,23 @@ def _show(n: Number) -> str:
     return f"{n[0]:.10g}" + {"pct": "%", "usd": " dollars", None: ""}.get(n[1], f" {n[1]}")
 
 
-def check(seat: SeatId, st: Statement, visible: list[Evidence], prior_claim_ids: set[str]) -> list[str]:
+def _drop_addresses(text: str, names: tuple[str, ...]) -> str:
+    """Remove street numbers that belong to the building's own name ('210 Commerce'), so they are not checked."""
+    for name in names:
+        for num, word in re.findall(r"\b(\d+)\s+([A-Za-z]+)", name):
+            text = re.sub(rf"\b{num}\s+{word}\b", word, text, flags=re.I)
+    return text
+
+
+def check(seat: SeatId, st: Statement, visible: list[Evidence], prior_claim_ids: set[str],
+          names: tuple[str, ...] = ()) -> list[str]:
     """Every rule the statement breaks; an empty list means valid."""
     by_id = {e.id: e for e in visible}
     errors = []
     items = [(c.id, c.text, c.evidence_ids) for c in st.claims] + \
             [(f"condition {i}", c.text, c.evidence_ids) for i, c in enumerate(st.conditions, 1)]
     for label, text, ids in items:
+        text = _drop_addresses(text, names)
         if hidden := [i for i in ids if i not in by_id]:
             errors.append(f"{label} cites {hidden}: not in your evidence list")
         for n in _unsupported(text, [by_id[i] for i in ids if i in by_id]):
@@ -93,7 +103,7 @@ def check(seat: SeatId, st: Statement, visible: list[Evidence], prior_claim_ids:
             hint = (f"add {holders[0]} to its evidence_ids" if holders else
                     "remove it: no evidence holds it, and ratios or other arithmetic you compute are not evidence")
             errors.append(f"{label} states {_show(n)}, which its cited evidence does not contain: {hint}")
-    for n in _unsupported(st.would_change_my_mind, visible):   # no citations: check against all it can see
+    for n in _unsupported(_drop_addresses(st.would_change_my_mind, names), visible):   # no citations: check against all it can see
         errors.append(f"would_change_my_mind states {_show(n)}, which none of your evidence holds: "
                       "use a value from your evidence or say it without a number")
     for c in st.claims:
@@ -106,7 +116,8 @@ def check(seat: SeatId, st: Statement, visible: list[Evidence], prior_claim_ids:
     return errors
 
 
-def parse(seat: SeatId, rnd: int, raw: dict | None, visible: list[Evidence], prior_claim_ids: set[str]) -> Statement:
+def parse(seat: SeatId, rnd: int, raw: dict | None, visible: list[Evidence], prior_claim_ids: set[str],
+          names: tuple[str, ...] = ()) -> Statement:
     if raw is None:
         raise ValueError("you did not call submit_statement")
     try:
@@ -115,7 +126,7 @@ def parse(seat: SeatId, rnd: int, raw: dict | None, visible: list[Evidence], pri
         raise ValueError(str(e)) from None
     for k, c in enumerate(st.claims, 1):
         c.id = f"{PFX[seat]}-{rnd}-{k}"            # the backend assigns claim IDs
-    if errors := check(seat, st, visible, prior_claim_ids):
+    if errors := check(seat, st, visible, prior_claim_ids, names):
         raise ValueError("; ".join(errors))
     return st
 
@@ -153,6 +164,7 @@ def golden_statement(building_id: str, seat: SeatId, rnd: int) -> Statement:
 
 def call_statement(seat: SeatId, round: int, system: str, user: str, evidence_visible: list[Evidence],
                    prior_claim_ids: set[str] = frozenset(), building_id: str = "hero",
+                   names: tuple[str, ...] = (),
                    client=None) -> StatementEvent:
     messages = [{"role": "user", "content": user}]
     try:
@@ -160,7 +172,7 @@ def call_statement(seat: SeatId, round: int, system: str, user: str, evidence_vi
             content = _create(messages, system, client)
             raw = next((b["input"] for b in content if b["type"] == "tool_use"), None)
             try:
-                return StatementEvent(statement=parse(seat, round, raw, evidence_visible, prior_claim_ids))
+                return StatementEvent(statement=parse(seat, round, raw, evidence_visible, prior_claim_ids, names))
             except ValueError as err:
                 if attempt == 2:
                     raise
