@@ -255,6 +255,25 @@ function renderLegalPanel(lc) {
   `;
 }
 
+function renderLivabilityPanel(lv) {
+  if (!lv) return '';
+  if (lv.error) {
+    return `<div class="legal-panel"><h3>Nearby amenities (real, OpenStreetMap)</h3>
+      <div class="legal-item na"><span class="icon">&#8505;&#65039;</span><span>Unavailable right now - ${lv.error}</span></div></div>`;
+  }
+  const labels = { schools: 'Schools', hospitals: 'Hospitals', parks: 'Parks', grocery: 'Grocery' };
+  const rows = Object.entries(labels).map(([key, label]) => {
+    const info = lv[key] || { count: 0, examples: [] };
+    const cls = info.count > 0 ? 'ok' : 'na';
+    const icon = info.count > 0 ? '&#9989;' : '&#8505;&#65039;';
+    const text = info.count > 0
+      ? `${label}: ${info.count} nearby - ${info.examples.join(', ')}`
+      : `${label}: none found nearby (real OpenStreetMap data - may reflect real tagging gaps, not necessarily zero amenities)`;
+    return `<div class="legal-item ${cls}"><span class="icon">${icon}</span><span>${text}</span></div>`;
+  }).join('');
+  return `<div class="legal-panel"><h3>Nearby amenities (real, OpenStreetMap)</h3>${rows}</div>`;
+}
+
 function renderResult(b, d) {
   const main = document.getElementById('main');
   const unitMix = Object.entries(d.unit_type_counts || {}).map(([t, c]) => `${c} ${t}`).join(', ') || 'no viable units';
@@ -283,6 +302,7 @@ function renderResult(b, d) {
     <div class="reasoning"><strong>Reasoning:</strong><br>${d.reasoning_text}</div>
 
     ${renderLegalPanel(d.legal_checks)}
+    ${renderLivabilityPanel(d.livability)}
 
     <div class="notes"><strong style="font-size:13px;">Notes</strong><ul>${(d.notes || []).map(n => `<li>${n}</li>`).join('')}</ul></div>
   `;

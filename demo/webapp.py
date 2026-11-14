@@ -37,6 +37,7 @@ from vexcel_live import fetch_vexcel_property, VexcelKeyMissing, VexcelNoPropert
 from value import list_houston_office_buildings_broad, check_building_constraints  # noqa: E402
 from render_floor import render, BUILDINGS as CACHED_BUILDINGS  # noqa: E402
 from agent import run_agent_llm, AgentError  # noqa: E402
+from livability import real_nearby_amenities, LivabilityUnavailable  # noqa: E402
 
 app = Flask(__name__, static_folder=None)
 
@@ -159,6 +160,16 @@ def api_analyze():
 
     constraints = check_building_constraints(property_id)
 
+    # Real OpenStreetMap data (schools/hospitals/parks/grocery) - never
+    # blocks the main result if it fails; the public Overpass mirrors had a
+    # real multi-hour outage tonight, confirmed across several mirrors
+    # before finding a working one. Falls back to an honest "unavailable"
+    # rather than fake amenity counts.
+    try:
+        livability = real_nearby_amenities(lat, lon)
+    except LivabilityUnavailable as e:
+        livability = {"error": str(e)}
+
     return jsonify({
         "image_base64": base64.b64encode(png_bytes).decode("ascii"),
         "verdict": result.geometry_verdict,
@@ -183,6 +194,7 @@ def api_analyze():
             "occupancy_change_note": constraints.occupancy_change_note,
             "column_spacing_note": constraints.column_spacing_note,
         },
+        "livability": livability,
         "timeline": timeline,
         "total_elapsed_s": round(time.time() - t0, 2),
     })
