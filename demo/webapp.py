@@ -170,6 +170,9 @@ def api_analyze():
         "value_skipped": result.value_skipped,
         "value_impact_low": result.implied_value_impact_low,
         "value_impact_high": result.implied_value_impact_high,
+        "classification": result.classification,
+        "classification_confidence": result.classification_confidence,
+        "classification_path": result.classification_path,
         "reasoning_text": result.reasoning_text,
         "notes": result.notes,
         "legal_checks": {

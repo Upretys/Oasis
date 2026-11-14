@@ -28,6 +28,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "track_b_value"
 
 from geometry import run_feasibility  # noqa: E402
 from value import run_value, check_building_constraints  # noqa: E402
+from feasibility_classifier import FeasibilityClassifier  # noqa: E402
+
+_classifier = FeasibilityClassifier()
 
 
 @dataclass
@@ -43,6 +46,9 @@ class PipelineResult:
     implied_value_impact_low: float | None
     implied_value_impact_high: float | None
     value_confidence: float
+    classification: str  # "feasible" | "marginal" | "not_feasible" - from FeasibilityClassifier
+    classification_confidence: float
+    classification_path: list[str]
     reasoning_text: str
     notes: list[str]
 
@@ -78,12 +84,19 @@ def run_pipeline(
             f"threshold {50.0:.0f}ft) - skipping the value calculation, no point "
             f"pricing a floor that can't be converted as shaped."
         )
+        classification = _classifier.classify(
+            geometry_verdict=geo.verdict, geometry_confidence=geo.confidence,
+            viable_fraction=geo.viable_leasable_sqft / real_floor_area_sqft if real_floor_area_sqft else 0.0,
+            value_skipped=True,
+        )
         return PipelineResult(
             floor_id=floor_id, geometry_verdict=geo.verdict, geometry_confidence=geo.confidence,
             window_to_core_max_ft=geo.window_to_core_max_ft, convertible_fraction=geo.convertible_fraction,
             value_skipped=True, value_uplift_low=None, value_uplift_high=None,
             implied_value_impact_low=None, implied_value_impact_high=None,
-            value_confidence=0.0, reasoning_text=reasoning, notes=notes,
+            value_confidence=0.0, classification=classification.label,
+            classification_confidence=classification.confidence, classification_path=classification.decision_path,
+            reasoning_text=reasoning, notes=notes,
         )
 
     # Use real, apartment-sized viable square footage - not the raw geometric
@@ -120,6 +133,14 @@ def run_pipeline(
     if geo.verdict == "escalate":
         reasoning += " Flagging for human review rather than forcing a pass/fail."
 
+    classification = _classifier.classify(
+        geometry_verdict=geo.verdict, geometry_confidence=geo.confidence,
+        viable_fraction=geo.viable_leasable_sqft / real_floor_area_sqft if real_floor_area_sqft else 0.0,
+        value_skipped=False, value_confidence=val.value_confidence,
+        implied_value_impact_low=val.implied_value_impact_low,
+        implied_value_impact_high=val.implied_value_impact_high,
+    )
+
     return PipelineResult(
         floor_id=floor_id, geometry_verdict=geo.verdict, geometry_confidence=geo.confidence,
         window_to_core_max_ft=geo.window_to_core_max_ft, convertible_fraction=geo.convertible_fraction,
@@ -127,7 +148,9 @@ def run_pipeline(
         value_uplift_low=round(val.value_uplift_low, 0), value_uplift_high=round(val.value_uplift_high, 0),
         implied_value_impact_low=round(val.implied_value_impact_low, 0),
         implied_value_impact_high=round(val.implied_value_impact_high, 0),
-        value_confidence=val.value_confidence, reasoning_text=reasoning, notes=notes,
+        value_confidence=val.value_confidence, classification=classification.label,
+        classification_confidence=classification.confidence, classification_path=classification.decision_path,
+        reasoning_text=reasoning, notes=notes,
     )
 
 
