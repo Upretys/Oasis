@@ -39,7 +39,16 @@ def render(property_id: int, floor_name: int, vexcel_response: dict, query_lat: 
         real_column_depth_ft=real_column_depth_ft,
     )
 
+    # Smooth with the exact same tolerance run_feasibility() uses internally
+    # before generating units. A real screenshot caught the drawn outline
+    # showing jagged notches the units themselves don't follow - the outline
+    # was being drawn from the RAW footprint while units were computed
+    # against the SMOOTHED one, two different shapes on the same picture.
+    # Smoothing here too makes the outline always match what the units were
+    # actually generated against.
+    from geometry import SIMPLIFY_TOLERANCE_M
     footprint = load_scaled_footprint(vexcel_response, query_lat, query_lon, real_floor_area_sqft)
+    footprint = footprint.simplify(SIMPLIFY_TOLERANCE_M, preserve_topology=True)
     footprint_ft = [(x * METERS_TO_FEET, y * METERS_TO_FEET) for x, y in footprint.exterior.coords]
 
     # Re-run geometry directly to get the real unit polygons (run_pipeline doesn't return them)
