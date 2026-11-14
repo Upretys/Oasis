@@ -91,10 +91,34 @@ def render(property_id: int, floor_name: int, vexcel_response: dict, query_lat: 
     cx_all = sum(fx) / len(fx)
     cy_all = sum(fy) / len(fy)
     dim_offset_ft = max(max(fx) - min(fx), max(fy) - min(fy)) * 0.035
+
+    # Dimension only the major wall runs - exactly what a real architect
+    # calls out on a complex plan, not every edge. Two real screenshots
+    # caught clutter from dimensioning everything: first short jogs in a
+    # tight corner, then (after skipping those) several genuinely long
+    # segments that still visually collided because the real footprint has
+    # a thin spike/notch there, packing multiple edges into a tiny area no
+    # offset can cleanly separate. Capping to the N longest real segments
+    # is simpler and more robust than trying to decollide arrows in an
+    # arbitrarily narrow space, and matches real drafting convention.
+    all_segments = []
     for i in range(len(footprint_ft) - 1):
         (x1, y1), (x2, y2) = footprint_ft[i], footprint_ft[i + 1]
         seg_len = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
-        if seg_len < 5:  # skip near-zero-length segments (duplicate closing vertex)
+        all_segments.append((seg_len, x1, y1, x2, y2))
+    all_segments.sort(key=lambda s: s[0], reverse=True)
+    max_dimensioned = 10
+    segments_to_dimension = {
+        (round(x1, 1), round(y1, 1), round(x2, 1), round(y2, 1))
+        for _, x1, y1, x2, y2 in all_segments[:max_dimensioned]
+    }
+
+    placed_labels = []  # (lx, ly) of dimension labels already placed, for decluttering
+    min_label_spacing = dim_offset_ft * 1.3
+    for i in range(len(footprint_ft) - 1):
+        (x1, y1), (x2, y2) = footprint_ft[i], footprint_ft[i + 1]
+        seg_len = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+        if (round(x1, 1), round(y1, 1), round(x2, 1), round(y2, 1)) not in segments_to_dimension:
             continue
         mx, my = (x1 + x2) / 2, (y1 + y2) / 2
         # Outward normal: away from the footprint's own centroid
@@ -102,10 +126,24 @@ def render(property_id: int, floor_name: int, vexcel_response: dict, query_lat: 
         out_vec = (mx - cx_all, my - cy_all)
         if nx * out_vec[0] + ny * out_vec[1] < 0:
             nx, ny = -nx, -ny
-        lx, ly = mx + nx * dim_offset_ft, my + ny * dim_offset_ft
+
+        # Real buildings can have several long segments close together (a
+        # narrow notch/tab in the real footprint) whose dimension lines then
+        # stack on top of each other at one fixed offset - a second real
+        # screenshot caught this even after the short-segment fix above.
+        # Real CAD drawings nest overlapping dimension lines at increasing
+        # offsets instead of letting them collide; greedily pick the
+        # smallest offset multiplier whose label clears every label already
+        # placed.
+        for mult in (1.0, 1.8, 2.6, 3.4):
+            lx, ly = mx + nx * dim_offset_ft * mult, my + ny * dim_offset_ft * mult
+            if all(((lx - plx) ** 2 + (ly - ply) ** 2) ** 0.5 >= min_label_spacing for plx, ply in placed_labels):
+                break
+        placed_labels.append((lx, ly))
+
         ax.annotate(
-            "", xy=(x1 + nx * dim_offset_ft * 0.6, y1 + ny * dim_offset_ft * 0.6),
-            xytext=(x2 + nx * dim_offset_ft * 0.6, y2 + ny * dim_offset_ft * 0.6),
+            "", xy=(x1 + nx * dim_offset_ft * mult * 0.6, y1 + ny * dim_offset_ft * mult * 0.6),
+            xytext=(x2 + nx * dim_offset_ft * mult * 0.6, y2 + ny * dim_offset_ft * mult * 0.6),
             arrowprops=dict(arrowstyle="<->", color="#666", lw=0.7), zorder=3,
         )
         ax.text(lx, ly, f"{seg_len:.0f}'", fontsize=6.5, color="#555", ha="center", va="center",
@@ -218,12 +256,13 @@ def render(property_id: int, floor_name: int, vexcel_response: dict, query_lat: 
     print(json.dumps(result.__dict__ if hasattr(result, "__dict__") else result, indent=2, default=str))
 
 
+# Trimmed to exactly the 5 featured buildings, chosen for real classification
+# variety (not all "yes"): 3 FEASIBLE at different confidence levels, 1
+# MARGINAL (geometry escalate, real positive value), 1 NOT_FEASIBLE (real
+# occupied tenant, negative economics). The other 10 buildings tested earlier
+# tonight are still in demo/portfolio_scan.json (the 35-building blind scan),
+# just no longer in this permanent short list.
 BUILDINGS = [
-    {
-        "name": "First Community Tower", "property_id": 9008561, "floor_name": 37,
-        "vexcel_file": "property.json", "query_lat": 29.995495, "query_lon": -95.579652,
-        "real_floor_area_sqft": 23531.0, "real_column_depth_ft": 40.0,
-    },
     {
         "name": "Williams Tower", "property_id": 233903, "floor_name": 18,
         "vexcel_file": "property_29.7375702_-95.461339.json", "query_lat": 29.7375702, "query_lon": -95.461339,
@@ -235,52 +274,6 @@ BUILDINGS = [
         "real_floor_area_sqft": 22875.0, "real_column_depth_ft": None,
     },
     {
-        "name": "1415 Louisiana", "property_id": 233928, "floor_name": 60,
-        "vexcel_file": "property_29.7547798_-95.3698082.json", "query_lat": 29.7547798, "query_lon": -95.3698082,
-        "real_floor_area_sqft": 12000.0, "real_column_depth_ft": None,
-    },
-    {
-        "name": "5555 San Felipe", "property_id": 233930, "floor_name": 34,
-        "vexcel_file": "property_29.7498236_-95.4720879.json", "query_lat": 29.7498236, "query_lon": -95.4720879,
-        "real_floor_area_sqft": 27000.0, "real_column_depth_ft": None,
-    },
-    {
-        "name": "Belchase Bldg", "property_id": 240054, "floor_name": 27,
-        "vexcel_file": "property_29.9416795_-95.4018971.json", "query_lat": 29.9416795, "query_lon": -95.4018971,
-        "real_floor_area_sqft": 31864.0, "real_column_depth_ft": None,
-    },
-    {
-        "name": "Houston Technology Center", "property_id": 240117, "floor_name": 24,
-        "vexcel_file": "property_29.7132915_-95.5505272.json", "query_lat": 29.7132915, "query_lon": -95.5505272,
-        "real_floor_area_sqft": 141833.0, "real_column_depth_ft": None,
-    },
-    # Found by deliberately searching for REAL high-vacancy Houston office
-    # buildings (confirmed via location-occupancy.jsonl: real lease history
-    # exists, every lease has ended, none current) rather than picking by
-    # size/stories alone. These are the first buildings where a real
-    # foregone-office-income bug fix (a genuinely vacant floor has $0 real
-    # office income to give up, not a market-rate assumption) produces a
-    # positive value impact - the strongest real result in the whole build.
-    {
-        "name": "Bridgewood I", "property_id": 239910, "floor_name": 24,
-        "vexcel_file": "property_29.937547_-95.387156.json", "query_lat": 29.937547, "query_lon": -95.387156,
-        "real_floor_area_sqft": 34298.0, "real_column_depth_ft": None,
-    },
-    {
-        "name": "Halbouty Center", "property_id": 239835, "floor_name": 24,
-        "vexcel_file": "property_29.7410658_-95.4648038.json", "query_lat": 29.7410658, "query_lon": -95.4648038,
-        "real_floor_area_sqft": 21819.0, "real_column_depth_ft": None,
-    },
-    {
-        "name": "CityNorth 1", "property_id": 235518, "floor_name": 24,
-        "vexcel_file": "property_29.9435561_-95.4058157.json", "query_lat": 29.9435561, "query_lon": -95.4058157,
-        "real_floor_area_sqft": 21130.0, "real_column_depth_ft": None,
-    },
-    # The top 5 by confidence-weighted rank_score (real value impact x real
-    # geometry_confidence x real value_confidence) across a 35-building blind
-    # scan - the strongest results by actual data quality, not hand-picked.
-    # TC Energy Center already above; these 4 are new.
-    {
         "name": "Woodway Center", "property_id": 239944, "floor_name": 1,
         "vexcel_file": "property_29.7635027_-95.4602233.json", "query_lat": 29.7635027, "query_lon": -95.4602233,
         "real_floor_area_sqft": 55146.0, "real_column_depth_ft": None,
@@ -290,21 +283,6 @@ BUILDINGS = [
         "vexcel_file": "property_29.6915081_-95.4034524.json", "query_lat": 29.6915081, "query_lon": -95.4034524,
         "real_floor_area_sqft": 43980.0, "real_column_depth_ft": None,
     },
-    {
-        "name": "Sage Park Office Building", "property_id": 240038, "floor_name": 1,
-        "vexcel_file": "property_29.745295_-95.4665119.json", "query_lat": 29.745295, "query_lon": -95.4665119,
-        "real_floor_area_sqft": 36796.0, "real_column_depth_ft": None,
-    },
-    {
-        "name": "1113 Vine St", "property_id": 235123, "floor_name": 1,
-        "vexcel_file": "property_29.768557_-95.357148.json", "query_lat": 29.768557, "query_lon": -95.357148,
-        "real_floor_area_sqft": 33000.0, "real_column_depth_ft": None,
-    },
-    # Added specifically for classification variety: a real MARGINAL case
-    # (geometry escalate, 47% viable fraction - below the 50% pass bar but
-    # above the 20% fail bar - yet real positive value) rather than another
-    # FEASIBLE result. The classifier is only convincing if it can say
-    # something other than yes.
     {
         "name": "Two Bering Park", "property_id": 239921, "floor_name": 1,
         "vexcel_file": "property_29.7578818_-95.4806279.json", "query_lat": 29.7578818, "query_lon": -95.4806279,
