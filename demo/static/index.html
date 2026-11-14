@@ -21,6 +21,9 @@
   .section-label { padding: 14px 16px 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
   .building-row { padding: 10px 16px; cursor: pointer; border-bottom: 1px solid #f0f1f3; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .building-row:hover { background: #f7f8fa; }
+  a:focus-visible, button:focus-visible, input:focus-visible, [role="button"]:focus-visible, summary:focus-visible {
+    outline: 3px solid #1a66b3; outline-offset: 2px;
+  }
   .building-row.active { background: #eef3ff; }
   .b-name { font-size: 13px; font-weight: 600; }
   .b-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
@@ -103,12 +106,12 @@
 </header>
 <div class="layout">
   <div class="sidebar">
-    <input id="search" placeholder="Search buildings...">
-    <div id="list"></div>
+    <input id="search" placeholder="Search buildings..." aria-label="Search buildings">
+    <div id="list" role="list" aria-label="Buildings"></div>
   </div>
   <div class="main">
-    <div id="map"></div>
-    <div class="results-pane" id="main">
+    <div id="map" role="application" aria-label="Map of Houston office buildings"></div>
+    <div class="results-pane" id="main" role="region" aria-label="Analysis results" aria-live="polite">
       <div class="empty-state">Click a marker on the map, or pick a building on the left, to run the real pipeline on it.</div>
     </div>
   </div>
@@ -191,6 +194,9 @@ function renderList(filter) {
     filtered.forEach(b => {
       const row = document.createElement('div');
       row.className = 'building-row' + (activeId === b.property_id ? ' active' : '');
+      row.setAttribute('role', 'button');
+      row.setAttribute('tabindex', '0');
+      row.setAttribute('aria-label', `${b.name}, ${Math.round(b.typical_floor_sqft).toLocaleString()} square feet per floor, ${source === 'cached' ? 'instant result' : 'live lookup'}`);
       row.innerHTML = `
         <div>
           <div class="b-name">${b.name}</div>
@@ -199,6 +205,7 @@ function renderList(filter) {
         <span class="tag ${source}">${source === 'cached' ? '⚡ instant' : '🛰 live'}</span>
       `;
       row.onclick = () => selectBuilding(b);
+      row.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectBuilding(b); } };
       list.appendChild(row);
     });
   };
@@ -430,7 +437,7 @@ function renderResult(b, d) {
       ${valueHtml}
     </div>
 
-    <img class="render" src="data:image/png;base64,${d.image_base64}">
+    <img class="render" src="data:image/png;base64,${d.image_base64}" alt="Floor plan for ${b.name}, floor ${b.floor_name}: real building outline with ${unitMix} laid out, dimension lines on the longest walls, and a north arrow">
 
     <details class="reasoning-details">
       <summary>Full reasoning &amp; technical detail</summary>

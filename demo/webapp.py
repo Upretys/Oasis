@@ -27,6 +27,18 @@ import os
 import sys
 import time
 
+_ENV_PATH = os.path.join(os.path.dirname(__file__), "..", ".env")
+if os.path.exists(_ENV_PATH):
+    # Minimal .env loader - no new dependency needed for 3 KEY=VALUE lines.
+    # Never overwrites a key already set in the real environment.
+    with open(_ENV_PATH) as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if not _line or _line.startswith("#") or "=" not in _line:
+                continue
+            _k, _, _v = _line.partition("=")
+            os.environ.setdefault(_k.strip(), _v.strip())
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "track_a_geometry"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "track_b_value"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "track_c_agent"))
