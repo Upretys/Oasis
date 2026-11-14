@@ -504,5 +504,42 @@
     "lat": 29.768557,
     "lon": -95.357148,
     "image": "1113_vine_st_render.png"
+  },
+  {
+    "floor_id": "239921-floor-1",
+    "geometry_verdict": "escalate",
+    "geometry_confidence": 0.7,
+    "window_to_core_max_ft": 61.9,
+    "convertible_fraction": 0.74,
+    "value_skipped": false,
+    "value_uplift_low": 315840.0,
+    "value_uplift_high": 427313.0,
+    "implied_value_impact_low": 653264.0,
+    "implied_value_impact_high": 2264312.0,
+    "value_confidence": 0.75,
+    "classification": "marginal",
+    "classification_confidence": 0.5249999999999999,
+    "classification_path": [
+      "geometry_verdict = ESCALATE (real viable_fraction 47% of total floor area)",
+      "implied value impact midpoint = $1,458,788 (real uplift/cap-rate/cost math)",
+      "combined confidence = geometry_confidence (70%) x value_confidence (75%) = 52%",
+      "positive value but geometry escalated or combined confidence below 40% -> marginal, needs human review before relying on this"
+    ],
+    "reasoning_text": "Geometry escalate (61.9ft depth, confidence 70%). Real unit mix: 7 1br, 26 studio (20,923 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $17.76/sf/yr (avg of 3 real comps: Tuscany Apartments (0.3km), San Felipe Square Townhomes (0.6km), Tanglebrook Apartments (0.8km)) -> $371,576/yr uplift on 20,923 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $653,264-$2,264,312 after construction cost (real buildingConstructionMaterial = Masonry, 1.10x baseline). No confirmed lease end date - verify occupancy before assuming vacancy. Flagging for human review rather than forcing a pass/fail.",
+    "notes": [
+      "Only 47% of the floor's area fits real units - partial conversion may be viable, flagging for human review rather than a flat pass/fail.",
+      "No CoStar structural data available to cross-check the footprint-derived depth.",
+      "Real cross-check: 0% of 4 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 4 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
+      "Local apartment vacancy near this building (real, from 3 nearby comps): 10.0% - elevated leasing risk. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
+      "Residential rent from avg of 3 real comps: Tuscany Apartments (0.3km), San Felipe Square Townhomes (0.6km), Tanglebrook Apartments (0.8km): $17.76/sf/yr.",
+      "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building.",
+      "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
+      "No column spacing data available.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building has NO sprinkler system on record - a real retrofit cost/scope item, not modeled in the dollar estimate."
+    ],
+    "building_name": "Two Bering Park",
+    "lat": 29.7578818,
+    "lon": -95.4806279,
+    "image": "two_bering_park_render.png"
   }
 ]
