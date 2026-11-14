@@ -337,6 +337,22 @@ def generate_unit_layout(footprint: Polygon, convertible_zone, unit_width_ft: fl
             if unit_poly.is_empty or not hasattr(unit_poly, "exterior"):
                 continue
 
+            # Safety check against a real GEOS/Shapely numerical-robustness
+            # issue, not a hypothetical one: a real screenshot caught a unit
+            # rendered entirely outside the building (5555 San Felipe, unit
+            # D - 648 of 648 sqft outside the real footprint). Traced it:
+            # `remaining` is mathematically guaranteed to stay inside
+            # `footprint` (remaining <= convertible_zone <= footprint), but
+            # after enough repeated .difference() calls on a many-vertex
+            # polygon, floating-point drift let one intersection return a
+            # technically-valid Shapely result that is NOT actually inside
+            # the real shape. Checking containment directly here catches
+            # that instead of trusting the boolean op blindly. Not
+            # subtracted from `remaining` either - it never legitimately
+            # claimed real territory.
+            if not unit_poly.within(footprint.buffer(0.1)):
+                continue
+
             # Reject irregular/sliver shapes instead of forcing them to fit.
             # Near a sharp convex corner, one wall's quad can claim a thin,
             # non-rectangular wedge that visually overlaps the NEXT wall's
