@@ -338,7 +338,11 @@ function downloadReport() {
     : `$${Math.round(d.value_impact_low).toLocaleString()} to $${Math.round(d.value_impact_high).toLocaleString()}`;
   const lc = d.legal_checks || {};
 
-  let report = `OFFICE-TO-RESIDENTIAL CONVERSION FEASIBILITY REPORT
+  const bottomLineWord = { pass: 'PASS', fail: 'FAIL', escalate: 'REVIEW' }[d.verdict] || d.verdict.toUpperCase();
+
+  let report = `BOTTOM LINE: ${bottomLineWord}
+
+OFFICE-TO-RESIDENTIAL CONVERSION FEASIBILITY REPORT
 Generated ${new Date().toLocaleString()}
 Real Vexcel geometry + real CoStar lease/comp data${currentAgentRun ? ' + live Claude agent evaluation' : ''}
 
