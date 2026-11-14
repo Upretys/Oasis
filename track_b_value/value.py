@@ -87,7 +87,15 @@ def nearest_apartment_market_comp(lat: float, lon: float, max_km: float = 8.0, n
         return ApartmentMarketComp(None, f"no real apartment comp within {max_km}km", None,
                                     f"no real apartment comp within {max_km}km", 0)
 
-    total_rent_sqft_months, total_rent_units = 0.0, 0
+    # Real methodology, not invented: CoStar's own kit documentation
+    # (concepts/metrics-and-formulas.md, "Square-foot-weighted average
+    # rent") specifies weighted_rent = SUM(rent_psf_yr * SF) / SUM(SF) - a
+    # market rent must be weighted by square footage, not a simple mean
+    # and not weighted by unit count. The version of this function running
+    # earlier tonight weighted by unit count (n) instead of total SF
+    # (n * avg_sf) - correct when all floor plans are the same size, wrong
+    # whenever they aren't, which real apartment communities never are.
+    total_weighted_rent_sqft_months, total_sf = 0.0, 0.0
     total_units_with_vacancy_data, total_available = 0, 0
     names = []
     for dist_km, rec in nearest:
@@ -112,11 +120,13 @@ def nearest_apartment_market_comp(lat: float, lon: float, max_km: float = 8.0, n
                 avg_sf = (min_sf + max_sf) / 2
                 avg_rent = (min_rent + max_rent) / 2
                 if avg_sf > 0:
-                    total_rent_sqft_months += (avg_rent / avg_sf) * n
-                    total_rent_units += n
+                    model_total_sf = avg_sf * n
+                    total_weighted_rent_sqft_months += (avg_rent / avg_sf) * model_total_sf
+                    total_sf += model_total_sf
 
-    rent = (total_rent_sqft_months / total_rent_units * 12) if total_rent_units else None
-    rent_source = f"avg of {len(nearest)} real comps: {', '.join(names)}" if rent else "nearest comps had no usable unit data"
+    rent = (total_weighted_rent_sqft_months / total_sf * 12) if total_sf else None
+    rent_source = (f"sf-weighted avg of {len(nearest)} real comps: {', '.join(names)}" if rent
+                   else "nearest comps had no usable unit data")
 
     vacancy = (total_available / total_units_with_vacancy_data) if total_units_with_vacancy_data else None
     vacancy_source = (
