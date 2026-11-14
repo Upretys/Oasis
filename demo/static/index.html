@@ -660,7 +660,7 @@ function renderPortfolioScan(results) {
   markerLayer.clearLayers();
 
   const positive = results.filter(r => !r.value_skipped && r.value_impact_low != null && r.value_impact_low > 0)
-    .sort((a, b) => b.value_impact_low - a.value_impact_low);
+    .sort((a, b) => (b.rank_score || 0) - (a.rank_score || 0));
   const n = results.length;
 
   results.forEach((r, i) => {
@@ -694,7 +694,8 @@ function renderPortfolioScan(results) {
         <div class="stat"><div class="v">${n}</div><div class="l">Real buildings scanned</div></div>
         <div class="stat"><div class="v" style="color:${STATUS_COLORS.pass}">${positive.length}</div><div class="l">Hidden opportunities found</div></div>
       </div>
-      <h3 style="margin:0 0 10px;">Top real opportunities, ranked by low-end value impact</h3>
+      <h3 style="margin:0 0 10px;">Top real opportunities, ranked by value x geometry confidence x value confidence</h3>
+      <div style="font-size:11px; color:var(--muted); margin-bottom:10px;">Not sorted by dollar amount alone - a number built entirely on real data outranks an equally large one resting on defaults.</div>
       <div id="scanRanked"></div>
     `;
     const ranked = document.getElementById('scanRanked');
@@ -702,9 +703,10 @@ function renderPortfolioScan(results) {
       const row = document.createElement('div');
       row.className = 'building-row';
       row.style.cursor = 'default';
+      const confPct = r.value_confidence != null ? `${Math.round(r.geometry_confidence * r.value_confidence * 100)}% confidence` : '';
       row.innerHTML = `
         <div><div class="b-name">${i + 1}. ${r.name}</div>
-        <div class="b-sub">${r.already_tested ? 'previously confirmed' : 'found by this scan'}</div></div>
+        <div class="b-sub">${r.already_tested ? 'previously confirmed' : 'found by this scan'}${confPct ? ' &middot; ' + confPct : ''}</div></div>
         <div style="font-weight:700; color:${STATUS_COLORS.pass}; font-size:13px;">+$${Math.round(r.value_impact_low).toLocaleString()}+</div>
       `;
       ranked.appendChild(row);
