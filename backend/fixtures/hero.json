@@ -1,0 +1,152 @@
+{
+  "building_id": "hero",
+  "name": "210 Commerce Street (demo)",
+  "lat": 40.35,
+  "lon": -74.67,
+  "viability": 0.38,
+  "data_as_of": "2026-11-14",
+  "lot_area_sf": 30600,
+  "floors": [
+    {
+      "floor": 1,
+      "rsf": 29800,
+      "tenant": "Corner Market (retail)",
+      "lease_expiry": "2028-03-31",
+      "costar_row": "CS-210-FL01"
+    },
+    {
+      "floor": 2,
+      "rsf": 29800,
+      "tenant": null,
+      "lease_expiry": null,
+      "costar_row": "CS-210-FL02"
+    },
+    {
+      "floor": 3,
+      "rsf": 29800,
+      "tenant": null,
+      "lease_expiry": null,
+      "costar_row": "CS-210-FL03"
+    },
+    {
+      "floor": 4,
+      "rsf": 29800,
+      "tenant": "Brightline Insurance",
+      "lease_expiry": "2027-06-30",
+      "costar_row": "CS-210-FL04"
+    },
+    {
+      "floor": 5,
+      "rsf": 29800,
+      "tenant": "Brightline Insurance",
+      "lease_expiry": "2027-06-30",
+      "costar_row": "CS-210-FL05"
+    },
+    {
+      "floor": 6,
+      "rsf": 29800,
+      "tenant": "Brightline Insurance",
+      "lease_expiry": "2027-06-30",
+      "costar_row": "CS-210-FL06"
+    },
+    {
+      "floor": 7,
+      "rsf": 29800,
+      "tenant": null,
+      "lease_expiry": null,
+      "costar_row": "CS-210-FL07"
+    },
+    {
+      "floor": 8,
+      "rsf": 29800,
+      "tenant": "Hale & Mercer LLP",
+      "lease_expiry": "2033-10-31",
+      "costar_row": "CS-210-FL08"
+    },
+    {
+      "floor": 9,
+      "rsf": 29800,
+      "tenant": null,
+      "lease_expiry": null,
+      "costar_row": "CS-210-FL09"
+    },
+    {
+      "floor": 10,
+      "rsf": 29800,
+      "tenant": null,
+      "lease_expiry": null,
+      "costar_row": "CS-210-FL10"
+    }
+  ],
+  "plan": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "kind": "floor_plate"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                200,
+                0
+              ],
+              [
+                200,
+                153
+              ],
+              [
+                0,
+                153
+              ],
+              [
+                0,
+                0
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "kind": "window",
+          "facade": "street"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              0,
+              0
+            ],
+            [
+              200,
+              0
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  "aerial": {
+    "region_id": "AER-210-STREET",
+    "daylight_limit_ft": 50,
+    "facing_building_height_ft": 140,
+    "street_width_ft": 60
+  },
+  "costar": {
+    "row_id": "CS-210",
+    "column_depth_ft": 40,
+    "office_asking_rent_psf_yr": 38.0,
+    "mf_rent_psf_month": 4.1,
+    "cap_rate": 0.055
+  }
+}

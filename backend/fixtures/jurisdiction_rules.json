@@ -1,0 +1,49 @@
+{
+  "_note": "FICTIONAL demo rules for a hackathon. Not a real ordinance. Missing fields = unknown.",
+  "rules": [
+    {
+      "jurisdiction_id": "demo-city",
+      "zoning_district": "C6",
+      "conversion_pathway": "special_permit",
+      "approval_months": 9,
+      "max_far": 12.0,
+      "max_height_ft": 150,
+      "set_aside_pct": 20.0,
+      "incentives": [
+        {
+          "name": "Demo City Adaptive Reuse Abatement",
+          "benefit": "15-year phased property tax abatement on converted residential floor area",
+          "obligation": "20% of units affordable at 80% AMI for 30 years",
+          "source_url": "https://example.org/demo-rules/demo-city/adaptive-reuse-abatement"
+        }
+      ],
+      "source_url": "https://example.org/demo-rules/demo-city/zoning/c6",
+      "as_of": "2026-11-14"
+    },
+    {
+      "jurisdiction_id": "demo-city",
+      "zoning_district": "MX3",
+      "conversion_pathway": "by_right",
+      "approval_months": 3,
+      "max_far": 8.0,
+      "source_url": "https://example.org/demo-rules/demo-city/zoning/mx3",
+      "as_of": "2026-11-14"
+    },
+    {
+      "jurisdiction_id": "demo-township",
+      "zoning_district": "O1",
+      "conversion_pathway": "variance",
+      "approval_months": 18,
+      "max_far": 3.0,
+      "source_url": "https://example.org/demo-rules/demo-township/zoning/o1",
+      "as_of": "2026-11-14"
+    },
+    {
+      "jurisdiction_id": "demo-township",
+      "zoning_district": "M1",
+      "conversion_pathway": "not_allowed",
+      "source_url": "https://example.org/demo-rules/demo-township/zoning/m1",
+      "as_of": "2026-11-14"
+    }
+  ]
+}

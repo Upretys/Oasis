@@ -1,0 +1,886 @@
+{
+  "run_id": "golden-hero",
+  "building_id": "hero",
+  "events": [
+    {
+      "type": "run_started",
+      "run_id": "golden-hero",
+      "building_id": "hero",
+      "verdict": "escalate",
+      "jurisdiction": {
+        "jurisdiction_id": "demo-city",
+        "name": "Demo City",
+        "council_district": "Demo City Council District 1",
+        "zoning_district": "C6",
+        "conversion_pathway": "special_permit",
+        "approval_months": 9,
+        "max_far": 12.0,
+        "max_height_ft": 150.0,
+        "set_aside_pct": 20.0,
+        "incentives": [
+          {
+            "name": "Demo City Adaptive Reuse Abatement",
+            "benefit": "15-year phased property tax abatement on converted residential floor area",
+            "obligation": "20% of units affordable at 80% AMI for 30 years",
+            "source_url": "https://example.org/demo-rules/demo-city/adaptive-reuse-abatement"
+          }
+        ],
+        "source_url": "https://example.org/demo-rules/demo-city/zoning/c6",
+        "as_of": "2026-11-14"
+      },
+      "evidence": [
+        {
+          "id": "E-GEO-01",
+          "layer": "geometry",
+          "label": "Typical floor plate area",
+          "value": 30600.0,
+          "unit": "sf",
+          "anchor": {
+            "kind": "plan_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "floor_plate"
+          }
+        },
+        {
+          "id": "E-GEO-02",
+          "layer": "geometry",
+          "label": "Deepest point from a window",
+          "value": 153.0,
+          "unit": "ft",
+          "anchor": {
+            "kind": "plan_point",
+            "floor": null,
+            "x": 200.0,
+            "y": 153.0,
+            "ref": null
+          }
+        },
+        {
+          "id": "E-GEO-03",
+          "layer": "geometry",
+          "label": "Share of floor plate within the daylight limit",
+          "value": 32.7,
+          "unit": "%",
+          "anchor": {
+            "kind": "plan_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "daylit_zone"
+          }
+        },
+        {
+          "id": "E-AER-01",
+          "layer": "aerial",
+          "label": "Daylight limit from a window, given obstructions",
+          "value": 50.0,
+          "unit": "ft",
+          "anchor": {
+            "kind": "aerial_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "AER-210-STREET"
+          }
+        },
+        {
+          "id": "E-AER-02",
+          "layer": "aerial",
+          "label": "Height of the facing building",
+          "value": 140.0,
+          "unit": "ft",
+          "anchor": {
+            "kind": "aerial_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "AER-210-STREET"
+          }
+        },
+        {
+          "id": "E-AER-03",
+          "layer": "aerial",
+          "label": "Street width",
+          "value": 60.0,
+          "unit": "ft",
+          "anchor": {
+            "kind": "aerial_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "AER-210-STREET"
+          }
+        },
+        {
+          "id": "E-CST-01",
+          "layer": "costar",
+          "label": "Column bay depth",
+          "value": 40.0,
+          "unit": "ft",
+          "anchor": {
+            "kind": "costar_row",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "CS-210"
+          }
+        },
+        {
+          "id": "E-CST-02",
+          "layer": "costar",
+          "label": "Office asking rent",
+          "value": 38.0,
+          "unit": "$/sf/yr",
+          "anchor": {
+            "kind": "costar_row",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "CS-210"
+          }
+        },
+        {
+          "id": "E-CST-03",
+          "layer": "costar",
+          "label": "Multifamily comp rent",
+          "value": 4.1,
+          "unit": "$/sf/month",
+          "anchor": {
+            "kind": "costar_row",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "CS-210"
+          }
+        },
+        {
+          "id": "E-CST-04",
+          "layer": "costar",
+          "label": "Cap rate",
+          "value": 5.5,
+          "unit": "%",
+          "anchor": {
+            "kind": "costar_row",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "CS-210"
+          }
+        },
+        {
+          "id": "E-CST-05",
+          "layer": "costar",
+          "label": "Floors 4-6 lease: months to expiry",
+          "value": 7.5,
+          "unit": "months",
+          "anchor": {
+            "kind": "costar_row",
+            "floor": 4,
+            "x": null,
+            "y": null,
+            "ref": "CS-210-FL04"
+          }
+        },
+        {
+          "id": "E-CST-06",
+          "layer": "costar",
+          "label": "Floor 8 lease: years remaining",
+          "value": 7.0,
+          "unit": "years",
+          "anchor": {
+            "kind": "costar_row",
+            "floor": 8,
+            "x": null,
+            "y": null,
+            "ref": "CS-210-FL08"
+          }
+        },
+        {
+          "id": "E-ZON-01",
+          "layer": "zoning",
+          "label": "Conversion pathway",
+          "value": "special_permit",
+          "unit": null,
+          "anchor": {
+            "kind": "map_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "C6"
+          }
+        },
+        {
+          "id": "E-ZON-02",
+          "layer": "zoning",
+          "label": "Approval timeline",
+          "value": 9.0,
+          "unit": "months",
+          "anchor": {
+            "kind": "map_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "C6"
+          }
+        },
+        {
+          "id": "E-ZON-03",
+          "layer": "zoning",
+          "label": "Maximum FAR",
+          "value": 12.0,
+          "unit": "FAR",
+          "anchor": {
+            "kind": "map_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "C6"
+          }
+        },
+        {
+          "id": "E-ZON-04",
+          "layer": "zoning",
+          "label": "Maximum height",
+          "value": 150.0,
+          "unit": "ft",
+          "anchor": {
+            "kind": "map_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "C6"
+          }
+        },
+        {
+          "id": "E-ZON-05",
+          "layer": "zoning",
+          "label": "Affordable set-aside",
+          "value": 20.0,
+          "unit": "%",
+          "anchor": {
+            "kind": "map_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "C6"
+          }
+        },
+        {
+          "id": "E-ZON-06",
+          "layer": "zoning",
+          "label": "Published incentive",
+          "value": "Demo City Adaptive Reuse Abatement: 15-year phased property tax abatement on converted residential floor area; obligation: 20% of units affordable at 80% AMI for 30 years",
+          "unit": null,
+          "anchor": {
+            "kind": "map_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "C6"
+          }
+        },
+        {
+          "id": "E-DER-01",
+          "layer": "derived",
+          "label": "Depth beyond the daylight limit",
+          "value": 103.0,
+          "unit": "ft",
+          "anchor": {
+            "kind": "plan_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "dark_core"
+          }
+        },
+        {
+          "id": "E-DER-02",
+          "layer": "derived",
+          "label": "Column bays beyond the daylight limit",
+          "value": 2.6,
+          "unit": "bays",
+          "anchor": {
+            "kind": "plan_region",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": "dark_core"
+          }
+        },
+        {
+          "id": "E-DER-03",
+          "layer": "derived",
+          "label": "Existing FAR",
+          "value": 10.0,
+          "unit": "FAR",
+          "anchor": {
+            "kind": "building",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": null
+          }
+        },
+        {
+          "id": "E-DER-04",
+          "layer": "derived",
+          "label": "Conversion cost (10 floors x 30,600 sf x assumed $350/sf)",
+          "value": 107100000.0,
+          "unit": "$",
+          "anchor": {
+            "kind": "building",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": null
+          }
+        },
+        {
+          "id": "E-DER-05",
+          "layer": "derived",
+          "label": "Residential value (daylit area only, assumed 60% NOI margin, CoStar cap rate)",
+          "value": 53672727.0,
+          "unit": "$",
+          "anchor": {
+            "kind": "building",
+            "floor": null,
+            "x": null,
+            "y": null,
+            "ref": null
+          }
+        }
+      ]
+    },
+    {
+      "type": "statement",
+      "statement": {
+        "seat": "engineer",
+        "round": 0,
+        "verdict": "escalate",
+        "confidence": 0.7,
+        "claims": [
+          {
+            "id": "ENG-0-1",
+            "text": "The deepest point is 153 ft from the only glazed facade; daylight reaches 50 ft, leaving 103 ft of dark core.",
+            "evidence_ids": [
+              "E-GEO-02",
+              "E-AER-01",
+              "E-DER-01"
+            ],
+            "kind": "risk",
+            "target_claim_id": null
+          },
+          {
+            "id": "ENG-0-2",
+            "text": "Only 32.7% of the plate is daylit: the 140 ft building across a 60 ft street caps useful depth.",
+            "evidence_ids": [
+              "E-GEO-03",
+              "E-AER-02",
+              "E-AER-03"
+            ],
+            "kind": "risk",
+            "target_claim_id": null
+          },
+          {
+            "id": "ENG-0-3",
+            "text": "The 40 ft bays let us remove whole bays for a lightwell; 2.6 bays sit beyond the daylight line.",
+            "evidence_ids": [
+              "E-CST-01",
+              "E-DER-02"
+            ],
+            "kind": "support",
+            "target_claim_id": null
+          }
+        ],
+        "conditions": [
+          {
+            "text": "Cut a full-height rear lightwell 3 bays deep on the 40 ft column grid",
+            "evidence_ids": [
+              "E-DER-02",
+              "E-CST-01"
+            ]
+          }
+        ],
+        "would_change_my_mind": "A daylight study showing habitable light deeper than 50 ft from the street facade.",
+        "changed_mind": false
+      },
+      "fallback_used": false
+    },
+    {
+      "type": "statement",
+      "statement": {
+        "seat": "planner",
+        "round": 0,
+        "verdict": "pass",
+        "confidence": 0.7,
+        "claims": [
+          {
+            "id": "PLN-0-1",
+            "text": "A conversion pathway exists here: special permit, 9-month approval.",
+            "evidence_ids": [
+              "E-ZON-01",
+              "E-ZON-02"
+            ],
+            "kind": "support",
+            "target_claim_id": null
+          },
+          {
+            "id": "PLN-0-2",
+            "text": "Existing FAR 10.0 is under the 12.0 cap, so the conversion needs no added bulk.",
+            "evidence_ids": [
+              "E-DER-03",
+              "E-ZON-03"
+            ],
+            "kind": "support",
+            "target_claim_id": null
+          },
+          {
+            "id": "PLN-0-3",
+            "text": "The adaptive reuse abatement applies, with a 20% affordable set-aside.",
+            "evidence_ids": [
+              "E-ZON-06",
+              "E-ZON-05"
+            ],
+            "kind": "support",
+            "target_claim_id": null
+          }
+        ],
+        "conditions": [],
+        "would_change_my_mind": "A finding that the district bars conversion, or a FAR above the cap.",
+        "changed_mind": false
+      },
+      "fallback_used": false
+    },
+    {
+      "type": "statement",
+      "statement": {
+        "seat": "analyst",
+        "round": 0,
+        "verdict": "fail",
+        "confidence": 0.75,
+        "claims": [
+          {
+            "id": "ANL-0-1",
+            "text": "Conversion cost of $107.1M is about twice the $53.7M residential value of the daylit area.",
+            "evidence_ids": [
+              "E-DER-04",
+              "E-DER-05"
+            ],
+            "kind": "risk",
+            "target_claim_id": null
+          },
+          {
+            "id": "ANL-0-2",
+            "text": "The floor 8 tenant has 7.0 years left, which blocks a whole-building conversion.",
+            "evidence_ids": [
+              "E-CST-06"
+            ],
+            "kind": "risk",
+            "target_claim_id": null
+          },
+          {
+            "id": "ANL-0-3",
+            "text": "Floors 4-6 roll in 7.5 months, so a first phase needs no buyouts.",
+            "evidence_ids": [
+              "E-CST-05"
+            ],
+            "kind": "support",
+            "target_claim_id": null
+          }
+        ],
+        "conditions": [],
+        "would_change_my_mind": "A plan that makes the dark core rentable, or a cost below the value line.",
+        "changed_mind": false
+      },
+      "fallback_used": false
+    },
+    {
+      "type": "round_complete",
+      "round": 0,
+      "votes": {
+        "engineer": "escalate",
+        "planner": "pass",
+        "analyst": "fail"
+      },
+      "consensus": false
+    },
+    {
+      "type": "statement",
+      "statement": {
+        "seat": "engineer",
+        "round": 1,
+        "verdict": "escalate",
+        "confidence": 0.75,
+        "claims": [
+          {
+            "id": "ENG-1-1",
+            "text": "That value counts only the 32.7% daylit share; a lightwell turns part of the 103 ft dark core into daylit rooms.",
+            "evidence_ids": [
+              "E-GEO-03",
+              "E-DER-01"
+            ],
+            "kind": "rebuttal",
+            "target_claim_id": "ANL-0-1"
+          },
+          {
+            "id": "ENG-1-2",
+            "text": "Without a lightwell, space deeper than 50 ft from the street is not habitable bedroom space.",
+            "evidence_ids": [
+              "E-AER-01",
+              "E-GEO-02"
+            ],
+            "kind": "concession",
+            "target_claim_id": null
+          }
+        ],
+        "conditions": [
+          {
+            "text": "Cut a full-height rear lightwell 3 bays deep on the 40 ft column grid",
+            "evidence_ids": [
+              "E-DER-02",
+              "E-CST-01"
+            ]
+          }
+        ],
+        "would_change_my_mind": "A daylight study showing habitable light deeper than 50 ft from the street facade.",
+        "changed_mind": false
+      },
+      "fallback_used": false
+    },
+    {
+      "type": "statement",
+      "statement": {
+        "seat": "planner",
+        "round": 1,
+        "verdict": "pass",
+        "confidence": 0.7,
+        "claims": [
+          {
+            "id": "PLN-1-1",
+            "text": "A lightwell removes floor area, which only moves FAR further under the 12.0 cap; zoning does not block it.",
+            "evidence_ids": [
+              "E-ZON-03",
+              "E-DER-03"
+            ],
+            "kind": "rebuttal",
+            "target_claim_id": "ENG-0-1"
+          },
+          {
+            "id": "PLN-1-2",
+            "text": "The 9-month special permit sets the earliest start for any phase.",
+            "evidence_ids": [
+              "E-ZON-01",
+              "E-ZON-02"
+            ],
+            "kind": "risk",
+            "target_claim_id": null
+          }
+        ],
+        "conditions": [
+          {
+            "text": "File the special permit now; approval takes 9 months",
+            "evidence_ids": [
+              "E-ZON-01",
+              "E-ZON-02"
+            ]
+          }
+        ],
+        "would_change_my_mind": "A finding that the district bars conversion, or a FAR above the cap.",
+        "changed_mind": false
+      },
+      "fallback_used": false
+    },
+    {
+      "type": "statement",
+      "statement": {
+        "seat": "analyst",
+        "round": 1,
+        "verdict": "fail",
+        "confidence": 0.7,
+        "claims": [
+          {
+            "id": "ANL-1-1",
+            "text": "A lightwell also removes rentable floor, so it adds cost before value: still $107.1M against $53.7M.",
+            "evidence_ids": [
+              "E-DER-04",
+              "E-DER-05"
+            ],
+            "kind": "rebuttal",
+            "target_claim_id": "ENG-0-3"
+          },
+          {
+            "id": "ANL-1-2",
+            "text": "Floor 8 has 7.0 years left; it must stay office in any near-term plan.",
+            "evidence_ids": [
+              "E-CST-06"
+            ],
+            "kind": "risk",
+            "target_claim_id": null
+          }
+        ],
+        "conditions": [],
+        "would_change_my_mind": "A plan that makes the dark core rentable, or a cost below the value line.",
+        "changed_mind": false
+      },
+      "fallback_used": false
+    },
+    {
+      "type": "round_complete",
+      "round": 1,
+      "votes": {
+        "engineer": "escalate",
+        "planner": "pass",
+        "analyst": "fail"
+      },
+      "consensus": false
+    },
+    {
+      "type": "statement",
+      "statement": {
+        "seat": "engineer",
+        "round": 2,
+        "verdict": "escalate",
+        "confidence": 0.8,
+        "claims": [
+          {
+            "id": "ENG-2-1",
+            "text": "With a rear lightwell, the 103 ft core gets a second daylit face; the 40 ft bays make the cut structurally clean.",
+            "evidence_ids": [
+              "E-DER-01",
+              "E-CST-01"
+            ],
+            "kind": "support",
+            "target_claim_id": null
+          },
+          {
+            "id": "ENG-2-2",
+            "text": "As drawn, only 32.7% of the plate is daylit; approve only with the lightwell.",
+            "evidence_ids": [
+              "E-GEO-03"
+            ],
+            "kind": "risk",
+            "target_claim_id": null
+          }
+        ],
+        "conditions": [
+          {
+            "text": "Cut a full-height rear lightwell 3 bays deep on the 40 ft column grid",
+            "evidence_ids": [
+              "E-DER-02",
+              "E-CST-01"
+            ]
+          }
+        ],
+        "would_change_my_mind": "A daylight study showing habitable light deeper than 50 ft from the street facade.",
+        "changed_mind": false
+      },
+      "fallback_used": false
+    },
+    {
+      "type": "statement",
+      "statement": {
+        "seat": "planner",
+        "round": 2,
+        "verdict": "pass",
+        "confidence": 0.75,
+        "claims": [
+          {
+            "id": "PLN-2-1",
+            "text": "Special permit pathway, FAR 10.0 under 12.0, and the abatement applies with a 20% set-aside.",
+            "evidence_ids": [
+              "E-ZON-01",
+              "E-DER-03",
+              "E-ZON-06",
+              "E-ZON-05"
+            ],
+            "kind": "support",
+            "target_claim_id": null
+          }
+        ],
+        "conditions": [
+          {
+            "text": "File the special permit now; approval takes 9 months",
+            "evidence_ids": [
+              "E-ZON-01",
+              "E-ZON-02"
+            ]
+          }
+        ],
+        "would_change_my_mind": "A finding that the district bars conversion, or a FAR above the cap.",
+        "changed_mind": false
+      },
+      "fallback_used": false
+    },
+    {
+      "type": "statement",
+      "statement": {
+        "seat": "analyst",
+        "round": 2,
+        "verdict": "escalate",
+        "confidence": 0.65,
+        "claims": [
+          {
+            "id": "ANL-2-1",
+            "text": "Fair: the $53.7M value counts daylit area only, so added daylight raises it.",
+            "evidence_ids": [
+              "E-DER-05"
+            ],
+            "kind": "concession",
+            "target_claim_id": "ENG-1-1"
+          },
+          {
+            "id": "ANL-2-2",
+            "text": "Phase it: floors 4-6 roll in 7.5 months; floor 8 stays office for its 7.0 years.",
+            "evidence_ids": [
+              "E-CST-05",
+              "E-CST-06"
+            ],
+            "kind": "support",
+            "target_claim_id": null
+          }
+        ],
+        "conditions": [
+          {
+            "text": "Keep floor 8 as office until its lease ends; convert it last",
+            "evidence_ids": [
+              "E-CST-06"
+            ]
+          },
+          {
+            "text": "Re-run value with the lightwell plan before committing capital",
+            "evidence_ids": [
+              "E-DER-04",
+              "E-DER-05"
+            ]
+          }
+        ],
+        "would_change_my_mind": "A lightwell plan whose re-run value still sits far below cost.",
+        "changed_mind": true
+      },
+      "fallback_used": false
+    },
+    {
+      "type": "round_complete",
+      "round": 2,
+      "votes": {
+        "engineer": "escalate",
+        "planner": "pass",
+        "analyst": "escalate"
+      },
+      "consensus": false
+    },
+    {
+      "type": "ruling",
+      "ruling": {
+        "building_id": "hero",
+        "outcome": "approve_with_conditions",
+        "agreement": 0.659,
+        "coverage": 1.0,
+        "confidence": 0.659,
+        "votes": {
+          "engineer": "escalate",
+          "planner": "pass",
+          "analyst": "escalate"
+        },
+        "conditions": [
+          {
+            "text": "Cut a full-height rear lightwell 3 bays deep on the 40 ft column grid",
+            "evidence_ids": [
+              "E-DER-02",
+              "E-CST-01"
+            ]
+          },
+          {
+            "text": "File the special permit now; approval takes 9 months",
+            "evidence_ids": [
+              "E-ZON-01",
+              "E-ZON-02"
+            ]
+          },
+          {
+            "text": "Keep floor 8 as office until its lease ends; convert it last",
+            "evidence_ids": [
+              "E-CST-06"
+            ]
+          },
+          {
+            "text": "Re-run value with the lightwell plan before committing capital",
+            "evidence_ids": [
+              "E-DER-04",
+              "E-DER-05"
+            ]
+          }
+        ],
+        "dissent": [
+          {
+            "id": "PLN-2-1",
+            "text": "Special permit pathway, FAR 10.0 under 12.0, and the abatement applies with a 20% set-aside.",
+            "evidence_ids": [
+              "E-ZON-01",
+              "E-DER-03",
+              "E-ZON-06",
+              "E-ZON-05"
+            ],
+            "kind": "support",
+            "target_claim_id": null
+          }
+        ],
+        "muted": []
+      }
+    },
+    {
+      "type": "recommendation",
+      "recommendation": {
+        "building_id": "hero",
+        "decision": "approve_with_conditions",
+        "headline": "Approve with conditions: convert 8 floors from 2027-08-14 behind a rear lightwell; floor 8 follows in 2033.",
+        "phases": [
+          {
+            "phase": 1,
+            "floors": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              9,
+              10
+            ],
+            "earliest_start": "2027-08-14",
+            "rationale": "Vacant floors plus floors 4-6 (lease ends 2027-06-30) are all clear when the 9-month special permit lands; cut the lightwell in this phase.",
+            "evidence_ids": [
+              "E-ZON-02",
+              "E-CST-05",
+              "E-DER-02"
+            ]
+          },
+          {
+            "phase": 2,
+            "floors": [
+              8
+            ],
+            "earliest_start": "2033-10-31",
+            "rationale": "Floor 8 keeps its office tenant for 7.0 more years; convert it when the lease ends.",
+            "evidence_ids": [
+              "E-CST-06"
+            ]
+          }
+        ],
+        "cost_usd": 107100000.0,
+        "value_usd": 53672727.0,
+        "payback_years": 36.3,
+        "risks": [
+          "Value ($53.7M) is below cost ($107.1M) until the lightwell plan is re-valued.",
+          "A full-height lightwell must be built around the occupied floor 8.",
+          "Special permit approval (9 months) is discretionary."
+        ],
+        "rank_score": 0.33,
+        "memo_markdown": "# 210 Commerce Street (demo): approve with conditions\n\n**Board:** engineer escalate, planner pass, analyst escalate (changed from fail). Agreement 66%.\n\n**Why it is hard.** The plate is 153 ft deep with windows on one facade; daylight reaches 50 ft,\nso only 32.7% of each floor is daylit. Conversion costs $107.1M against $53.7M of value from the daylit area.\n\n**Why it can work.** The 40 ft column grid allows a clean rear lightwell. Zoning allows conversion by\nspecial permit (9 months), existing FAR 10.0 is under the 12.0 cap, and the Demo City Adaptive Reuse\nAbatement applies with a 20% affordable set-aside.\n\n**Plan.** Phase 1 (from 2027-08-14): floors 2-7 and 9-10 plus the lightwell. Phase 2 (from 2033-10-31): floor 8.\nFloor 1 stays retail.\n\n**Conditions.**\n- Cut a full-height rear lightwell 3 bays deep on the 40 ft column grid\n- File the special permit now; approval takes 9 months\n- Keep floor 8 as office until its lease ends; convert it last\n- Re-run value with the lightwell plan before committing capital\n"
+      },
+      "fallback_used": false
+    }
+  ]
+}

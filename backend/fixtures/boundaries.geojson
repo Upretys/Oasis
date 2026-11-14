@@ -1,0 +1,314 @@
+{
+  "type": "FeatureCollection",
+  "_note": "Fictional demo boundaries (lon/lat). Not real municipal data.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "municipality",
+        "id": "demo-city",
+        "name": "Demo City"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.7,
+              40.3
+            ],
+            [
+              -74.6,
+              40.3
+            ],
+            [
+              -74.6,
+              40.4
+            ],
+            [
+              -74.7,
+              40.4
+            ],
+            [
+              -74.7,
+              40.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "municipality",
+        "id": "demo-township",
+        "name": "Demo Township"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.6,
+              40.3
+            ],
+            [
+              -74.5,
+              40.3
+            ],
+            [
+              -74.5,
+              40.4
+            ],
+            [
+              -74.6,
+              40.4
+            ],
+            [
+              -74.6,
+              40.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "council",
+        "id": "Demo City Council District 1"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.7,
+              40.3
+            ],
+            [
+              -74.65,
+              40.3
+            ],
+            [
+              -74.65,
+              40.4
+            ],
+            [
+              -74.7,
+              40.4
+            ],
+            [
+              -74.7,
+              40.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "council",
+        "id": "Demo City Council District 2"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.65,
+              40.3
+            ],
+            [
+              -74.6,
+              40.3
+            ],
+            [
+              -74.6,
+              40.4
+            ],
+            [
+              -74.65,
+              40.4
+            ],
+            [
+              -74.65,
+              40.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "council",
+        "id": "Demo Township Ward A"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.6,
+              40.3
+            ],
+            [
+              -74.5,
+              40.3
+            ],
+            [
+              -74.5,
+              40.4
+            ],
+            [
+              -74.6,
+              40.4
+            ],
+            [
+              -74.6,
+              40.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "zoning",
+        "district": "C6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.7,
+              40.3
+            ],
+            [
+              -74.65,
+              40.3
+            ],
+            [
+              -74.65,
+              40.4
+            ],
+            [
+              -74.7,
+              40.4
+            ],
+            [
+              -74.7,
+              40.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "zoning",
+        "district": "MX3"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.65,
+              40.3
+            ],
+            [
+              -74.6,
+              40.3
+            ],
+            [
+              -74.6,
+              40.4
+            ],
+            [
+              -74.65,
+              40.4
+            ],
+            [
+              -74.65,
+              40.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "zoning",
+        "district": "O1"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.6,
+              40.3
+            ],
+            [
+              -74.55,
+              40.3
+            ],
+            [
+              -74.55,
+              40.4
+            ],
+            [
+              -74.6,
+              40.4
+            ],
+            [
+              -74.6,
+              40.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "zoning",
+        "district": "M1"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -74.55,
+              40.3
+            ],
+            [
+              -74.5,
+              40.3
+            ],
+            [
+              -74.5,
+              40.4
+            ],
+            [
+              -74.55,
+              40.4
+            ],
+            [
+              -74.55,
+              40.3
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
