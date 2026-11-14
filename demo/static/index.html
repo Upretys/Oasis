@@ -96,6 +96,9 @@
 let BUILDINGS = { cached: [], live: [] };
 let vexcelKeySet = false;
 let activeId = null;
+let currentBuilding = null;
+let currentAnalysis = null;
+let currentAgentRun = null;
 let map, markerLayer;
 const markersById = {};
 
@@ -197,7 +200,7 @@ async function selectBuilding(b) {
   main.innerHTML = `
     <div class="loading-wrap">
       <div class="spinner"></div>
-      <span>${b.source === 'live' ? 'Fetching this building\\'s real aerial data live…' : 'Running the real pipeline…'}</span>
+      <span>${b.source === 'live' ? 'Fetching this building\'s real aerial data live…' : 'Running the real pipeline…'}</span>
     </div>
   `;
 
@@ -211,6 +214,9 @@ async function selectBuilding(b) {
       main.innerHTML = `<div class="error-box"><strong>${data.error}</strong><br>${data.message}</div>`;
       return;
     }
+    currentBuilding = b;
+    currentAnalysis = data;
+    currentAgentRun = null;
     renderResult(b, data);
     const m = markersById[b.property_id];
     if (m) m.setStyle({ fillColor: STATUS_COLORS[data.verdict] || '#999' });
@@ -261,6 +267,7 @@ function renderResult(b, d) {
       <h2 style="margin:0;">${b.name}</h2>
       <span class="verdict-badge" style="background:${VERDICT_COLORS[d.verdict] || '#999'}">${d.verdict.toUpperCase()}</span>
       <button class="agent-btn" id="agentBtn">&#129504; Ask the AI agent to evaluate this</button>
+      <button class="agent-btn" id="downloadBtn" style="margin-left:8px; background:#1a66b3;">&#128190; Download report</button>
     </div>
     <div style="color:var(--muted); font-size:13px;">${b.address || ''} &middot; floor ${b.floor_name}</div>
 
@@ -281,6 +288,7 @@ function renderResult(b, d) {
   `;
 
   document.getElementById('agentBtn').onclick = () => runAgent(b);
+  document.getElementById('downloadBtn').onclick = () => downloadReport();
 }
 
 async function runAgent(b) {
@@ -309,11 +317,80 @@ async function runAgent(b) {
       section.innerHTML = `<div class="error-box"><strong>${data.error}</strong><br>${data.message}</div>`;
       return;
     }
+    currentAgentRun = data;
     renderAgentTrace(section, data);
   } catch (err) {
     btn.disabled = false;
     section.innerHTML = `<div class="error-box">Agent request failed: ${err}</div>`;
   }
+}
+
+// Builds a real file on the viewer's own machine - a plain-text report that
+// still exists after the browser tab (and this server) are gone, combining
+// the deterministic pipeline's numbers with the live AI agent's own written
+// verdict when it was run.
+function downloadReport() {
+  const b = currentBuilding, d = currentAnalysis;
+  if (!b || !d) return;
+
+  const unitMix = Object.entries(d.unit_type_counts || {}).map(([t, c]) => `${c} ${t}`).join(', ') || 'no viable units';
+  const valueLine = d.value_skipped ? 'Skipped (geometry failed hard)'
+    : `$${Math.round(d.value_impact_low).toLocaleString()} to $${Math.round(d.value_impact_high).toLocaleString()}`;
+  const lc = d.legal_checks || {};
+
+  let report = `OFFICE-TO-RESIDENTIAL CONVERSION FEASIBILITY REPORT
+Generated ${new Date().toLocaleString()}
+Real Vexcel geometry + real CoStar lease/comp data${currentAgentRun ? ' + live Claude agent evaluation' : ''}
+
+================================================================
+${b.name}
+================================================================
+${b.address || ''}${b.address ? ' · ' : ''}Floor ${b.floor_name}
+Property ID: ${b.property_id}
+Coordinates: ${b.latitude}, ${b.longitude}
+
+VERDICT: ${d.verdict.toUpperCase()}  (${(d.confidence * 100).toFixed(0)}% confidence)
+
+GEOMETRY
+  Window-to-core depth: ${d.window_to_core_max_ft.toFixed(1)} ft (45ft threshold)
+  Real viable leasable area: ${Math.round(d.viable_leasable_sqft).toLocaleString()} sf
+  Unit mix: ${unitMix}
+
+VALUE IMPACT
+  ${valueLine}
+
+REASONING
+  ${d.reasoning_text}
+
+LEGAL & BUILDING CODE CHECKS
+  Zoning: Houston has no citywide zoning - not a real gate here. The real
+    constraint is private deed restrictions, not in this dataset.
+  Parking: ${lc.parking_flag || 'unknown'}${lc.parking_ratio ? ` (${lc.parking_ratio}/1000sf)` : ''}
+  Occupancy change: ${lc.occupancy_change_note || 'n/a'}
+  Column spacing: ${lc.column_spacing_note || 'n/a'}
+
+NOTES
+${(d.notes || []).map(n => '  - ' + n).join('\n')}
+`;
+
+  if (currentAgentRun) {
+    report += `
+================================================================
+LIVE AI AGENT EVALUATION (Claude, real tool-calling run)
+================================================================
+${currentAgentRun.final_text}
+`;
+  }
+
+  const blob = new Blob([report], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${b.name.replace(/[^a-z0-9]+/gi, '_')}_conversion_report.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // Turns the raw tool-calling trace into plain-English narration - no tool
