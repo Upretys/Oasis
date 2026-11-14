@@ -35,20 +35,47 @@ def model() -> str:
 # --- validation: code decides what a seat may say ---------------------------------------------------
 
 _IDS = re.compile(r"\b(?:E-[A-Z]{3}-\d+|[A-Z]{3}-\d-\d+)\b")
-_NUM = re.compile(r"(\d[\d,]*(?:\.\d+)?)\s*([MK]\b)?")
+_NUM = re.compile(r"(\$?)(\d[\d,]*(?:\.\d+)?)\s*([MK]\b)?")
+_UNIT_AFTER = [("pct", r"\s*(%|percent)"), ("ft", r"\s*-?(ft|feet|foot)\b"), ("sf", r"\s*(sf|sq)\b"),
+               ("months", r"\s*-?months?\b"), ("years", r"\s*-?years?\b"), ("bays", r"\s*bays?\b"),
+               ("far", r"\s*FAR\b")]
+_FAR_BEFORE = re.compile(r"\bFAR\s*(of|at|above|below|under)?\s*$")
+EVIDENCE_UNIT = {"%": "pct", "ft": "ft", "sf": "sf", "months": "months", "years": "years", "bays": "bays",
+                 "FAR": "far", "$": "usd", "$/sf/yr": "usd", "$/sf/month": "usd"}
+Number = tuple[float, str | None]   # (value, unit); unit None = not stated, matches any unit
 
 
-def numerals(text: str) -> list[float]:
-    """Numbers in text, ignoring evidence and claim IDs; '$107.1M' -> 107100000."""
-    return [float(n.replace(",", "")) * {"M": 1e6, "K": 1e3}.get(s, 1) for n, s in _NUM.findall(_IDS.sub("", text))]
+def numerals(text: str) -> list[Number]:
+    """Numbers in text with their unit, ignoring IDs: '$107.1M' -> (107100000, 'usd'), '60%' -> (60, 'pct')."""
+    text, out = _IDS.sub("", text), []
+    for m in _NUM.finditer(text):
+        value = float(m.group(2).replace(",", "")) * {"M": 1e6, "K": 1e3}.get(m.group(3), 1)
+        unit = "usd" if m.group(1) else next((u for u, p in _UNIT_AFTER if re.match(p, text[m.end():], re.I)), None)
+        if unit is None and _FAR_BEFORE.search(text[:m.start()]):
+            unit = "far"
+        out.append((value, unit))
+    return out
 
 
-def _unsupported(text: str, cited: list[Evidence]) -> list[float]:
-    allowed = [float(e.value) for e in cited if not isinstance(e.value, str)]
+def _facts(cited: list[Evidence]) -> list[Number]:
+    out = [(float(e.value), EVIDENCE_UNIT.get(e.unit)) for e in cited if not isinstance(e.value, str)]
     for e in cited:
-        allowed += numerals(e.label) + (numerals(e.value) if isinstance(e.value, str) else [])
-    return [n for n in numerals(text)
-            if n > 3 and not any(abs(n - a) <= max(0.5, 0.02 * abs(a)) for a in allowed)]   # 0-3: plain counts
+        out += numerals(e.label) + (numerals(e.value) if isinstance(e.value, str) else [])
+    return out
+
+
+def _same(n: Number, fact: Number) -> bool:
+    (v, u), (a, au) = n, fact
+    return abs(v - a) <= max(0.5, 0.02 * abs(a)) and (u is None or au is None or u == au)
+
+
+def _unsupported(text: str, cited: list[Evidence]) -> list[Number]:
+    facts = _facts(cited)
+    return [n for n in numerals(text) if n[0] > 3 and not any(_same(n, f) for f in facts)]   # 0-3: plain counts
+
+
+def _show(n: Number) -> str:
+    return f"{n[0]:.10g}" + {"pct": "%", "usd": " dollars", None: ""}.get(n[1], f" {n[1]}")
 
 
 def check(seat: SeatId, st: Statement, visible: list[Evidence], prior_claim_ids: set[str]) -> list[str]:
@@ -61,9 +88,14 @@ def check(seat: SeatId, st: Statement, visible: list[Evidence], prior_claim_ids:
         if hidden := [i for i in ids if i not in by_id]:
             errors.append(f"{label} cites {hidden}: not in your evidence list")
         for n in _unsupported(text, [by_id[i] for i in ids if i in by_id]):
-            holders = [e.id for e in visible if not _unsupported(f"{n:.10g}", [e])]
-            hint = f"add {holders[0]} to its evidence_ids" if holders else "remove it; no evidence holds it"
-            errors.append(f"{label} states {n:.10g}, which its cited evidence does not contain: {hint}")
+            holders = [e.id for e in visible if any(_same(n, f) and abs(n[0] - f[0]) <= 0.02 * abs(f[0])
+                                                    for f in _facts([e]))]   # close match only, no rounding slack
+            hint = (f"add {holders[0]} to its evidence_ids" if holders else
+                    "remove it: no evidence holds it, and ratios or other arithmetic you compute are not evidence")
+            errors.append(f"{label} states {_show(n)}, which its cited evidence does not contain: {hint}")
+    for n in _unsupported(st.would_change_my_mind, visible):   # no citations: check against all it can see
+        errors.append(f"would_change_my_mind states {_show(n)}, which none of your evidence holds: "
+                      "use a value from your evidence or say it without a number")
     for c in st.claims:
         if c.kind == "rebuttal" and not c.target_claim_id:
             errors.append(f"{c.id} is a rebuttal without target_claim_id")

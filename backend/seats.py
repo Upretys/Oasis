@@ -66,7 +66,8 @@ def build_system_prompt(seat: SeatId, building: Building) -> str:
 
 CHECKLIST = ("Before you submit, check: claims under 220 characters, conditions and would_change_my_mind "
              "under 160. Every number you write is the value of an evidence ID cited in that same claim or "
-             "condition. Proposed fixes go in conditions, not claims.")
+             "condition; quote values as given and never compute ratios, sums or differences. "
+             "Proposed fixes go in conditions, not claims.")
 
 
 def build_user_prompt(building: Building, rnd: int, transcript: list[Statement]) -> str:

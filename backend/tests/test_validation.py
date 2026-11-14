@@ -102,6 +102,43 @@ def test_invented_numeral_is_rejected():
         llm.parse("analyst", 0, raw, seats.visible("analyst", EV), set())
 
 
+def test_numerals_carry_units():
+    assert llm.numerals("$107.1M, 60%, 153 ft, a 9-month permit, 7.0 years, FAR of 10, 2.6 bays") == [
+        (107100000, "usd"), (60, "pct"), (153, "ft"), (9, "months"), (7.0, "years"), (10, "far"), (2.6, "bays")]
+
+
+@pytest.mark.parametrize("text,ids", [
+    ("The cap rate is 7%.", ["E-CST-04", "E-CST-06"]),        # 7 matches only the 7.0-year lease
+    ("Approval takes 10 months.", ["E-ZON-02", "E-DER-03"]),   # 10 matches only the FAR of 10.0
+])
+def test_a_number_must_match_a_cited_fact_with_the_same_unit(text, ids):
+    seat = "analyst" if "E-CST-04" in ids else "planner"
+    raw = {**GOOD, "claims": [{"text": text, "evidence_ids": ids, "kind": "risk"}], "conditions": []}
+    with pytest.raises(ValueError, match="cited evidence does not contain"):
+        llm.parse(seat, 0, raw, seats.visible(seat, EV), set())
+
+
+def test_unitless_and_matching_units_still_pass():
+    raw = {**GOOD, "claims": [{"text": "Cap rate 5.5% on $53.7M; office rent 38/sf/yr.",
+                               "evidence_ids": ["E-CST-04", "E-DER-05", "E-CST-02"], "kind": "support"}],
+           "conditions": [], "would_change_my_mind": "A value above the $107.1M cost."}
+    assert llm.parse("analyst", 0, raw, seats.visible("analyst", EV), set())
+
+
+@pytest.mark.parametrize("falsifier,ok", [
+    ("A survey showing the daylit share above 60%.", False),   # the live case: 60 matched the 60 ft street
+    ("A daylight study showing habitable light past 50 ft.", True),
+    ("A daylight study showing light across most of the plate.", True),
+])
+def test_falsifier_numbers_must_come_from_visible_evidence(falsifier, ok):
+    raw = {**GOOD, "would_change_my_mind": falsifier}
+    if ok:
+        assert llm.parse("engineer", 0, raw, seats.visible("engineer", EV), set())
+    else:
+        with pytest.raises(ValueError, match="would_change_my_mind states 60%"):
+            llm.parse("engineer", 0, raw, seats.visible("engineer", EV), set())
+
+
 @pytest.mark.parametrize("target,msg", [("ANL-0-9", "not an earlier claim"), ("ENG-0-1", "your own claim"),
                                         (None, "without target_claim_id")])
 def test_rebuttal_must_target_another_seats_real_claim(target, msg):
