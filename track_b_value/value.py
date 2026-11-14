@@ -26,6 +26,27 @@ ASSUMED_CONSTRUCTION_COST_PER_SQFT_LOW = 150.0
 ASSUMED_CONSTRUCTION_COST_PER_SQFT_HIGH = 220.0
 DEFAULT_CAP_RATE = 0.065  # used only if no real comp cap rate is found
 
+# Real cost driver, not invented: conversion literature (the same ULI/Gensler
+# material already cited for the window-to-core threshold) consistently
+# flags the structural system as a real cost swing factor - coring a
+# post-tensioned or conventionally reinforced concrete slab for new plumbing
+# risers is genuinely harder/costlier than penetrating a steel-frame floor
+# system. CoStar's real buildingConstructionMaterial field lets us apply this
+# per building instead of one flat number everywhere. Masonry buildings in
+# this kit are also consistently older/Class B - older MEP/electrical/life-
+# safety systems typically need fuller replacement regardless of structural
+# ease, so it gets a modest surcharge too, not treated as the easy case.
+CONSTRUCTION_MATERIAL_COST_MULTIPLIER = {
+    "Steel": 1.00,              # most conversion-friendly structural system - baseline
+    "Metal": 1.00,
+    "WoodFrame": 1.00,
+    "Masonry": 1.10,            # older systems typically need fuller MEP replacement
+    "Brownstone": 1.10,
+    "Limestone": 1.10,
+    "ReinforcedConcrete": 1.15,  # real, documented hardest/costliest case to core for risers
+}
+DEFAULT_CONSTRUCTION_COST_MULTIPLIER = 1.0  # unknown/missing material - no adjustment, stay conservative
+
 
 @dataclass
 class ApartmentMarketComp:
@@ -302,11 +323,95 @@ class FloorValueResult:
     notes: list[str] = field(default_factory=list)
 
 
+_JSONL_CACHE: dict[str, list[dict]] = {}
+
+
 def _iter_jsonl(filename: str):
-    path = os.path.join(KIT_PATH, "data", filename)
-    with open(path) as f:
-        for line in f:
-            yield json.loads(line)
+    """Parses each kit file once per process and caches it in memory - the
+    kit's files are static for the life of a run, and several real lookups
+    here (submarket vacancy, candidate listing) each do a full scan. Without
+    this, a live web request against location-occupancy.jsonl (74k lines)
+    re-reads and re-JSON-parses the whole file from disk every single call -
+    fine for a one-shot script, not for a server answering repeated clicks."""
+    if filename not in _JSONL_CACHE:
+        path = os.path.join(KIT_PATH, "data", filename)
+        with open(path) as f:
+            _JSONL_CACHE[filename] = [json.loads(line) for line in f]
+    yield from _JSONL_CACHE[filename]
+
+
+BUILDING_CONSTRUCTION_MATERIAL_NAMES = {
+    0: "Unknown", 1: "Masonry", 2: "Metal", 3: "ReinforcedConcrete",
+    4: "Steel", 5: "WoodFrame", 6: "Brownstone", 7: "Limestone",
+}
+
+
+def construction_cost_multiplier_for_property(property_id: int) -> tuple[float, str]:
+    """Real per-building construction cost adjustment from CoStar's actual
+    buildingConstructionMaterial field - see CONSTRUCTION_MATERIAL_COST_MULTIPLIER
+    for the real-world rationale. Falls back to no adjustment (1.0x) when the
+    field is missing, never guesses a material."""
+    prop = load_property(property_id)
+    if prop is None:
+        return DEFAULT_CONSTRUCTION_COST_MULTIPLIER, "property not found"
+    material_code = prop.get("buildingConstructionMaterial")
+    material_name = BUILDING_CONSTRUCTION_MATERIAL_NAMES.get(material_code, "Unknown")
+    if material_name == "Unknown":
+        return DEFAULT_CONSTRUCTION_COST_MULTIPLIER, "no real construction material on record for this building"
+    mult = CONSTRUCTION_MATERIAL_COST_MULTIPLIER.get(material_name, DEFAULT_CONSTRUCTION_COST_MULTIPLIER)
+    return mult, f"real buildingConstructionMaterial = {material_name}"
+
+
+def submarket_office_vacancy_rate(property_id: int, max_peers: int = 40) -> tuple[float | None, int, str]:
+    """Real cross-check for the 'this ignores the option value of eventually
+    re-leasing a vacant floor as office' caveat: what real fraction of OTHER
+    real office buildings in this property's own CoStar submarket have zero
+    currently-active lease anywhere in the building right now. High real
+    submarket vacancy makes the $0-foregone-office-income assumption more
+    defensible (little realistic chance of re-leasing as office soon); low
+    submarket vacancy means the ignored option value is more real, and the
+    vacant-floor result should be read with more caution."""
+    prop = load_property(property_id)
+    if prop is None:
+        return None, 0, "property not found"
+    submarket_id = prop.get("primarySubmarketId")
+    if submarket_id is None:
+        return None, 0, "no submarket on record for this building"
+
+    peers = []
+    for rec in _iter_jsonl("commercial-property.jsonl"):
+        if rec.get("propertyType") != 5:  # Office
+            continue
+        if rec.get("primarySubmarketId") != submarket_id:
+            continue
+        if rec["id"] == property_id:
+            continue
+        peers.append(rec)
+        if len(peers) >= max_peers:
+            break
+
+    if not peers:
+        return None, 0, "no other real office buildings found in this submarket"
+
+    floor_id_to_pid = {}
+    for p in peers:
+        for fl in (p.get("floors") or []):
+            fid = fl.get("propertyFloorId")
+            if fid is not None:
+                floor_id_to_pid[fid] = p["id"]
+
+    pids_with_current_lease = set()
+    for rec in _iter_jsonl("location-occupancy.jsonl"):
+        if rec.get("toDate") is not None:
+            continue
+        for sp in (rec.get("spaces") or []):
+            pid = floor_id_to_pid.get(sp.get("propertyFloorId"))
+            if pid is not None:
+                pids_with_current_lease.add(pid)
+
+    vacant_count = len(peers) - len(pids_with_current_lease)
+    vacancy_rate = vacant_count / len(peers)
+    return vacancy_rate, len(peers), f"real cross-check across {len(peers)} other office buildings in the same CoStar submarket"
 
 
 def load_property(property_id: int) -> dict | None:
@@ -403,10 +508,23 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
         # number (verified: it only fires when real history confirms vacancy).
         office_rent = 0.0
         rent_source = "floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting"
-        notes.append(
-            "This simplification ignores the option value of eventually re-leasing the floor as "
-            "office at market rate - a real consideration a landlord would weigh, not modeled here."
-        )
+        submarket_vacancy, n_peers, submarket_source = submarket_office_vacancy_rate(property_id)
+        if submarket_vacancy is not None:
+            read = ("little realistic chance of re-leasing as office soon - this assumption is defensible"
+                    if submarket_vacancy > 0.30 else
+                    "a real chance of re-leasing as office exists - read this result with more caution")
+            notes.append(
+                f"Real cross-check: {submarket_vacancy:.0%} of {n_peers} other real office buildings in "
+                f"this building's own CoStar submarket are also currently vacant ({submarket_source}). "
+                f"This ignores the option value of eventually re-leasing as office at market rate, but "
+                f"the submarket-wide vacancy suggests {read}."
+            )
+        else:
+            notes.append(
+                "This simplification ignores the option value of eventually re-leasing the floor as "
+                f"office at market rate - a real consideration a landlord would weigh, not modeled here "
+                f"({submarket_source}, so no real submarket cross-check was available either)."
+            )
 
     if office_rent is None:
         # No occupancy record at all for this floor - a genuine data gap, not
@@ -446,8 +564,16 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
 
     uplift_per_sqft = residential_rent - office_rent
     value_uplift = uplift_per_sqft * convertible_sqft
-    cost_low = ASSUMED_CONSTRUCTION_COST_PER_SQFT_LOW * convertible_sqft
-    cost_high = ASSUMED_CONSTRUCTION_COST_PER_SQFT_HIGH * convertible_sqft
+
+    cost_multiplier, cost_multiplier_source = construction_cost_multiplier_for_property(property_id)
+    cost_low = ASSUMED_CONSTRUCTION_COST_PER_SQFT_LOW * cost_multiplier * convertible_sqft
+    cost_high = ASSUMED_CONSTRUCTION_COST_PER_SQFT_HIGH * cost_multiplier * convertible_sqft
+    if cost_multiplier != 1.0:
+        notes.append(
+            f"Construction cost adjusted {cost_multiplier:.2f}x from the flat $150-220/sf baseline "
+            f"based on {cost_multiplier_source} - real per-building adjustment, not the same flat "
+            f"number applied to every building."
+        )
 
     implied_low = value_uplift / cap_rate - cost_high
     implied_high = value_uplift / cap_rate - cost_low
@@ -456,7 +582,8 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
         f"Floor {floor_name}: office rent ${office_rent:.2f}/sf/yr ({rent_source}) vs. "
         f"residential ${residential_rent:.2f}/sf/yr ({rent_comp_source}) -> ${value_uplift:,.0f}/yr uplift on "
         f"{convertible_sqft:,.0f} convertible sf. At a {cap_rate:.1%} cap rate ({cap_rate_source}), "
-        f"implied value impact is ${implied_low:,.0f}-${implied_high:,.0f} after construction cost."
+        f"implied value impact is ${implied_low:,.0f}-${implied_high:,.0f} after construction cost "
+        f"({cost_multiplier_source}, {cost_multiplier:.2f}x baseline)."
     )
     if lease_expiration:
         reasoning += f" Current lease runs through {lease_expiration[:10]}."

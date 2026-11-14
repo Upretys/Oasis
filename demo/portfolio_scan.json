@@ -6,8 +6,8 @@
     "longitude": -95.579652,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 2336308.0,
-    "value_impact_high": 3404473.0,
+    "value_impact_low": 2272723.0,
+    "value_impact_high": 3311817.0,
     "already_tested": true
   },
   {
@@ -17,8 +17,8 @@
     "longitude": -95.461339,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -2030620.0,
-    "value_impact_high": -1080139.0,
+    "value_impact_low": -1958403.0,
+    "value_impact_high": -1041725.0,
     "already_tested": true
   },
   {
@@ -28,8 +28,8 @@
     "longitude": -95.366467,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 3750801.0,
-    "value_impact_high": 4687149.0,
+    "value_impact_low": 3486044.0,
+    "value_impact_high": 4356298.0,
     "already_tested": true
   },
   {
@@ -50,8 +50,8 @@
     "longitude": -95.4720879,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -4496130.0,
-    "value_impact_high": -3501318.0,
+    "value_impact_low": -4965113.0,
+    "value_impact_high": -3821079.0,
     "already_tested": true
   },
   {
@@ -61,8 +61,8 @@
     "longitude": -95.4018971,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 713482.0,
-    "value_impact_high": 1847293.0,
+    "value_impact_low": 178971.0,
+    "value_impact_high": 1482853.0,
     "already_tested": true
   },
   {
@@ -72,8 +72,8 @@
     "longitude": -95.5505272,
     "verdict": "escalate",
     "value_skipped": false,
-    "value_impact_low": -12990210.0,
-    "value_impact_high": -10012774.0,
+    "value_impact_low": -14393858.0,
+    "value_impact_high": -10969807.0,
     "already_tested": true
   },
   {
@@ -83,8 +83,8 @@
     "longitude": -95.387156,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 782984.0,
-    "value_impact_high": 2061268.0,
+    "value_impact_low": 381238.0,
+    "value_impact_high": 1787350.0,
     "already_tested": true
   },
   {
@@ -94,8 +94,8 @@
     "longitude": -95.4648038,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 2040169.0,
-    "value_impact_high": 3069645.0,
+    "value_impact_low": 1717308.0,
+    "value_impact_high": 2850186.0,
     "already_tested": true
   },
   {
@@ -105,8 +105,8 @@
     "longitude": -95.4058157,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 648103.0,
-    "value_impact_high": 1678020.0,
+    "value_impact_low": 162709.0,
+    "value_impact_high": 1348120.0,
     "already_tested": true
   },
   {
@@ -193,8 +193,8 @@
     "longitude": -95.4806279,
     "verdict": "escalate",
     "value_skipped": false,
-    "value_impact_low": 1113564.0,
-    "value_impact_high": 2578153.0,
+    "value_impact_low": 653264.0,
+    "value_impact_high": 2264312.0,
     "already_tested": false
   },
   {
@@ -204,8 +204,8 @@
     "longitude": -95.4034524,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 2926673.0,
-    "value_impact_high": 4604972.0,
+    "value_impact_low": 2399207.0,
+    "value_impact_high": 4245336.0,
     "already_tested": false
   },
   {
@@ -226,8 +226,8 @@
     "longitude": -95.5722404,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 1906828.0,
-    "value_impact_high": 3588410.0,
+    "value_impact_low": 1908891.0,
+    "value_impact_high": 3592293.0,
     "already_tested": false
   },
   {
@@ -237,8 +237,8 @@
     "longitude": -95.4665119,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 3515282.0,
-    "value_impact_high": 4964506.0,
+    "value_impact_low": 3059812.0,
+    "value_impact_high": 4653958.0,
     "already_tested": false
   },
   {
@@ -248,8 +248,8 @@
     "longitude": -95.388258,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 1312514.0,
-    "value_impact_high": 2596930.0,
+    "value_impact_low": 908840.0,
+    "value_impact_high": 2321698.0,
     "already_tested": false
   },
   {
@@ -259,8 +259,8 @@
     "longitude": -95.5148383,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 394260.0,
-    "value_impact_high": 1655954.0,
+    "value_impact_low": -2273.0,
+    "value_impact_high": 1385591.0,
     "already_tested": false
   },
   {
@@ -270,8 +270,8 @@
     "longitude": -95.3963889,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -2983454.0,
-    "value_impact_high": -1584063.0,
+    "value_impact_low": -3062147.0,
+    "value_impact_high": -1625845.0,
     "already_tested": false
   },
   {
@@ -281,8 +281,8 @@
     "longitude": -95.606777,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 468905.0,
-    "value_impact_high": 1753265.0,
+    "value_impact_low": 65249.0,
+    "value_impact_high": 1478045.0,
     "already_tested": false
   },
   {
@@ -292,8 +292,8 @@
     "longitude": -95.357148,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 3574225.0,
-    "value_impact_high": 4727195.0,
+    "value_impact_low": 3211863.0,
+    "value_impact_high": 4480130.0,
     "already_tested": false
   },
   {
@@ -314,8 +314,8 @@
     "longitude": -95.4833002,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -365823.0,
-    "value_impact_high": 881444.0,
+    "value_impact_low": -757821.0,
+    "value_impact_high": 614173.0,
     "already_tested": false
   },
   {
@@ -336,8 +336,8 @@
     "longitude": -95.4909402,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 593804.0,
-    "value_impact_high": 2078399.0,
+    "value_impact_low": 127217.0,
+    "value_impact_high": 1760272.0,
     "already_tested": false
   },
   {
@@ -347,8 +347,8 @@
     "longitude": -95.5511049,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 145034.0,
-    "value_impact_high": 1459445.0,
+    "value_impact_low": -268067.0,
+    "value_impact_high": 1177785.0,
     "already_tested": false
   },
   {
@@ -358,8 +358,8 @@
     "longitude": -95.403447,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -1170039.0,
-    "value_impact_high": 110275.0,
+    "value_impact_low": -1572423.0,
+    "value_impact_high": -164078.0,
     "already_tested": false
   },
   {
