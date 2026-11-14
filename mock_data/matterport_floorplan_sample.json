@@ -1,0 +1,46 @@
+{
+  "model": {
+    "floors": [{"id": "floor-4", "sequence": 3, "label": "Floor 4"}],
+    "rooms": [
+      {
+        "id": "room-1",
+        "label": "Open Office",
+        "classifications": [{"id": "c1", "label": "office"}],
+        "boundary": {
+          "vertices": [
+            {"id": "v1", "position": {"x": 0, "y": 0}},
+            {"id": "v2", "position": {"x": 18.3, "y": 0}},
+            {"id": "v3", "position": {"x": 18.3, "y": 16.8}},
+            {"id": "v4", "position": {"x": 0, "y": 16.8}}
+          ],
+          "edges": [
+            {"id": "e1", "type": "wall", "is_exterior": true, "vertices": ["v1", "v2"]},
+            {"id": "e2", "type": "wall", "is_exterior": false, "vertices": ["v2", "v3"]},
+            {"id": "e3", "type": "wall", "is_exterior": false, "vertices": ["v3", "v4"]},
+            {"id": "e4", "type": "wall", "is_exterior": true, "vertices": ["v4", "v1"]}
+          ]
+        }
+      },
+      {
+        "id": "room-2",
+        "label": "Elevator Lobby",
+        "classifications": [{"id": "c2", "label": "elevator"}],
+        "boundary": {
+          "vertices": [
+            {"id": "v5", "position": {"x": 7.6, "y": 13.7}},
+            {"id": "v6", "position": {"x": 10.7, "y": 13.7}},
+            {"id": "v7", "position": {"x": 10.7, "y": 16.8}},
+            {"id": "v8", "position": {"x": 7.6, "y": 16.8}}
+          ],
+          "edges": [
+            {"id": "e5", "type": "wall", "is_exterior": false, "vertices": ["v5", "v6"]},
+            {"id": "e6", "type": "wall", "is_exterior": false, "vertices": ["v6", "v7"]},
+            {"id": "e7", "type": "wall", "is_exterior": false, "vertices": ["v7", "v8"]},
+            {"id": "e8", "type": "wall", "is_exterior": false, "vertices": ["v8", "v5"]}
+          ]
+        }
+      }
+    ]
+  },
+  "_note": "Coordinates in meters, matching real Matterport GraphQL vector-data shape. is_exterior is a convenience flag added here for the mock; the real parser must infer it (an edge bordering no other room's boundary)."
+}

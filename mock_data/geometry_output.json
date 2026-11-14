@@ -1,0 +1,13 @@
+{
+  "floor_id": "demo-building-1-floor-4",
+  "verdict": "pass",
+  "confidence": 0.82,
+  "window_to_core_max_ft": 48.5,
+  "convertible_fraction": 0.91,
+  "unit_layout_polygons": [
+    {"unit_id": "A", "polygon": [[0, 0], [20, 0], [20, 45], [0, 45]]},
+    {"unit_id": "B", "polygon": [[20, 0], [40, 0], [40, 45], [20, 45]]},
+    {"unit_id": "C", "polygon": [[40, 0], [60, 0], [60, 45], [40, 45]]}
+  ],
+  "core_polygon": [[25, 45], [35, 45], [35, 55], [25, 55]]
+}

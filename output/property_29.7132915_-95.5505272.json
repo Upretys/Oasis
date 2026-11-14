@@ -1,0 +1,3070 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "structures": [
+          {
+            "footprint.wkt": "POLYGON ((-95.5498588 29.7138237, -95.5498572 29.7133268, -95.5498512 29.7133134, -95.5498579 29.7132959, -95.5498608 29.7133047, -95.549859 29.7131655, -95.5498529 29.7131655, -95.5498499 29.712713, -95.5498653 29.7127054, -95.550378 29.7127, -95.5503784 29.7127287, -95.5503843 29.7127345, -95.5503944 29.7127112, -95.5504185 29.7127176, -95.5504413 29.7127392, -95.5504773 29.7128143, -95.5505298 29.7127939, -95.5505486 29.7127794, -95.5505649 29.7127592, -95.5505539 29.7127523, -95.5505755 29.712729, -95.5505751 29.7126969, -95.5511118 29.712692, -95.5511226 29.7126955, -95.5511325 29.7127198, -95.55114 29.7132852, -95.5511227 29.7132853, -95.5511233 29.7133293, -95.5511403 29.7133291, -95.5511468 29.7138165, -95.5506107 29.7138219, -95.55061 29.7137659, -95.5505861 29.7137339, -95.5505451 29.7137093, -95.5504588 29.7137102, -95.5504145 29.7137403, -95.5503948 29.71377, -95.5503954 29.7138206, -95.5498588 29.7138237))",
+            "footprint.area": 162361.02316017135,
+            "defensible-space.zone1-building": 0.0,
+            "defensible-space.zone2-building": 0.0,
+            "defensible-space.zone3-building": 0.0,
+            "defensible-space.zone4-building": 0.0,
+            "defensible-space.zone1-tree": 10.0,
+            "defensible-space.zone2-tree": 27.0,
+            "defensible-space.zone3-tree": 27.0,
+            "defensible-space.zone4-tree": 18.0,
+            "roof-characteristics.condition": 3.0,
+            "roof-characteristics.condition.precise-value": 2.6,
+            "roof-characteristics.tree-cover.percent": 0.0,
+            "roof-characteristics.material.score": 1.0,
+            "roof-characteristics.material.class": "membrane",
+            "roof-characteristics.shape.value": "flat",
+            "roof-characteristics.shape.score": null,
+            "roof-characteristics.shape.wind-mitigation": null,
+            "roof-characteristics.shape.multiple-shape": null,
+            "roof-characteristics.centroid.wkt": "POINT (-95.5504995 29.7132254)",
+            "roof-characteristics.condition.attic-habitable": null,
+            "roof-characteristics.eave-height": null,
+            "roof-characteristics.entrance-elevation": null,
+            "roof-characteristics.maximum-roof-height": null,
+            "roof-characteristics.number-of-stories-below-eave": null,
+            "roof-characteristics.structure-score": null,
+            "roof-characteristics.volume-below-eave": null,
+            "roof-objects.solar.value": true,
+            "roof-objects.solar.score": null,
+            "roof-objects.ac-unit.count": 10,
+            "roof-objects.ac-unit.score": null,
+            "roof-objects.chimney.count": 0,
+            "roof-objects.chimney.score": null,
+            "roof-objects.roof-vent.count": 35,
+            "roof-objects.roof-vent.score": null,
+            "roof-objects.satellite-dish.count": 0,
+            "roof-objects.satellite-dish.score": null,
+            "roof-objects.skylight.count": 0,
+            "roof-objects.skylight.score": null,
+            "roof-objects.solar-panel-photovoltaic.count": null,
+            "roof-objects.solar-panel-photovoltaic.area": null,
+            "roof-objects.solar-panel-photovoltaic.score": null,
+            "roof-objects.solar-panel-thermal.count": null,
+            "roof-objects.solar-panel-thermal.area": null,
+            "roof-objects.solar-panel-thermal.score": null,
+            "roof-defects.missing-material.detected": false,
+            "roof-defects.missing-material.percent": null,
+            "roof-defects.missing-material.score": null,
+            "roof-defects.tarp.percent": null,
+            "roof-defects.tarp.detected": false,
+            "roof-defects.tarp.score": null,
+            "roof-defects.tarp.area": null,
+            "roof-defects.discoloration.detected": true,
+            "roof-defects.discoloration.percent": 31.55,
+            "roof-defects.discoloration.score": 0.71,
+            "roof-defects.debris.detected": false,
+            "roof-defects.debris.percent": null,
+            "roof-defects.debris.score": null,
+            "roof-defects.patch.detected": false,
+            "roof-defects.patch.percent": null,
+            "roof-defects.patch.score": null,
+            "roof-defects.structural-damage.detected": false,
+            "roof-defects.structural-damage.percent": null,
+            "roof-defects.structural-damage.score": null,
+            "roof-defects.rust.detected": false,
+            "roof-defects.rust.percent": null,
+            "roof-defects.rust.score": null,
+            "roof-defects.discoloration.types.algae-staining.detected": false,
+            "roof-defects.discoloration.types.algae-staining.percent": null,
+            "roof-defects.discoloration.types.algae-staining.score": null,
+            "roof-defects.discoloration.types.vent-staining.detected": false,
+            "roof-defects.discoloration.types.vent-staining.percent": null,
+            "roof-defects.discoloration.types.vent-staining.score": null,
+            "roof-defects.discoloration.types.water-pooling.detected": true,
+            "roof-defects.discoloration.types.water-pooling.percent": 31.55,
+            "roof-defects.discoloration.types.water-pooling.score": 0.71,
+            "roof-defects.discoloration.types.water-pooling-dry.detected": null,
+            "roof-defects.discoloration.types.water-pooling-dry.percent": null,
+            "roof-defects.discoloration.types.water-pooling-dry.score": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.detected": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.percent": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.score": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.detected": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.percent": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.score": null,
+            "primary-structure": true,
+            "ground-elevation.value": 75.0000024,
+            "structure-distance": null,
+            "building-type.class": null,
+            "building-type.score": null
+          }
+        ],
+        "structure.count": 1,
+        "parcel-source": "Voronoi",
+        "parcel-tree-cover.percent": 2.0,
+        "pool.total-area": null,
+        "pool.detected": false,
+        "pool.score": null,
+        "pool.types.above-ground.count": null,
+        "pool.types.above-ground.area": null,
+        "pool.types.above-ground.detected": false,
+        "pool.types.above-ground.enclosed.score": null,
+        "pool.types.above-ground.enclosed.count": null,
+        "pool.types.above-ground.non-enclosed.count": null,
+        "pool.types.above-ground.distance": null,
+        "pool.types.above-ground.score": null,
+        "pool.types.in-ground.count": null,
+        "pool.types.in-ground.area": null,
+        "pool.types.in-ground.detected": false,
+        "pool.types.in-ground.enclosed.score": null,
+        "pool.types.in-ground.enclosed.count": null,
+        "pool.types.in-ground.non-enclosed.count": null,
+        "pool.types.in-ground.distance": null,
+        "pool.types.in-ground.score": null,
+        "pool.types.hot-tub.count": null,
+        "pool.types.hot-tub.area": null,
+        "pool.types.hot-tub.detected": false,
+        "pool.types.hot-tub.enclosed.score": null,
+        "pool.types.hot-tub.enclosed.count": null,
+        "pool.types.hot-tub.non-enclosed.count": null,
+        "pool.types.hot-tub.distance": null,
+        "pool.types.hot-tub.score": null,
+        "pool.objects.water-slide.detected": false,
+        "pool.objects.water-slide.score": null,
+        "pool.objects.diving-board.detected": false,
+        "pool.objects.diving-board.score": null,
+        "enclosure.detected": false,
+        "enclosure.score": null,
+        "enclosure.area": null,
+        "enclosure.count": null,
+        "sport-court.detected": false,
+        "sport-court.score": null,
+        "hardscapes.area": 84.000662928,
+        "hardscapes.percent": 1.0,
+        "vehicles.detected": true,
+        "vehicles.score": 0.98,
+        "vehicles.count": 1,
+        "vehicles.types.automobile.detected": true,
+        "vehicles.types.automobile.score": 0.98,
+        "vehicles.types.automobile.count": 1,
+        "vehicles.types.boat.detected": false,
+        "vehicles.types.boat.score": null,
+        "vehicles.types.boat.count": null,
+        "playground.detected": false,
+        "playground.score": null,
+        "playground.enclosed.score": null,
+        "playground.enclosed.count": null,
+        "playground.non-enclosed.count": null,
+        "deck.detected": false,
+        "deck.score": null,
+        "deck.area": null,
+        "trampoline.detected": false,
+        "trampoline.score": null,
+        "trampoline.enclosed.score": null,
+        "trampoline.enclosed.count": null,
+        "trampoline.non-enclosed.count": null,
+        "census-tract": null,
+        "metadata.camera-technology": null,
+        "metadata.gsd": 0.25000000799999994,
+        "metadata.image-id": null,
+        "metadata.ortho-date-estimate": "2023-12-11T00:00:00",
+        "metadata.version": "3.75.2",
+        "metadata.layer-name": "urban",
+        "metadata.collection": "us-tx-houstonr2-2023",
+        "metadata.is-ortho-image": true,
+        "request-information.requested-wkt": "POINT(-95.5505272 29.7132915)",
+        "request-information.inside-parcel": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -95.5508845,
+                29.713897
+              ],
+              [
+                -95.550845,
+                29.7139039
+              ],
+              [
+                -95.5506299,
+                29.7139018
+              ],
+              [
+                -95.5505918,
+                29.7138878
+              ],
+              [
+                -95.5505636,
+                29.7138652
+              ],
+              [
+                -95.5505185,
+                29.7137927
+              ],
+              [
+                -95.5505056,
+                29.7137951
+              ],
+              [
+                -95.55047,
+                29.7138551
+              ],
+              [
+                -95.5504471,
+                29.7138809
+              ],
+              [
+                -95.5504151,
+                29.7138979
+              ],
+              [
+                -95.550397,
+                29.7139024
+              ],
+              [
+                -95.5498794,
+                29.7139039
+              ],
+              [
+                -95.5498412,
+                29.7138975
+              ],
+              [
+                -95.5498238,
+                29.7138897
+              ],
+              [
+                -95.5497955,
+                29.7138664
+              ],
+              [
+                -95.5497857,
+                29.7138516
+              ],
+              [
+                -95.5497762,
+                29.7138187
+              ],
+              [
+                -95.5497631,
+                29.7135801
+              ],
+              [
+                -95.5498735,
+                29.7131854
+              ],
+              [
+                -95.5498767,
+                29.71301
+              ],
+              [
+                -95.549866,
+                29.7127258
+              ],
+              [
+                -95.5498874,
+                29.7126815
+              ],
+              [
+                -95.5502012,
+                29.7126815
+              ],
+              [
+                -95.5502039,
+                29.7126932
+              ],
+              [
+                -95.5503407,
+                29.7126932
+              ],
+              [
+                -95.5503863,
+                29.7127211
+              ],
+              [
+                -95.5504491,
+                29.7127912
+              ],
+              [
+                -95.5505897,
+                29.7127541
+              ],
+              [
+                -95.5506071,
+                29.7127337
+              ],
+              [
+                -95.550617,
+                29.7127118
+              ],
+              [
+                -95.5506289,
+                29.7127066
+              ],
+              [
+                -95.5506492,
+                29.7126815
+              ],
+              [
+                -95.5507243,
+                29.7126815
+              ],
+              [
+                -95.5507377,
+                29.7126932
+              ],
+              [
+                -95.5507484,
+                29.7126815
+              ],
+              [
+                -95.5508342,
+                29.7126815
+              ],
+              [
+                -95.5508394,
+                29.7126883
+              ],
+              [
+                -95.5509423,
+                29.7126611
+              ],
+              [
+                -95.5509417,
+                29.7126957
+              ],
+              [
+                -95.5511159,
+                29.7126932
+              ],
+              [
+                -95.5511373,
+                29.7127025
+              ],
+              [
+                -95.5511373,
+                29.7131032
+              ],
+              [
+                -95.5509347,
+                29.7131032
+              ],
+              [
+                -95.5509344,
+                29.7131171
+              ],
+              [
+                -95.5511373,
+                29.7131171
+              ],
+              [
+                -95.5511266,
+                29.7131381
+              ],
+              [
+                -95.5510354,
+                29.713187
+              ],
+              [
+                -95.5510139,
+                29.713215
+              ],
+              [
+                -95.5510059,
+                29.7132569
+              ],
+              [
+                -95.5510139,
+                29.7132965
+              ],
+              [
+                -95.5510354,
+                29.7133221
+              ],
+              [
+                -95.5510783,
+                29.7133454
+              ],
+              [
+                -95.5511266,
+                29.7133548
+              ],
+              [
+                -95.5511454,
+                29.7133827
+              ],
+              [
+                -95.5511373,
+                29.7135295
+              ],
+              [
+                -95.5511561,
+                29.713795
+              ],
+              [
+                -95.5511132,
+                29.7138113
+              ],
+              [
+                -95.5510595,
+                29.713802
+              ],
+              [
+                -95.5509227,
+                29.713802
+              ],
+              [
+                -95.5509211,
+                29.7138922
+              ],
+              [
+                -95.5508948,
+                29.7138922
+              ],
+              [
+                -95.5508845,
+                29.713897
+              ]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "structures": [
+          {
+            "footprint.wkt": "POLYGON ((-95.549878 29.7138131, -95.549876 29.7133425, -95.5498894 29.7133553, -95.5499191 29.7133465, -95.5498892 29.7133467, -95.549889 29.7133244, -95.5498821 29.7133244, -95.5498821 29.7133094, -95.549886 29.7133094, -95.5498854 29.7132391, -95.5498946 29.7132391, -95.5498944 29.7132094, -95.5498744 29.7131915, -95.5498743 29.7131698, -95.5498647 29.7131615, -95.5498613 29.7127799, -95.5498535 29.7127725, -95.5498429 29.7127809, -95.5498311 29.71277, -95.5498378 29.7127596, -95.5498618 29.7127524, -95.5498614 29.7127085, -95.5503662 29.7127048, -95.5503796 29.7127089, -95.550387 29.7127229, -95.5503923 29.7127246, -95.5504467 29.7127159, -95.5504792 29.7127043, -95.5505605 29.7127039, -95.5505969 29.7127188, -95.5506183 29.7127013, -95.5511311 29.7126984, -95.5511393 29.713141, -95.5511367 29.713148, -95.5511243 29.7131549, -95.5510806 29.7131552, -95.5510807 29.713167, -95.5510964 29.7131783, -95.5510897 29.713192, -95.5510904 29.7132811, -95.5510817 29.7133029, -95.5510937 29.7133291, -95.5510904 29.7133402, -95.551107 29.7133467, -95.5511426 29.7133465, -95.5511461 29.7138049, -95.5506242 29.713811, -95.5506239 29.7137698, -95.5506089 29.7137461, -95.5505975 29.7137432, -95.5505846 29.7137586, -95.5505678 29.7137587, -95.5505479 29.7137694, -95.5505328 29.7137945, -95.5504237 29.7137983, -95.5504098 29.7137811, -95.5503991 29.7138073, -95.550389 29.7138119, -95.549878 29.7138131))",
+            "footprint.area": 159932.6398640643,
+            "defensible-space.zone1-building": 0.0,
+            "defensible-space.zone2-building": 0.0,
+            "defensible-space.zone3-building": 0.0,
+            "defensible-space.zone4-building": 0.0,
+            "defensible-space.zone1-tree": 6.0,
+            "defensible-space.zone2-tree": 27.0,
+            "defensible-space.zone3-tree": 27.0,
+            "defensible-space.zone4-tree": 18.0,
+            "roof-characteristics.condition": 2.0,
+            "roof-characteristics.condition.precise-value": null,
+            "roof-characteristics.tree-cover.percent": 0.0,
+            "roof-characteristics.material.score": 1.0,
+            "roof-characteristics.material.class": "membrane",
+            "roof-characteristics.shape.value": "flat",
+            "roof-characteristics.shape.score": 0.98,
+            "roof-characteristics.shape.wind-mitigation": null,
+            "roof-characteristics.shape.multiple-shape": null,
+            "roof-characteristics.centroid.wkt": "POINT (-95.5504879 29.7132601)",
+            "roof-characteristics.condition.attic-habitable": null,
+            "roof-characteristics.eave-height": null,
+            "roof-characteristics.entrance-elevation": null,
+            "roof-characteristics.maximum-roof-height": null,
+            "roof-characteristics.number-of-stories-below-eave": null,
+            "roof-characteristics.structure-score": null,
+            "roof-characteristics.volume-below-eave": null,
+            "roof-objects.solar.value": false,
+            "roof-objects.solar.score": null,
+            "roof-objects.ac-unit.count": 10,
+            "roof-objects.ac-unit.score": null,
+            "roof-objects.chimney.count": 0,
+            "roof-objects.chimney.score": null,
+            "roof-objects.roof-vent.count": 29,
+            "roof-objects.roof-vent.score": null,
+            "roof-objects.satellite-dish.count": 0,
+            "roof-objects.satellite-dish.score": null,
+            "roof-objects.skylight.count": 0,
+            "roof-objects.skylight.score": null,
+            "roof-objects.solar-panel-photovoltaic.count": null,
+            "roof-objects.solar-panel-photovoltaic.area": null,
+            "roof-objects.solar-panel-photovoltaic.score": null,
+            "roof-objects.solar-panel-thermal.count": null,
+            "roof-objects.solar-panel-thermal.area": null,
+            "roof-objects.solar-panel-thermal.score": null,
+            "roof-defects.missing-material.detected": false,
+            "roof-defects.missing-material.percent": null,
+            "roof-defects.missing-material.score": null,
+            "roof-defects.tarp.percent": null,
+            "roof-defects.tarp.detected": false,
+            "roof-defects.tarp.score": null,
+            "roof-defects.tarp.area": null,
+            "roof-defects.discoloration.detected": true,
+            "roof-defects.discoloration.percent": 88.74,
+            "roof-defects.discoloration.score": 0.94,
+            "roof-defects.debris.detected": false,
+            "roof-defects.debris.percent": null,
+            "roof-defects.debris.score": null,
+            "roof-defects.patch.detected": false,
+            "roof-defects.patch.percent": null,
+            "roof-defects.patch.score": null,
+            "roof-defects.structural-damage.detected": false,
+            "roof-defects.structural-damage.percent": null,
+            "roof-defects.structural-damage.score": null,
+            "roof-defects.rust.detected": false,
+            "roof-defects.rust.percent": null,
+            "roof-defects.rust.score": null,
+            "roof-defects.discoloration.types.algae-staining.detected": false,
+            "roof-defects.discoloration.types.algae-staining.percent": null,
+            "roof-defects.discoloration.types.algae-staining.score": null,
+            "roof-defects.discoloration.types.vent-staining.detected": true,
+            "roof-defects.discoloration.types.vent-staining.percent": null,
+            "roof-defects.discoloration.types.vent-staining.score": null,
+            "roof-defects.discoloration.types.water-pooling.detected": true,
+            "roof-defects.discoloration.types.water-pooling.percent": 88.71,
+            "roof-defects.discoloration.types.water-pooling.score": 0.94,
+            "roof-defects.discoloration.types.water-pooling-dry.detected": null,
+            "roof-defects.discoloration.types.water-pooling-dry.percent": null,
+            "roof-defects.discoloration.types.water-pooling-dry.score": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.detected": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.percent": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.score": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.detected": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.percent": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.score": null,
+            "primary-structure": true,
+            "ground-elevation.value": 75.0000024,
+            "structure-distance": null,
+            "building-type.class": null,
+            "building-type.score": null
+          }
+        ],
+        "structure.count": 1,
+        "parcel-source": "Voronoi",
+        "parcel-tree-cover.percent": 2.0,
+        "pool.total-area": null,
+        "pool.detected": false,
+        "pool.score": null,
+        "pool.types.above-ground.count": null,
+        "pool.types.above-ground.area": null,
+        "pool.types.above-ground.detected": false,
+        "pool.types.above-ground.enclosed.score": null,
+        "pool.types.above-ground.enclosed.count": null,
+        "pool.types.above-ground.non-enclosed.count": null,
+        "pool.types.above-ground.distance": null,
+        "pool.types.above-ground.score": null,
+        "pool.types.in-ground.count": null,
+        "pool.types.in-ground.area": null,
+        "pool.types.in-ground.detected": false,
+        "pool.types.in-ground.enclosed.score": null,
+        "pool.types.in-ground.enclosed.count": null,
+        "pool.types.in-ground.non-enclosed.count": null,
+        "pool.types.in-ground.distance": null,
+        "pool.types.in-ground.score": null,
+        "pool.types.hot-tub.count": null,
+        "pool.types.hot-tub.area": null,
+        "pool.types.hot-tub.detected": false,
+        "pool.types.hot-tub.enclosed.score": null,
+        "pool.types.hot-tub.enclosed.count": null,
+        "pool.types.hot-tub.non-enclosed.count": null,
+        "pool.types.hot-tub.distance": null,
+        "pool.types.hot-tub.score": null,
+        "pool.objects.water-slide.detected": false,
+        "pool.objects.water-slide.score": null,
+        "pool.objects.diving-board.detected": false,
+        "pool.objects.diving-board.score": null,
+        "enclosure.detected": false,
+        "enclosure.score": null,
+        "enclosure.area": null,
+        "enclosure.count": null,
+        "sport-court.detected": false,
+        "sport-court.score": null,
+        "hardscapes.area": 925.7073056244,
+        "hardscapes.percent": 1.0,
+        "vehicles.detected": false,
+        "vehicles.score": null,
+        "vehicles.count": null,
+        "vehicles.types.automobile.detected": false,
+        "vehicles.types.automobile.score": null,
+        "vehicles.types.automobile.count": null,
+        "vehicles.types.boat.detected": false,
+        "vehicles.types.boat.score": null,
+        "vehicles.types.boat.count": null,
+        "playground.detected": false,
+        "playground.score": null,
+        "playground.enclosed.score": null,
+        "playground.enclosed.count": null,
+        "playground.non-enclosed.count": null,
+        "deck.detected": false,
+        "deck.score": null,
+        "deck.area": null,
+        "trampoline.detected": false,
+        "trampoline.score": null,
+        "trampoline.enclosed.score": null,
+        "trampoline.enclosed.count": null,
+        "trampoline.non-enclosed.count": null,
+        "census-tract": null,
+        "metadata.camera-technology": null,
+        "metadata.gsd": 0.21250000679999997,
+        "metadata.image-id": null,
+        "metadata.ortho-date-estimate": "2023-01-14T00:00:00",
+        "metadata.version": "3.66.1",
+        "metadata.layer-name": "urban",
+        "metadata.collection": "us-tx-houston-2023",
+        "metadata.is-ortho-image": true,
+        "request-information.requested-wkt": "POINT(-95.5505272 29.7132915)",
+        "request-information.inside-parcel": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -95.5508845,
+                29.713897
+              ],
+              [
+                -95.550845,
+                29.7139039
+              ],
+              [
+                -95.5506299,
+                29.7139018
+              ],
+              [
+                -95.5505918,
+                29.7138878
+              ],
+              [
+                -95.5505636,
+                29.7138652
+              ],
+              [
+                -95.5505185,
+                29.7137927
+              ],
+              [
+                -95.5505056,
+                29.7137951
+              ],
+              [
+                -95.55047,
+                29.7138551
+              ],
+              [
+                -95.5504471,
+                29.7138809
+              ],
+              [
+                -95.5504151,
+                29.7138979
+              ],
+              [
+                -95.550397,
+                29.7139024
+              ],
+              [
+                -95.5498794,
+                29.7139039
+              ],
+              [
+                -95.5498412,
+                29.7138975
+              ],
+              [
+                -95.5498238,
+                29.7138897
+              ],
+              [
+                -95.5497955,
+                29.7138664
+              ],
+              [
+                -95.5497857,
+                29.7138516
+              ],
+              [
+                -95.5497762,
+                29.7138187
+              ],
+              [
+                -95.5497631,
+                29.7135801
+              ],
+              [
+                -95.5498735,
+                29.7131854
+              ],
+              [
+                -95.5498767,
+                29.71301
+              ],
+              [
+                -95.549866,
+                29.7127258
+              ],
+              [
+                -95.5498874,
+                29.7126815
+              ],
+              [
+                -95.5502012,
+                29.7126815
+              ],
+              [
+                -95.5502039,
+                29.7126932
+              ],
+              [
+                -95.5503407,
+                29.7126932
+              ],
+              [
+                -95.5503863,
+                29.7127211
+              ],
+              [
+                -95.5504491,
+                29.7127912
+              ],
+              [
+                -95.5505897,
+                29.7127541
+              ],
+              [
+                -95.5506071,
+                29.7127337
+              ],
+              [
+                -95.550617,
+                29.7127118
+              ],
+              [
+                -95.5506289,
+                29.7127066
+              ],
+              [
+                -95.5506492,
+                29.7126815
+              ],
+              [
+                -95.5507243,
+                29.7126815
+              ],
+              [
+                -95.5507377,
+                29.7126932
+              ],
+              [
+                -95.5507484,
+                29.7126815
+              ],
+              [
+                -95.5508342,
+                29.7126815
+              ],
+              [
+                -95.5508394,
+                29.7126883
+              ],
+              [
+                -95.5509423,
+                29.7126611
+              ],
+              [
+                -95.5509417,
+                29.7126957
+              ],
+              [
+                -95.5511159,
+                29.7126932
+              ],
+              [
+                -95.5511373,
+                29.7127025
+              ],
+              [
+                -95.5511373,
+                29.7131032
+              ],
+              [
+                -95.5509347,
+                29.7131032
+              ],
+              [
+                -95.5509344,
+                29.7131171
+              ],
+              [
+                -95.5511373,
+                29.7131171
+              ],
+              [
+                -95.5511266,
+                29.7131381
+              ],
+              [
+                -95.5510354,
+                29.713187
+              ],
+              [
+                -95.5510139,
+                29.713215
+              ],
+              [
+                -95.5510059,
+                29.7132569
+              ],
+              [
+                -95.5510139,
+                29.7132965
+              ],
+              [
+                -95.5510354,
+                29.7133221
+              ],
+              [
+                -95.5510783,
+                29.7133454
+              ],
+              [
+                -95.5511266,
+                29.7133548
+              ],
+              [
+                -95.5511454,
+                29.7133827
+              ],
+              [
+                -95.5511373,
+                29.7135295
+              ],
+              [
+                -95.5511561,
+                29.713795
+              ],
+              [
+                -95.5511132,
+                29.7138113
+              ],
+              [
+                -95.5510595,
+                29.713802
+              ],
+              [
+                -95.5509227,
+                29.713802
+              ],
+              [
+                -95.5509211,
+                29.7138922
+              ],
+              [
+                -95.5508948,
+                29.7138922
+              ],
+              [
+                -95.5508845,
+                29.713897
+              ]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "structures": [
+          {
+            "footprint.wkt": "POLYGON ((-95.5498322 29.7138145, -95.5498338 29.7133705, -95.5498391 29.7133612, -95.5498693 29.7133518, -95.5498895 29.713336, -95.5498804 29.7133272, -95.5498908 29.7133169, -95.5498855 29.713307, -95.5498985 29.713307, -95.5499055 29.7132843, -95.5499218 29.7132724, -95.5499542 29.7132723, -95.5499539 29.7132205, -95.549925 29.7131835, -95.5499089 29.7131742, -95.5498385 29.7131544, -95.549819 29.7131122, -95.5498162 29.712727, -95.5498251 29.7127054, -95.5498578 29.7126926, -95.5499739 29.7126926, -95.549974 29.7126994, -95.5503467 29.7126948, -95.5503468 29.7127016, -95.5504306 29.7127007, -95.5504305 29.7126957, -95.5504924 29.7126953, -95.5504924 29.7126921, -95.5505291 29.7126919, -95.5505292 29.7127029, -95.5505796 29.7127026, -95.5505796 29.7126916, -95.5510776 29.7126838, -95.5510958 29.7126891, -95.5511031 29.7127007, -95.5511085 29.7131375, -95.5511025 29.7131457, -95.5510743 29.7131562, -95.551085 29.7131771, -95.5510682 29.7131966, -95.5510684 29.713219, -95.5510795 29.7132517, -95.5510741 29.7132531, -95.551094 29.7132918, -95.5510843 29.7132956, -95.5510998 29.7133385, -95.5511125 29.7133548, -95.5511159 29.7138091, -95.5504336 29.7138132, -95.5504337 29.713823, -95.5503449 29.713823, -95.5503449 29.7138116, -95.5498322 29.7138145))",
+            "footprint.area": 163220.0942671242,
+            "defensible-space.zone1-building": null,
+            "defensible-space.zone2-building": 0.0,
+            "defensible-space.zone3-building": 0.0,
+            "defensible-space.zone4-building": null,
+            "defensible-space.zone1-tree": null,
+            "defensible-space.zone2-tree": 29.0,
+            "defensible-space.zone3-tree": 30.0,
+            "defensible-space.zone4-tree": null,
+            "roof-characteristics.condition": 2.0,
+            "roof-characteristics.condition.precise-value": 2.22,
+            "roof-characteristics.tree-cover.percent": 0.0,
+            "roof-characteristics.material.score": 1.0,
+            "roof-characteristics.material.class": "membrane",
+            "roof-characteristics.shape.value": "flat",
+            "roof-characteristics.shape.score": null,
+            "roof-characteristics.shape.wind-mitigation": null,
+            "roof-characteristics.shape.multiple-shape": null,
+            "roof-characteristics.centroid.wkt": "POINT (-95.5505166 29.7132627)",
+            "roof-characteristics.condition.attic-habitable": null,
+            "roof-characteristics.eave-height": null,
+            "roof-characteristics.entrance-elevation": null,
+            "roof-characteristics.maximum-roof-height": null,
+            "roof-characteristics.number-of-stories-below-eave": null,
+            "roof-characteristics.structure-score": null,
+            "roof-characteristics.volume-below-eave": null,
+            "roof-objects.solar.value": false,
+            "roof-objects.solar.score": null,
+            "roof-objects.ac-unit.count": 11,
+            "roof-objects.ac-unit.score": null,
+            "roof-objects.chimney.count": 0,
+            "roof-objects.chimney.score": null,
+            "roof-objects.roof-vent.count": 36,
+            "roof-objects.roof-vent.score": null,
+            "roof-objects.satellite-dish.count": 0,
+            "roof-objects.satellite-dish.score": null,
+            "roof-objects.skylight.count": 0,
+            "roof-objects.skylight.score": null,
+            "roof-objects.solar-panel-photovoltaic.count": null,
+            "roof-objects.solar-panel-photovoltaic.area": null,
+            "roof-objects.solar-panel-photovoltaic.score": null,
+            "roof-objects.solar-panel-thermal.count": null,
+            "roof-objects.solar-panel-thermal.area": null,
+            "roof-objects.solar-panel-thermal.score": null,
+            "roof-defects.missing-material.detected": false,
+            "roof-defects.missing-material.percent": null,
+            "roof-defects.missing-material.score": null,
+            "roof-defects.tarp.percent": null,
+            "roof-defects.tarp.detected": false,
+            "roof-defects.tarp.score": null,
+            "roof-defects.tarp.area": null,
+            "roof-defects.discoloration.detected": true,
+            "roof-defects.discoloration.percent": 86.68,
+            "roof-defects.discoloration.score": 0.91,
+            "roof-defects.debris.detected": false,
+            "roof-defects.debris.percent": null,
+            "roof-defects.debris.score": null,
+            "roof-defects.patch.detected": false,
+            "roof-defects.patch.percent": null,
+            "roof-defects.patch.score": null,
+            "roof-defects.structural-damage.detected": false,
+            "roof-defects.structural-damage.percent": null,
+            "roof-defects.structural-damage.score": null,
+            "roof-defects.rust.detected": false,
+            "roof-defects.rust.percent": null,
+            "roof-defects.rust.score": null,
+            "roof-defects.discoloration.types.algae-staining.detected": false,
+            "roof-defects.discoloration.types.algae-staining.percent": null,
+            "roof-defects.discoloration.types.algae-staining.score": null,
+            "roof-defects.discoloration.types.vent-staining.detected": false,
+            "roof-defects.discoloration.types.vent-staining.percent": null,
+            "roof-defects.discoloration.types.vent-staining.score": null,
+            "roof-defects.discoloration.types.water-pooling.detected": true,
+            "roof-defects.discoloration.types.water-pooling.percent": 86.68,
+            "roof-defects.discoloration.types.water-pooling.score": 0.91,
+            "roof-defects.discoloration.types.water-pooling-dry.detected": null,
+            "roof-defects.discoloration.types.water-pooling-dry.percent": null,
+            "roof-defects.discoloration.types.water-pooling-dry.score": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.detected": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.percent": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.score": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.detected": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.percent": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.score": null,
+            "primary-structure": true,
+            "ground-elevation.value": 75.0000024,
+            "structure-distance": null,
+            "building-type.class": null,
+            "building-type.score": null
+          }
+        ],
+        "structure.count": 1,
+        "parcel-source": "Voronoi",
+        "parcel-tree-cover.percent": 2.0,
+        "pool.total-area": null,
+        "pool.detected": false,
+        "pool.score": null,
+        "pool.types.above-ground.count": null,
+        "pool.types.above-ground.area": null,
+        "pool.types.above-ground.detected": false,
+        "pool.types.above-ground.enclosed.score": null,
+        "pool.types.above-ground.enclosed.count": null,
+        "pool.types.above-ground.non-enclosed.count": null,
+        "pool.types.above-ground.distance": null,
+        "pool.types.above-ground.score": null,
+        "pool.types.in-ground.count": null,
+        "pool.types.in-ground.area": null,
+        "pool.types.in-ground.detected": false,
+        "pool.types.in-ground.enclosed.score": null,
+        "pool.types.in-ground.enclosed.count": null,
+        "pool.types.in-ground.non-enclosed.count": null,
+        "pool.types.in-ground.distance": null,
+        "pool.types.in-ground.score": null,
+        "pool.types.hot-tub.count": null,
+        "pool.types.hot-tub.area": null,
+        "pool.types.hot-tub.detected": false,
+        "pool.types.hot-tub.enclosed.score": null,
+        "pool.types.hot-tub.enclosed.count": null,
+        "pool.types.hot-tub.non-enclosed.count": null,
+        "pool.types.hot-tub.distance": null,
+        "pool.types.hot-tub.score": null,
+        "pool.objects.water-slide.detected": false,
+        "pool.objects.water-slide.score": null,
+        "pool.objects.diving-board.detected": false,
+        "pool.objects.diving-board.score": null,
+        "enclosure.detected": false,
+        "enclosure.score": null,
+        "enclosure.area": null,
+        "enclosure.count": null,
+        "sport-court.detected": false,
+        "sport-court.score": null,
+        "hardscapes.area": 125.0009865,
+        "hardscapes.percent": 1.0,
+        "vehicles.detected": false,
+        "vehicles.score": null,
+        "vehicles.count": null,
+        "vehicles.types.automobile.detected": false,
+        "vehicles.types.automobile.score": null,
+        "vehicles.types.automobile.count": null,
+        "vehicles.types.boat.detected": false,
+        "vehicles.types.boat.score": null,
+        "vehicles.types.boat.count": null,
+        "playground.detected": false,
+        "playground.score": null,
+        "playground.enclosed.score": null,
+        "playground.enclosed.count": null,
+        "playground.non-enclosed.count": null,
+        "deck.detected": false,
+        "deck.score": null,
+        "deck.area": null,
+        "trampoline.detected": false,
+        "trampoline.score": null,
+        "trampoline.enclosed.score": null,
+        "trampoline.enclosed.count": null,
+        "trampoline.non-enclosed.count": null,
+        "census-tract": null,
+        "metadata.camera-technology": null,
+        "metadata.gsd": 0.26083334167999994,
+        "metadata.image-id": null,
+        "metadata.ortho-date-estimate": "2023-06-03T00:00:00",
+        "metadata.version": "3.73.1",
+        "metadata.layer-name": "urban-r",
+        "metadata.collection": "us-tx-houston_rf08-2023",
+        "metadata.is-ortho-image": true,
+        "request-information.requested-wkt": "POINT(-95.5505272 29.7132915)",
+        "request-information.inside-parcel": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -95.5508845,
+                29.713897
+              ],
+              [
+                -95.5508651,
+                29.7139021
+              ],
+              [
+                -95.550845,
+                29.7139039
+              ],
+              [
+                -95.5506518,
+                29.7139039
+              ],
+              [
+                -95.5506299,
+                29.7139018
+              ],
+              [
+                -95.5506089,
+                29.7138957
+              ],
+              [
+                -95.5506046,
+                29.7138935
+              ],
+              [
+                -95.5505918,
+                29.7138878
+              ],
+              [
+                -95.5505765,
+                29.7138777
+              ],
+              [
+                -95.5505636,
+                29.7138652
+              ],
+              [
+                -95.5505536,
+                29.7138509
+              ],
+              [
+                -95.5505223,
+                29.7137949
+              ],
+              [
+                -95.5505185,
+                29.7137927
+              ],
+              [
+                -95.5505056,
+                29.7137951
+              ],
+              [
+                -95.55047,
+                29.7138551
+              ],
+              [
+                -95.5504599,
+                29.7138689
+              ],
+              [
+                -95.5504471,
+                29.7138809
+              ],
+              [
+                -95.550432,
+                29.7138907
+              ],
+              [
+                -95.5504151,
+                29.7138979
+              ],
+              [
+                -95.550397,
+                29.7139024
+              ],
+              [
+                -95.5503783,
+                29.7139039
+              ],
+              [
+                -95.5498794,
+                29.7139039
+              ],
+              [
+                -95.5498599,
+                29.7139022
+              ],
+              [
+                -95.5498412,
+                29.7138975
+              ],
+              [
+                -95.5498238,
+                29.7138897
+              ],
+              [
+                -95.5498084,
+                29.7138792
+              ],
+              [
+                -95.5497955,
+                29.7138664
+              ],
+              [
+                -95.5497857,
+                29.7138516
+              ],
+              [
+                -95.5497792,
+                29.7138356
+              ],
+              [
+                -95.5497762,
+                29.7138187
+              ],
+              [
+                -95.5497628,
+                29.713609
+              ],
+              [
+                -95.5497627,
+                29.7136026
+              ],
+              [
+                -95.5497631,
+                29.7135801
+              ],
+              [
+                -95.5498735,
+                29.7131854
+              ],
+              [
+                -95.5498767,
+                29.71301
+              ],
+              [
+                -95.549866,
+                29.7127258
+              ],
+              [
+                -95.5498874,
+                29.7126815
+              ],
+              [
+                -95.5502012,
+                29.7126815
+              ],
+              [
+                -95.5502039,
+                29.7126932
+              ],
+              [
+                -95.5503407,
+                29.7126932
+              ],
+              [
+                -95.5503863,
+                29.7127211
+              ],
+              [
+                -95.550448,
+                29.712791
+              ],
+              [
+                -95.5504491,
+                29.7127912
+              ],
+              [
+                -95.5505897,
+                29.7127541
+              ],
+              [
+                -95.5505928,
+                29.7127514
+              ],
+              [
+                -95.5506071,
+                29.7127337
+              ],
+              [
+                -95.550617,
+                29.7127118
+              ],
+              [
+                -95.5506289,
+                29.7127066
+              ],
+              [
+                -95.5506492,
+                29.7126815
+              ],
+              [
+                -95.5507243,
+                29.7126815
+              ],
+              [
+                -95.5507377,
+                29.7126932
+              ],
+              [
+                -95.5507484,
+                29.7126815
+              ],
+              [
+                -95.5508342,
+                29.7126815
+              ],
+              [
+                -95.5508394,
+                29.7126883
+              ],
+              [
+                -95.5509423,
+                29.7126611
+              ],
+              [
+                -95.5509417,
+                29.7126957
+              ],
+              [
+                -95.5511159,
+                29.7126932
+              ],
+              [
+                -95.5511373,
+                29.7127025
+              ],
+              [
+                -95.5511373,
+                29.7131032
+              ],
+              [
+                -95.5509347,
+                29.7131032
+              ],
+              [
+                -95.5509344,
+                29.7131171
+              ],
+              [
+                -95.5511373,
+                29.7131171
+              ],
+              [
+                -95.5511266,
+                29.7131381
+              ],
+              [
+                -95.5510354,
+                29.713187
+              ],
+              [
+                -95.5510139,
+                29.713215
+              ],
+              [
+                -95.5510059,
+                29.7132569
+              ],
+              [
+                -95.5510139,
+                29.7132965
+              ],
+              [
+                -95.5510354,
+                29.7133221
+              ],
+              [
+                -95.5510783,
+                29.7133454
+              ],
+              [
+                -95.5511266,
+                29.7133548
+              ],
+              [
+                -95.5511454,
+                29.7133827
+              ],
+              [
+                -95.5511373,
+                29.7135295
+              ],
+              [
+                -95.5511561,
+                29.713795
+              ],
+              [
+                -95.5511132,
+                29.7138113
+              ],
+              [
+                -95.5510595,
+                29.713802
+              ],
+              [
+                -95.5509227,
+                29.713802
+              ],
+              [
+                -95.5509211,
+                29.7138922
+              ],
+              [
+                -95.5508948,
+                29.7138922
+              ],
+              [
+                -95.5508845,
+                29.713897
+              ]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "structures": [
+          {
+            "footprint.wkt": "POLYGON ((-95.5499113 29.7138213, -95.5499112 29.7138003, -95.5499163 29.713791, -95.5499109 29.7137822, -95.5499158 29.7131632, -95.5499109 29.7131632, -95.5499109 29.7128434, -95.5499185 29.7128434, -95.549918 29.7127452, -95.5499042 29.7127188, -95.5499303 29.7127118, -95.5501386 29.7127106, -95.5501385 29.7127055, -95.5503675 29.7127019, -95.5503823 29.7127066, -95.5503977 29.712699, -95.5504573 29.712699, -95.5504573 29.71269, -95.5505006 29.7126899, -95.5505006 29.7126969, -95.5505646 29.7126966, -95.5505647 29.7127036, -95.5511221 29.7127013, -95.5511212 29.7128143, -95.5511254 29.7128143, -95.5511257 29.7128673, -95.55113 29.7128673, -95.5511313 29.7131508, -95.5510789 29.713151, -95.5510642 29.7131637, -95.5510588 29.713159, -95.5510126 29.7132005, -95.5510127 29.713221, -95.550998 29.7132211, -95.5509983 29.7132767, -95.5510126 29.7133099, -95.5510435 29.7133361, -95.5510754 29.7133531, -95.5511286 29.7133513, -95.5511387 29.7133635, -95.5511313 29.7133868, -95.551132 29.7138096, -95.5507115 29.7138108, -95.5507115 29.7138181, -95.5506155 29.7138186, -95.5506152 29.7137663, -95.5505975 29.7137607, -95.5505788 29.7137409, -95.550568 29.7137519, -95.5505324 29.7137621, -95.5504798 29.7137623, -95.5504799 29.713775, -95.550499 29.7137956, -95.5504748 29.7138178, -95.550445 29.7138069, -95.5504096 29.7138071, -95.5503957 29.7137974, -95.5503836 29.7138154, -95.5503702 29.7138201, -95.5499113 29.7138213))",
+            "footprint.area": 152919.0629875075,
+            "defensible-space.zone1-building": 0.0,
+            "defensible-space.zone2-building": 0.0,
+            "defensible-space.zone3-building": 0.0,
+            "defensible-space.zone4-building": 0.0,
+            "defensible-space.zone1-tree": 11.0,
+            "defensible-space.zone2-tree": 30.0,
+            "defensible-space.zone3-tree": 31.0,
+            "defensible-space.zone4-tree": 19.0,
+            "roof-characteristics.condition": 3.0,
+            "roof-characteristics.condition.precise-value": 2.9,
+            "roof-characteristics.tree-cover.percent": 0.0,
+            "roof-characteristics.material.score": 1.0,
+            "roof-characteristics.material.class": "membrane",
+            "roof-characteristics.shape.value": "flat",
+            "roof-characteristics.shape.score": null,
+            "roof-characteristics.shape.wind-mitigation": false,
+            "roof-characteristics.shape.multiple-shape": null,
+            "roof-characteristics.centroid.wkt": "POINT (-95.5504566 29.7132489)",
+            "roof-characteristics.condition.attic-habitable": null,
+            "roof-characteristics.eave-height": null,
+            "roof-characteristics.entrance-elevation": null,
+            "roof-characteristics.maximum-roof-height": null,
+            "roof-characteristics.number-of-stories-below-eave": null,
+            "roof-characteristics.structure-score": null,
+            "roof-characteristics.volume-below-eave": null,
+            "roof-objects.solar.value": false,
+            "roof-objects.solar.score": null,
+            "roof-objects.ac-unit.count": 9,
+            "roof-objects.ac-unit.score": null,
+            "roof-objects.chimney.count": 0,
+            "roof-objects.chimney.score": null,
+            "roof-objects.roof-vent.count": 34,
+            "roof-objects.roof-vent.score": null,
+            "roof-objects.satellite-dish.count": 0,
+            "roof-objects.satellite-dish.score": null,
+            "roof-objects.skylight.count": 1,
+            "roof-objects.skylight.score": null,
+            "roof-objects.solar-panel-photovoltaic.count": null,
+            "roof-objects.solar-panel-photovoltaic.area": null,
+            "roof-objects.solar-panel-photovoltaic.score": null,
+            "roof-objects.solar-panel-thermal.count": null,
+            "roof-objects.solar-panel-thermal.area": null,
+            "roof-objects.solar-panel-thermal.score": null,
+            "roof-defects.missing-material.detected": false,
+            "roof-defects.missing-material.percent": null,
+            "roof-defects.missing-material.score": null,
+            "roof-defects.tarp.percent": null,
+            "roof-defects.tarp.detected": false,
+            "roof-defects.tarp.score": null,
+            "roof-defects.tarp.area": null,
+            "roof-defects.discoloration.detected": true,
+            "roof-defects.discoloration.percent": 82.88,
+            "roof-defects.discoloration.score": 0.75,
+            "roof-defects.debris.detected": false,
+            "roof-defects.debris.percent": null,
+            "roof-defects.debris.score": null,
+            "roof-defects.patch.detected": false,
+            "roof-defects.patch.percent": null,
+            "roof-defects.patch.score": null,
+            "roof-defects.structural-damage.detected": false,
+            "roof-defects.structural-damage.percent": null,
+            "roof-defects.structural-damage.score": null,
+            "roof-defects.rust.detected": false,
+            "roof-defects.rust.percent": null,
+            "roof-defects.rust.score": null,
+            "roof-defects.discoloration.types.algae-staining.detected": false,
+            "roof-defects.discoloration.types.algae-staining.percent": null,
+            "roof-defects.discoloration.types.algae-staining.score": null,
+            "roof-defects.discoloration.types.vent-staining.detected": false,
+            "roof-defects.discoloration.types.vent-staining.percent": null,
+            "roof-defects.discoloration.types.vent-staining.score": null,
+            "roof-defects.discoloration.types.water-pooling.detected": true,
+            "roof-defects.discoloration.types.water-pooling.percent": 82.88,
+            "roof-defects.discoloration.types.water-pooling.score": 0.75,
+            "roof-defects.discoloration.types.water-pooling-dry.detected": null,
+            "roof-defects.discoloration.types.water-pooling-dry.percent": null,
+            "roof-defects.discoloration.types.water-pooling-dry.score": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.detected": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.percent": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.score": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.detected": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.percent": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.score": null,
+            "primary-structure": true,
+            "ground-elevation.value": 75.0000024,
+            "structure-distance": null,
+            "building-type.class": "single_family",
+            "building-type.score": 0.25
+          }
+        ],
+        "structure.count": 1,
+        "parcel-source": "Voronoi",
+        "parcel-tree-cover.percent": 6.0,
+        "pool.total-area": null,
+        "pool.detected": false,
+        "pool.score": null,
+        "pool.types.above-ground.count": null,
+        "pool.types.above-ground.area": null,
+        "pool.types.above-ground.detected": false,
+        "pool.types.above-ground.enclosed.score": null,
+        "pool.types.above-ground.enclosed.count": null,
+        "pool.types.above-ground.non-enclosed.count": null,
+        "pool.types.above-ground.distance": null,
+        "pool.types.above-ground.score": null,
+        "pool.types.in-ground.count": null,
+        "pool.types.in-ground.area": null,
+        "pool.types.in-ground.detected": false,
+        "pool.types.in-ground.enclosed.score": null,
+        "pool.types.in-ground.enclosed.count": null,
+        "pool.types.in-ground.non-enclosed.count": null,
+        "pool.types.in-ground.distance": null,
+        "pool.types.in-ground.score": null,
+        "pool.types.hot-tub.count": null,
+        "pool.types.hot-tub.area": null,
+        "pool.types.hot-tub.detected": false,
+        "pool.types.hot-tub.enclosed.score": null,
+        "pool.types.hot-tub.enclosed.count": null,
+        "pool.types.hot-tub.non-enclosed.count": null,
+        "pool.types.hot-tub.distance": null,
+        "pool.types.hot-tub.score": null,
+        "pool.objects.water-slide.detected": false,
+        "pool.objects.water-slide.score": null,
+        "pool.objects.diving-board.detected": false,
+        "pool.objects.diving-board.score": null,
+        "enclosure.detected": false,
+        "enclosure.score": null,
+        "enclosure.area": null,
+        "enclosure.count": null,
+        "sport-court.detected": false,
+        "sport-court.score": null,
+        "hardscapes.area": 96.00075763199999,
+        "hardscapes.percent": 1.0,
+        "vehicles.detected": true,
+        "vehicles.score": 0.93,
+        "vehicles.count": 9,
+        "vehicles.types.automobile.detected": true,
+        "vehicles.types.automobile.score": 0.93,
+        "vehicles.types.automobile.count": 9,
+        "vehicles.types.boat.detected": false,
+        "vehicles.types.boat.score": null,
+        "vehicles.types.boat.count": null,
+        "playground.detected": false,
+        "playground.score": null,
+        "playground.enclosed.score": 0.0,
+        "playground.enclosed.count": 0,
+        "playground.non-enclosed.count": 0,
+        "deck.detected": false,
+        "deck.score": null,
+        "deck.area": null,
+        "trampoline.detected": false,
+        "trampoline.score": null,
+        "trampoline.enclosed.score": 0.0,
+        "trampoline.enclosed.count": 0,
+        "trampoline.non-enclosed.count": 0,
+        "census-tract": null,
+        "metadata.camera-technology": null,
+        "metadata.gsd": 0.24500000783999998,
+        "metadata.image-id": null,
+        "metadata.ortho-date-estimate": "2025-01-06T00:00:00",
+        "metadata.version": "3.90.1",
+        "metadata.layer-name": "urban",
+        "metadata.collection": "us-tx-houston-2025",
+        "metadata.is-ortho-image": true,
+        "request-information.requested-wkt": "POINT(-95.5505272 29.7132915)",
+        "request-information.inside-parcel": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -95.551245,
+                29.712842
+              ],
+              [
+                -95.551245,
+                29.713131
+              ],
+              [
+                -95.551241,
+                29.71315
+              ],
+              [
+                -95.551229,
+                29.713176
+              ],
+              [
+                -95.551211,
+                29.713197
+              ],
+              [
+                -95.551132,
+                29.713255
+              ],
+              [
+                -95.551171,
+                29.713287
+              ],
+              [
+                -95.551201,
+                29.7133
+              ],
+              [
+                -95.551216,
+                29.713312
+              ],
+              [
+                -95.551233,
+                29.713336
+              ],
+              [
+                -95.551245,
+                29.713373
+              ],
+              [
+                -95.551245,
+                29.713824
+              ],
+              [
+                -95.551228,
+                29.71387
+              ],
+              [
+                -95.551201,
+                29.713897
+              ],
+              [
+                -95.551155,
+                29.713914
+              ],
+              [
+                -95.550668,
+                29.713914
+              ],
+              [
+                -95.550627,
+                29.713905
+              ],
+              [
+                -95.550565,
+                29.713877
+              ],
+              [
+                -95.550515,
+                29.713845
+              ],
+              [
+                -95.55049,
+                29.713853
+              ],
+              [
+                -95.550399,
+                29.713907
+              ],
+              [
+                -95.550371,
+                29.713915
+              ],
+              [
+                -95.550089,
+                29.713926
+              ],
+              [
+                -95.55007,
+                29.713935
+              ],
+              [
+                -95.55004,
+                29.713939
+              ],
+              [
+                -95.549884,
+                29.713939
+              ],
+              [
+                -95.549839,
+                29.713923
+              ],
+              [
+                -95.549779,
+                29.713866
+              ],
+              [
+                -95.549763,
+                29.71383
+              ],
+              [
+                -95.549742,
+                29.713799
+              ],
+              [
+                -95.549736,
+                29.71378
+              ],
+              [
+                -95.549734,
+                29.713694
+              ],
+              [
+                -95.549887,
+                29.713164
+              ],
+              [
+                -95.549863,
+                29.713126
+              ],
+              [
+                -95.549853,
+                29.71277
+              ],
+              [
+                -95.549866,
+                29.712744
+              ],
+              [
+                -95.549898,
+                29.712716
+              ],
+              [
+                -95.549938,
+                29.712709
+              ],
+              [
+                -95.550335,
+                29.712712
+              ],
+              [
+                -95.550392,
+                29.712737
+              ],
+              [
+                -95.550448,
+                29.712782
+              ],
+              [
+                -95.550469,
+                29.712787
+              ],
+              [
+                -95.550561,
+                29.712763
+              ],
+              [
+                -95.550668,
+                29.712705
+              ],
+              [
+                -95.550806,
+                29.712701
+              ],
+              [
+                -95.551126,
+                29.712618
+              ],
+              [
+                -95.551245,
+                29.712813
+              ],
+              [
+                -95.551245,
+                29.712842
+              ]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "structures": [
+          {
+            "footprint.wkt": "POLYGON ((-95.5511292 29.7138009, -95.5505848 29.7138067, -95.5505539 29.7137776, -95.5505385 29.7137873, -95.5505386 29.7138177, -95.5505064 29.7138178, -95.5504894 29.7138031, -95.5503784 29.7138033, -95.5503784 29.7138137, -95.549862 29.7138125, -95.5498606 29.7133024, -95.5498741 29.7133024, -95.5498739 29.7132203, -95.5498593 29.7132204, -95.5498593 29.7130904, -95.5498471 29.7130904, -95.5498499 29.7127096, -95.5503608 29.7127024, -95.5503609 29.7127106, -95.5504038 29.7127106, -95.5504038 29.7127049, -95.5504524 29.7127048, -95.5504523 29.7126955, -95.5505267 29.7126955, -95.5505267 29.7127078, -95.5506025 29.7127077, -95.5506025 29.712699, -95.551036 29.712699, -95.551036 29.7126898, -95.5511199 29.7126896, -95.5511212 29.7131445, -95.5510786 29.7131446, -95.5510421 29.7131591, -95.5510166 29.7131765, -95.5509877 29.7132184, -95.5509879 29.7132868, -95.5510012 29.7132868, -95.5510012 29.7133053, -95.5510468 29.7133449, -95.5510769 29.7133448, -95.5510769 29.713356, -95.551128 29.7133559, -95.5511292 29.7138009))",
+            "footprint.area": 159052.3501260655,
+            "defensible-space.zone1-building": 0.0,
+            "defensible-space.zone2-building": 0.0,
+            "defensible-space.zone3-building": 0.0,
+            "defensible-space.zone4-building": 4.0,
+            "defensible-space.zone1-tree": 10.0,
+            "defensible-space.zone2-tree": 32.0,
+            "defensible-space.zone3-tree": 33.0,
+            "defensible-space.zone4-tree": 21.0,
+            "roof-characteristics.condition": 3.0,
+            "roof-characteristics.condition.precise-value": 2.6,
+            "roof-characteristics.tree-cover.percent": 0.0,
+            "roof-characteristics.material.score": 0.91,
+            "roof-characteristics.material.class": "membrane",
+            "roof-characteristics.shape.value": "flat",
+            "roof-characteristics.shape.score": null,
+            "roof-characteristics.shape.wind-mitigation": false,
+            "roof-characteristics.shape.multiple-shape": null,
+            "roof-characteristics.centroid.wkt": "POINT (-95.5504309 29.7132536)",
+            "roof-characteristics.condition.attic-habitable": null,
+            "roof-characteristics.eave-height": null,
+            "roof-characteristics.entrance-elevation": null,
+            "roof-characteristics.maximum-roof-height": null,
+            "roof-characteristics.number-of-stories-below-eave": null,
+            "roof-characteristics.structure-score": null,
+            "roof-characteristics.volume-below-eave": null,
+            "roof-objects.solar.value": false,
+            "roof-objects.solar.score": null,
+            "roof-objects.ac-unit.count": 15,
+            "roof-objects.ac-unit.score": null,
+            "roof-objects.chimney.count": 0,
+            "roof-objects.chimney.score": null,
+            "roof-objects.roof-vent.count": 35,
+            "roof-objects.roof-vent.score": null,
+            "roof-objects.satellite-dish.count": 0,
+            "roof-objects.satellite-dish.score": null,
+            "roof-objects.skylight.count": 1,
+            "roof-objects.skylight.score": null,
+            "roof-objects.solar-panel-photovoltaic.count": null,
+            "roof-objects.solar-panel-photovoltaic.area": null,
+            "roof-objects.solar-panel-photovoltaic.score": null,
+            "roof-objects.solar-panel-thermal.count": null,
+            "roof-objects.solar-panel-thermal.area": null,
+            "roof-objects.solar-panel-thermal.score": null,
+            "roof-defects.missing-material.detected": false,
+            "roof-defects.missing-material.percent": null,
+            "roof-defects.missing-material.score": null,
+            "roof-defects.tarp.percent": null,
+            "roof-defects.tarp.detected": false,
+            "roof-defects.tarp.score": null,
+            "roof-defects.tarp.area": null,
+            "roof-defects.discoloration.detected": true,
+            "roof-defects.discoloration.percent": 79.09,
+            "roof-defects.discoloration.score": 0.75,
+            "roof-defects.debris.detected": false,
+            "roof-defects.debris.percent": null,
+            "roof-defects.debris.score": null,
+            "roof-defects.patch.detected": false,
+            "roof-defects.patch.percent": null,
+            "roof-defects.patch.score": null,
+            "roof-defects.structural-damage.detected": false,
+            "roof-defects.structural-damage.percent": null,
+            "roof-defects.structural-damage.score": null,
+            "roof-defects.rust.detected": false,
+            "roof-defects.rust.percent": null,
+            "roof-defects.rust.score": null,
+            "roof-defects.discoloration.types.algae-staining.detected": false,
+            "roof-defects.discoloration.types.algae-staining.percent": null,
+            "roof-defects.discoloration.types.algae-staining.score": null,
+            "roof-defects.discoloration.types.vent-staining.detected": false,
+            "roof-defects.discoloration.types.vent-staining.percent": null,
+            "roof-defects.discoloration.types.vent-staining.score": null,
+            "roof-defects.discoloration.types.water-pooling.detected": true,
+            "roof-defects.discoloration.types.water-pooling.percent": 79.09,
+            "roof-defects.discoloration.types.water-pooling.score": 0.75,
+            "roof-defects.discoloration.types.water-pooling-dry.detected": null,
+            "roof-defects.discoloration.types.water-pooling-dry.percent": null,
+            "roof-defects.discoloration.types.water-pooling-dry.score": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.detected": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.percent": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.score": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.detected": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.percent": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.score": null,
+            "primary-structure": true,
+            "ground-elevation.value": 71.000002272,
+            "structure-distance": null,
+            "building-type.class": "commercial",
+            "building-type.score": 0.92
+          }
+        ],
+        "structure.count": 1,
+        "parcel-source": "Voronoi",
+        "parcel-tree-cover.percent": 7.0,
+        "pool.total-area": null,
+        "pool.detected": false,
+        "pool.score": null,
+        "pool.types.above-ground.count": null,
+        "pool.types.above-ground.area": null,
+        "pool.types.above-ground.detected": false,
+        "pool.types.above-ground.enclosed.score": null,
+        "pool.types.above-ground.enclosed.count": null,
+        "pool.types.above-ground.non-enclosed.count": null,
+        "pool.types.above-ground.distance": null,
+        "pool.types.above-ground.score": null,
+        "pool.types.in-ground.count": null,
+        "pool.types.in-ground.area": null,
+        "pool.types.in-ground.detected": false,
+        "pool.types.in-ground.enclosed.score": null,
+        "pool.types.in-ground.enclosed.count": null,
+        "pool.types.in-ground.non-enclosed.count": null,
+        "pool.types.in-ground.distance": null,
+        "pool.types.in-ground.score": null,
+        "pool.types.hot-tub.count": null,
+        "pool.types.hot-tub.area": null,
+        "pool.types.hot-tub.detected": false,
+        "pool.types.hot-tub.enclosed.score": null,
+        "pool.types.hot-tub.enclosed.count": null,
+        "pool.types.hot-tub.non-enclosed.count": null,
+        "pool.types.hot-tub.distance": null,
+        "pool.types.hot-tub.score": null,
+        "pool.objects.water-slide.detected": false,
+        "pool.objects.water-slide.score": null,
+        "pool.objects.diving-board.detected": false,
+        "pool.objects.diving-board.score": null,
+        "enclosure.detected": false,
+        "enclosure.score": null,
+        "enclosure.area": null,
+        "enclosure.count": null,
+        "sport-court.detected": false,
+        "sport-court.score": null,
+        "hardscapes.area": 18.000142055999998,
+        "hardscapes.percent": 0.0,
+        "vehicles.detected": true,
+        "vehicles.score": 0.59,
+        "vehicles.count": 1,
+        "vehicles.types.automobile.detected": true,
+        "vehicles.types.automobile.score": 0.59,
+        "vehicles.types.automobile.count": 1,
+        "vehicles.types.boat.detected": false,
+        "vehicles.types.boat.score": null,
+        "vehicles.types.boat.count": null,
+        "playground.detected": false,
+        "playground.score": null,
+        "playground.enclosed.score": 0.0,
+        "playground.enclosed.count": 0,
+        "playground.non-enclosed.count": 0,
+        "deck.detected": false,
+        "deck.score": null,
+        "deck.area": null,
+        "trampoline.detected": false,
+        "trampoline.score": null,
+        "trampoline.enclosed.score": 0.0,
+        "trampoline.enclosed.count": 0,
+        "trampoline.non-enclosed.count": 0,
+        "census-tract": null,
+        "metadata.camera-technology": null,
+        "metadata.gsd": 0.24500000783999998,
+        "metadata.image-id": null,
+        "metadata.ortho-date-estimate": "2025-09-03T00:00:00",
+        "metadata.version": "5.1.0",
+        "metadata.layer-name": "urban-r",
+        "metadata.collection": "us-tx-houston_rf10-2025",
+        "metadata.is-ortho-image": true,
+        "request-information.requested-wkt": "POINT(-95.5505272 29.7132915)",
+        "request-information.inside-parcel": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -95.551244,
+                29.713036
+              ],
+              [
+                -95.551249,
+                29.713066
+              ],
+              [
+                -95.551249,
+                29.713163
+              ],
+              [
+                -95.551245,
+                29.713182
+              ],
+              [
+                -95.55122,
+                29.713224
+              ],
+              [
+                -95.551167,
+                29.71326
+              ],
+              [
+                -95.551179,
+                29.713285
+              ],
+              [
+                -95.551232,
+                29.71335
+              ],
+              [
+                -95.551249,
+                29.713396
+              ],
+              [
+                -95.551249,
+                29.71348
+              ],
+              [
+                -95.551233,
+                29.713524
+              ],
+              [
+                -95.551233,
+                29.713597
+              ],
+              [
+                -95.551249,
+                29.713641
+              ],
+              [
+                -95.551249,
+                29.713819
+              ],
+              [
+                -95.551232,
+                29.713865
+              ],
+              [
+                -95.551205,
+                29.713892
+              ],
+              [
+                -95.551154,
+                29.71392
+              ],
+              [
+                -95.551118,
+                29.713931
+              ],
+              [
+                -95.551072,
+                29.713927
+              ],
+              [
+                -95.551028,
+                29.713909
+              ],
+              [
+                -95.550805,
+                29.713909
+              ],
+              [
+                -95.550744,
+                29.713931
+              ],
+              [
+                -95.550658,
+                29.713931
+              ],
+              [
+                -95.550612,
+                29.713914
+              ],
+              [
+                -95.55057,
+                29.713879
+              ],
+              [
+                -95.550549,
+                29.713855
+              ],
+              [
+                -95.55053,
+                29.71381
+              ],
+              [
+                -95.55052,
+                29.713797
+              ],
+              [
+                -95.550504,
+                29.713793
+              ],
+              [
+                -95.550493,
+                29.713794
+              ],
+              [
+                -95.550472,
+                29.713836
+              ],
+              [
+                -95.550433,
+                29.713878
+              ],
+              [
+                -95.550388,
+                29.713902
+              ],
+              [
+                -95.550339,
+                29.713915
+              ],
+              [
+                -95.550234,
+                29.713917
+              ],
+              [
+                -95.550206,
+                29.713909
+              ],
+              [
+                -95.549999,
+                29.713909
+              ],
+              [
+                -95.549971,
+                29.713917
+              ],
+              [
+                -95.54991,
+                29.713917
+              ],
+              [
+                -95.549925,
+                29.713817
+              ],
+              [
+                -95.549895,
+                29.713817
+              ],
+              [
+                -95.549878,
+                29.713809
+              ],
+              [
+                -95.549862,
+                29.713781
+              ],
+              [
+                -95.549845,
+                29.713774
+              ],
+              [
+                -95.549845,
+                29.713759
+              ],
+              [
+                -95.549862,
+                29.713752
+              ],
+              [
+                -95.549862,
+                29.713687
+              ],
+              [
+                -95.549845,
+                29.71368
+              ],
+              [
+                -95.549845,
+                29.713377
+              ],
+              [
+                -95.549854,
+                29.713377
+              ],
+              [
+                -95.549895,
+                29.713341
+              ],
+              [
+                -95.549912,
+                29.713341
+              ],
+              [
+                -95.549945,
+                29.713326
+              ],
+              [
+                -95.549969,
+                29.713294
+              ],
+              [
+                -95.549969,
+                29.713265
+              ],
+              [
+                -95.549979,
+                29.713258
+              ],
+              [
+                -95.549979,
+                29.71325
+              ],
+              [
+                -95.549969,
+                29.713243
+              ],
+              [
+                -95.549969,
+                29.713223
+              ],
+              [
+                -95.549937,
+                29.713189
+              ],
+              [
+                -95.549928,
+                29.713189
+              ],
+              [
+                -95.549886,
+                29.713153
+              ],
+              [
+                -95.549878,
+                29.713138
+              ],
+              [
+                -95.549874,
+                29.713095
+              ],
+              [
+                -95.54987,
+                29.713092
+              ],
+              [
+                -95.549862,
+                29.712983
+              ],
+              [
+                -95.549845,
+                29.712976
+              ],
+              [
+                -95.549845,
+                29.712723
+              ],
+              [
+                -95.549878,
+                29.712716
+              ],
+              [
+                -95.549886,
+                29.712709
+              ],
+              [
+                -95.549928,
+                29.712709
+              ],
+              [
+                -95.549937,
+                29.712716
+              ],
+              [
+                -95.549979,
+                29.712716
+              ],
+              [
+                -95.549987,
+                29.712709
+              ],
+              [
+                -95.550227,
+                29.712709
+              ],
+              [
+                -95.550236,
+                29.712716
+              ],
+              [
+                -95.550393,
+                29.712716
+              ],
+              [
+                -95.550402,
+                29.712723
+              ],
+              [
+                -95.550418,
+                29.712723
+              ],
+              [
+                -95.550443,
+                29.712746
+              ],
+              [
+                -95.550484,
+                29.712753
+              ],
+              [
+                -95.55051,
+                29.712767
+              ],
+              [
+                -95.550526,
+                29.712753
+              ],
+              [
+                -95.550535,
+                29.712753
+              ],
+              [
+                -95.550577,
+                29.712716
+              ],
+              [
+                -95.550593,
+                29.712716
+              ],
+              [
+                -95.550601,
+                29.712709
+              ],
+              [
+                -95.550776,
+                29.712709
+              ],
+              [
+                -95.551118,
+                29.71262
+              ],
+              [
+                -95.551241,
+                29.712863
+              ],
+              [
+                -95.551244,
+                29.713036
+              ]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "structures": [
+          {
+            "footprint.wkt": "POLYGON ((-95.5499199 29.7137907, -95.5499053 29.7138023, -95.5499317 29.7133944, -95.5499121 29.7133512, -95.5498974 29.7133563, -95.5498854 29.7133198, -95.5498861 29.7132476, -95.549876 29.7132295, -95.5498848 29.7132201, -95.5498847 29.7131928, -95.5498988 29.7131812, -95.5499062 29.7131608, -95.5499062 29.713141, -95.5499236 29.7131311, -95.5499325 29.7131106, -95.5499296 29.7128809, -95.5499231 29.712881, -95.5499243 29.7127048, -95.549937 29.712699, -95.5499518 29.7127025, -95.5502401 29.7127025, -95.5502401 29.7126993, -95.5503025 29.7126992, -95.5503025 29.7126961, -95.5504245 29.7126961, -95.5504353 29.7126996, -95.5504446 29.7127141, -95.5504581 29.7127101, -95.5504752 29.7126957, -95.5505384 29.7126956, -95.5505384 29.7127176, -95.5505647 29.7127176, -95.5505647 29.7127084, -95.5506579 29.7127082, -95.5506579 29.7126962, -95.5511915 29.7126911, -95.5511964 29.7131366, -95.5511546 29.7131367, -95.5511546 29.7131451, -95.5511304 29.7131451, -95.5511018 29.7131655, -95.5510655 29.7132021, -95.5510656 29.7132819, -95.5511038 29.7133251, -95.5511363 29.7133443, -95.5511823 29.7133442, -95.5511977 29.7133501, -95.5512024 29.7133577, -95.551203 29.713795, -95.5508289 29.7137962, -95.5508289 29.7137994, -95.5508007 29.7137994, -95.5508007 29.7138026, -95.5506276 29.713801, -95.5506284 29.713731, -95.5506103 29.7137007, -95.5505909 29.7136873, -95.5505324 29.7136873, -95.5505077 29.7136984, -95.5504735 29.7137269, -95.55045 29.7137652, -95.55045 29.713805, -95.5499199 29.7138014, -95.5499199 29.7137907))",
+            "footprint.area": 158483.2237950457,
+            "defensible-space.zone1-building": 0.0,
+            "defensible-space.zone2-building": 0.0,
+            "defensible-space.zone3-building": 0.0,
+            "defensible-space.zone4-building": 3.0,
+            "defensible-space.zone1-tree": 3.0,
+            "defensible-space.zone2-tree": 29.0,
+            "defensible-space.zone3-tree": 32.0,
+            "defensible-space.zone4-tree": 22.0,
+            "roof-characteristics.condition": 2.0,
+            "roof-characteristics.condition.precise-value": 2.49,
+            "roof-characteristics.tree-cover.percent": 0.0,
+            "roof-characteristics.material.score": 1.0,
+            "roof-characteristics.material.class": "membrane",
+            "roof-characteristics.shape.value": "flat",
+            "roof-characteristics.shape.score": null,
+            "roof-characteristics.shape.wind-mitigation": false,
+            "roof-characteristics.shape.multiple-shape": null,
+            "roof-characteristics.centroid.wkt": "POINT (-95.5504758 29.7132647)",
+            "roof-characteristics.condition.attic-habitable": null,
+            "roof-characteristics.eave-height": null,
+            "roof-characteristics.entrance-elevation": null,
+            "roof-characteristics.maximum-roof-height": null,
+            "roof-characteristics.number-of-stories-below-eave": null,
+            "roof-characteristics.structure-score": null,
+            "roof-characteristics.volume-below-eave": null,
+            "roof-objects.solar.value": false,
+            "roof-objects.solar.score": null,
+            "roof-objects.ac-unit.count": 10,
+            "roof-objects.ac-unit.score": null,
+            "roof-objects.chimney.count": 0,
+            "roof-objects.chimney.score": null,
+            "roof-objects.roof-vent.count": 32,
+            "roof-objects.roof-vent.score": null,
+            "roof-objects.satellite-dish.count": 0,
+            "roof-objects.satellite-dish.score": null,
+            "roof-objects.skylight.count": 1,
+            "roof-objects.skylight.score": null,
+            "roof-objects.solar-panel-photovoltaic.count": null,
+            "roof-objects.solar-panel-photovoltaic.area": null,
+            "roof-objects.solar-panel-photovoltaic.score": null,
+            "roof-objects.solar-panel-thermal.count": null,
+            "roof-objects.solar-panel-thermal.area": null,
+            "roof-objects.solar-panel-thermal.score": null,
+            "roof-defects.missing-material.detected": false,
+            "roof-defects.missing-material.percent": null,
+            "roof-defects.missing-material.score": null,
+            "roof-defects.tarp.percent": null,
+            "roof-defects.tarp.detected": false,
+            "roof-defects.tarp.score": null,
+            "roof-defects.tarp.area": null,
+            "roof-defects.discoloration.detected": true,
+            "roof-defects.discoloration.percent": 89.0,
+            "roof-defects.discoloration.score": 0.91,
+            "roof-defects.debris.detected": false,
+            "roof-defects.debris.percent": null,
+            "roof-defects.debris.score": null,
+            "roof-defects.patch.detected": false,
+            "roof-defects.patch.percent": null,
+            "roof-defects.patch.score": null,
+            "roof-defects.structural-damage.detected": false,
+            "roof-defects.structural-damage.percent": null,
+            "roof-defects.structural-damage.score": null,
+            "roof-defects.rust.detected": false,
+            "roof-defects.rust.percent": null,
+            "roof-defects.rust.score": null,
+            "roof-defects.discoloration.types.algae-staining.detected": false,
+            "roof-defects.discoloration.types.algae-staining.percent": null,
+            "roof-defects.discoloration.types.algae-staining.score": null,
+            "roof-defects.discoloration.types.vent-staining.detected": false,
+            "roof-defects.discoloration.types.vent-staining.percent": null,
+            "roof-defects.discoloration.types.vent-staining.score": null,
+            "roof-defects.discoloration.types.water-pooling.detected": true,
+            "roof-defects.discoloration.types.water-pooling.percent": 89.0,
+            "roof-defects.discoloration.types.water-pooling.score": 0.91,
+            "roof-defects.discoloration.types.water-pooling-dry.detected": null,
+            "roof-defects.discoloration.types.water-pooling-dry.percent": null,
+            "roof-defects.discoloration.types.water-pooling-dry.score": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.detected": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.percent": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.score": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.detected": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.percent": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.score": null,
+            "primary-structure": true,
+            "ground-elevation.value": 75.0000024,
+            "structure-distance": null,
+            "building-type.class": null,
+            "building-type.score": null
+          }
+        ],
+        "structure.count": 1,
+        "parcel-source": "Voronoi",
+        "parcel-tree-cover.percent": 7.0,
+        "pool.total-area": null,
+        "pool.detected": false,
+        "pool.score": null,
+        "pool.types.above-ground.count": null,
+        "pool.types.above-ground.area": null,
+        "pool.types.above-ground.detected": false,
+        "pool.types.above-ground.enclosed.score": null,
+        "pool.types.above-ground.enclosed.count": null,
+        "pool.types.above-ground.non-enclosed.count": null,
+        "pool.types.above-ground.distance": null,
+        "pool.types.above-ground.score": null,
+        "pool.types.in-ground.count": null,
+        "pool.types.in-ground.area": null,
+        "pool.types.in-ground.detected": false,
+        "pool.types.in-ground.enclosed.score": null,
+        "pool.types.in-ground.enclosed.count": null,
+        "pool.types.in-ground.non-enclosed.count": null,
+        "pool.types.in-ground.distance": null,
+        "pool.types.in-ground.score": null,
+        "pool.types.hot-tub.count": null,
+        "pool.types.hot-tub.area": null,
+        "pool.types.hot-tub.detected": false,
+        "pool.types.hot-tub.enclosed.score": null,
+        "pool.types.hot-tub.enclosed.count": null,
+        "pool.types.hot-tub.non-enclosed.count": null,
+        "pool.types.hot-tub.distance": null,
+        "pool.types.hot-tub.score": null,
+        "pool.objects.water-slide.detected": false,
+        "pool.objects.water-slide.score": null,
+        "pool.objects.diving-board.detected": false,
+        "pool.objects.diving-board.score": null,
+        "enclosure.detected": false,
+        "enclosure.score": null,
+        "enclosure.area": null,
+        "enclosure.count": null,
+        "sport-court.detected": false,
+        "sport-court.score": null,
+        "hardscapes.area": 0.0,
+        "hardscapes.percent": 0.0,
+        "vehicles.detected": false,
+        "vehicles.score": null,
+        "vehicles.count": null,
+        "vehicles.types.automobile.detected": false,
+        "vehicles.types.automobile.score": null,
+        "vehicles.types.automobile.count": null,
+        "vehicles.types.boat.detected": false,
+        "vehicles.types.boat.score": null,
+        "vehicles.types.boat.count": null,
+        "playground.detected": false,
+        "playground.score": null,
+        "playground.enclosed.score": 0.0,
+        "playground.enclosed.count": 0,
+        "playground.non-enclosed.count": 0,
+        "deck.detected": false,
+        "deck.score": null,
+        "deck.area": null,
+        "trampoline.detected": false,
+        "trampoline.score": null,
+        "trampoline.enclosed.score": 0.0,
+        "trampoline.enclosed.count": 0,
+        "trampoline.non-enclosed.count": 0,
+        "census-tract": null,
+        "metadata.camera-technology": null,
+        "metadata.gsd": 0.24500000783999998,
+        "metadata.image-id": null,
+        "metadata.ortho-date-estimate": "2024-08-19T00:00:00",
+        "metadata.version": "3.86.1",
+        "metadata.layer-name": "urban-r",
+        "metadata.collection": "us-tx-houston_rf09-2024",
+        "metadata.is-ortho-image": true,
+        "request-information.requested-wkt": "POINT(-95.5505272 29.7132915)",
+        "request-information.inside-parcel": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -95.55131,
+                29.713407
+              ],
+              [
+                -95.551314,
+                29.713425
+              ],
+              [
+                -95.551314,
+                29.713724
+              ],
+              [
+                -95.551256,
+                29.713898
+              ],
+              [
+                -95.551243,
+                29.713903
+              ],
+              [
+                -95.551188,
+                29.713917
+              ],
+              [
+                -95.550683,
+                29.713917
+              ],
+              [
+                -95.550647,
+                29.713906
+              ],
+              [
+                -95.550617,
+                29.713882
+              ],
+              [
+                -95.550588,
+                29.713827
+              ],
+              [
+                -95.550582,
+                29.713795
+              ],
+              [
+                -95.550571,
+                29.713793
+              ],
+              [
+                -95.550553,
+                29.713807
+              ],
+              [
+                -95.550523,
+                29.713864
+              ],
+              [
+                -95.550499,
+                29.713894
+              ],
+              [
+                -95.550464,
+                29.713913
+              ],
+              [
+                -95.550445,
+                29.713917
+              ],
+              [
+                -95.549919,
+                29.713917
+              ],
+              [
+                -95.549934,
+                29.713817
+              ],
+              [
+                -95.549918,
+                29.713817
+              ],
+              [
+                -95.549918,
+                29.713397
+              ],
+              [
+                -95.549878,
+                29.713397
+              ],
+              [
+                -95.549878,
+                29.71317
+              ],
+              [
+                -95.549894,
+                29.713167
+              ],
+              [
+                -95.549904,
+                29.713132
+              ],
+              [
+                -95.549906,
+                29.712813
+              ],
+              [
+                -95.549897,
+                29.712739
+              ],
+              [
+                -95.549887,
+                29.712725
+              ],
+              [
+                -95.549899,
+                29.712708
+              ],
+              [
+                -95.549913,
+                29.712702
+              ],
+              [
+                -95.550373,
+                29.712698
+              ],
+              [
+                -95.550376,
+                29.71269
+              ],
+              [
+                -95.550409,
+                29.71269
+              ],
+              [
+                -95.550413,
+                29.712698
+              ],
+              [
+                -95.550447,
+                29.712711
+              ],
+              [
+                -95.550468,
+                29.71276
+              ],
+              [
+                -95.550494,
+                29.712786
+              ],
+              [
+                -95.550522,
+                29.712798
+              ],
+              [
+                -95.55055,
+                29.712798
+              ],
+              [
+                -95.550583,
+                29.712784
+              ],
+              [
+                -95.550609,
+                29.712757
+              ],
+              [
+                -95.550626,
+                29.712725
+              ],
+              [
+                -95.550652,
+                29.712706
+              ],
+              [
+                -95.550692,
+                29.712698
+              ],
+              [
+                -95.550695,
+                29.71269
+              ],
+              [
+                -95.551199,
+                29.712691
+              ],
+              [
+                -95.551202,
+                29.712958
+              ],
+              [
+                -95.551302,
+                29.712953
+              ],
+              [
+                -95.551303,
+                29.713081
+              ],
+              [
+                -95.551307,
+                29.71311
+              ],
+              [
+                -95.551299,
+                29.713171
+              ],
+              [
+                -95.551285,
+                29.713199
+              ],
+              [
+                -95.551286,
+                29.713299
+              ],
+              [
+                -95.551301,
+                29.713332
+              ],
+              [
+                -95.55131,
+                29.713407
+              ]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "structures": [
+          {
+            "footprint.wkt": "POLYGON ((-95.549867 29.713816, -95.549859 29.713358, -95.54989 29.713358, -95.549878 29.713324, -95.549888 29.713306, -95.549925 29.713305, -95.54994 29.713286, -95.549965 29.713292, -95.549974 29.713303, -95.549983 29.713303, -95.549999 29.713257, -95.549989 29.713248, -95.549989 29.713226, -95.549975 29.713203, -95.549935 29.71317, -95.549927 29.713176, -95.549911 29.713162, -95.549857 29.713163, -95.54985 29.71288, -95.549856 29.71288, -95.549854 29.712754, -95.54986 29.712753, -95.54986 29.712712, -95.550231 29.712706, -95.550231 29.712715, -95.550351 29.712713, -95.550364 29.712706, -95.550443 29.712707, -95.550443 29.712693, -95.550556 29.712691, -95.550556 29.712703, -95.550596 29.712703, -95.550596 29.712707, -95.550618 29.712706, -95.550618 29.712702, -95.550785 29.7127, -95.550785 29.712706, -95.551121 29.712701, -95.551122 29.712753, -95.551127 29.712753, -95.551128 29.712789, -95.551133 29.712789, -95.551135 29.71291, -95.551131 29.71291, -95.551139 29.713352, -95.551135 29.713352, -95.551136 29.713407, -95.551132 29.713407, -95.551137 29.713807, -95.550773 29.713809, -95.550773 29.713813, -95.550646 29.713815, -95.550638 29.713818, -95.550617 29.71376, -95.550593 29.713731, -95.550559 29.713705, -95.550528 29.713694, -95.550472 29.713695, -95.550473 29.713705, -95.550447 29.713705, -95.55041 29.713733, -95.550386 29.713765, -95.550387 29.713807, -95.550376 29.713819, -95.550357 29.713815, -95.549867 29.713816), (-95.551049 29.713324, -95.551053 29.713317, -95.551034 29.713289, -95.551011 29.713274, -95.55101 29.713244, -95.551 29.713236, -95.551001 29.713278, -95.551013 29.713302, -95.551049 29.713324))",
+            "footprint.area": 158321.2612834207,
+            "defensible-space.zone1-building": 0.0,
+            "defensible-space.zone2-building": 0.0,
+            "defensible-space.zone3-building": 0.0,
+            "defensible-space.zone4-building": 0.0,
+            "defensible-space.zone1-tree": 16.0,
+            "defensible-space.zone2-tree": 31.0,
+            "defensible-space.zone3-tree": 30.0,
+            "defensible-space.zone4-tree": 19.0,
+            "roof-characteristics.condition": 3.0,
+            "roof-characteristics.condition.precise-value": 2.6,
+            "roof-characteristics.tree-cover.percent": 0.0,
+            "roof-characteristics.material.score": 0.99,
+            "roof-characteristics.material.class": "membrane",
+            "roof-characteristics.shape.value": "flat",
+            "roof-characteristics.shape.score": null,
+            "roof-characteristics.shape.wind-mitigation": false,
+            "roof-characteristics.shape.multiple-shape": null,
+            "roof-characteristics.centroid.wkt": "POINT (-95.5504973 29.7132523)",
+            "roof-characteristics.condition.attic-habitable": null,
+            "roof-characteristics.eave-height": null,
+            "roof-characteristics.entrance-elevation": null,
+            "roof-characteristics.maximum-roof-height": null,
+            "roof-characteristics.number-of-stories-below-eave": null,
+            "roof-characteristics.structure-score": null,
+            "roof-characteristics.volume-below-eave": null,
+            "roof-objects.solar.value": false,
+            "roof-objects.solar.score": null,
+            "roof-objects.ac-unit.count": 12,
+            "roof-objects.ac-unit.score": null,
+            "roof-objects.chimney.count": 0,
+            "roof-objects.chimney.score": null,
+            "roof-objects.roof-vent.count": 30,
+            "roof-objects.roof-vent.score": null,
+            "roof-objects.satellite-dish.count": 1,
+            "roof-objects.satellite-dish.score": null,
+            "roof-objects.skylight.count": 1,
+            "roof-objects.skylight.score": null,
+            "roof-objects.solar-panel-photovoltaic.count": null,
+            "roof-objects.solar-panel-photovoltaic.area": null,
+            "roof-objects.solar-panel-photovoltaic.score": null,
+            "roof-objects.solar-panel-thermal.count": null,
+            "roof-objects.solar-panel-thermal.area": null,
+            "roof-objects.solar-panel-thermal.score": null,
+            "roof-defects.missing-material.detected": false,
+            "roof-defects.missing-material.percent": null,
+            "roof-defects.missing-material.score": null,
+            "roof-defects.tarp.percent": null,
+            "roof-defects.tarp.detected": false,
+            "roof-defects.tarp.score": null,
+            "roof-defects.tarp.area": null,
+            "roof-defects.discoloration.detected": true,
+            "roof-defects.discoloration.percent": 84.56,
+            "roof-defects.discoloration.score": 0.78,
+            "roof-defects.debris.detected": false,
+            "roof-defects.debris.percent": null,
+            "roof-defects.debris.score": null,
+            "roof-defects.patch.detected": false,
+            "roof-defects.patch.percent": null,
+            "roof-defects.patch.score": null,
+            "roof-defects.structural-damage.detected": false,
+            "roof-defects.structural-damage.percent": null,
+            "roof-defects.structural-damage.score": null,
+            "roof-defects.rust.detected": false,
+            "roof-defects.rust.percent": null,
+            "roof-defects.rust.score": null,
+            "roof-defects.discoloration.types.algae-staining.detected": false,
+            "roof-defects.discoloration.types.algae-staining.percent": null,
+            "roof-defects.discoloration.types.algae-staining.score": null,
+            "roof-defects.discoloration.types.vent-staining.detected": false,
+            "roof-defects.discoloration.types.vent-staining.percent": null,
+            "roof-defects.discoloration.types.vent-staining.score": null,
+            "roof-defects.discoloration.types.water-pooling.detected": true,
+            "roof-defects.discoloration.types.water-pooling.percent": 84.56,
+            "roof-defects.discoloration.types.water-pooling.score": 0.78,
+            "roof-defects.discoloration.types.water-pooling-dry.detected": null,
+            "roof-defects.discoloration.types.water-pooling-dry.percent": null,
+            "roof-defects.discoloration.types.water-pooling-dry.score": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.detected": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.percent": null,
+            "roof-defects.discoloration.types.vegetation-on-roof.score": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.detected": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.percent": null,
+            "roof-defects.discoloration.types.organic-matter-accumulation.score": null,
+            "primary-structure": true,
+            "ground-elevation.value": 71.000002272,
+            "structure-distance": null,
+            "building-type.class": "commercial",
+            "building-type.score": 0.91
+          }
+        ],
+        "structure.count": 1,
+        "parcel-source": "Voronoi",
+        "parcel-tree-cover.percent": 6.0,
+        "pool.total-area": null,
+        "pool.detected": false,
+        "pool.score": null,
+        "pool.types.above-ground.count": null,
+        "pool.types.above-ground.area": null,
+        "pool.types.above-ground.detected": false,
+        "pool.types.above-ground.enclosed.score": null,
+        "pool.types.above-ground.enclosed.count": null,
+        "pool.types.above-ground.non-enclosed.count": null,
+        "pool.types.above-ground.distance": null,
+        "pool.types.above-ground.score": null,
+        "pool.types.in-ground.count": null,
+        "pool.types.in-ground.area": null,
+        "pool.types.in-ground.detected": false,
+        "pool.types.in-ground.enclosed.score": null,
+        "pool.types.in-ground.enclosed.count": null,
+        "pool.types.in-ground.non-enclosed.count": null,
+        "pool.types.in-ground.distance": null,
+        "pool.types.in-ground.score": null,
+        "pool.types.hot-tub.count": null,
+        "pool.types.hot-tub.area": null,
+        "pool.types.hot-tub.detected": false,
+        "pool.types.hot-tub.enclosed.score": null,
+        "pool.types.hot-tub.enclosed.count": null,
+        "pool.types.hot-tub.non-enclosed.count": null,
+        "pool.types.hot-tub.distance": null,
+        "pool.types.hot-tub.score": null,
+        "pool.objects.water-slide.detected": false,
+        "pool.objects.water-slide.score": null,
+        "pool.objects.diving-board.detected": false,
+        "pool.objects.diving-board.score": null,
+        "enclosure.detected": false,
+        "enclosure.score": null,
+        "enclosure.area": null,
+        "enclosure.count": null,
+        "sport-court.detected": false,
+        "sport-court.score": null,
+        "hardscapes.area": 129.00101806799998,
+        "hardscapes.percent": 1.0,
+        "vehicles.detected": true,
+        "vehicles.score": 0.88,
+        "vehicles.count": 3,
+        "vehicles.types.automobile.detected": true,
+        "vehicles.types.automobile.score": 0.88,
+        "vehicles.types.automobile.count": 3,
+        "vehicles.types.boat.detected": false,
+        "vehicles.types.boat.score": null,
+        "vehicles.types.boat.count": null,
+        "playground.detected": false,
+        "playground.score": null,
+        "playground.enclosed.score": 0.0,
+        "playground.enclosed.count": 0,
+        "playground.non-enclosed.count": 0,
+        "deck.detected": false,
+        "deck.score": null,
+        "deck.area": null,
+        "trampoline.detected": false,
+        "trampoline.score": null,
+        "trampoline.enclosed.score": 0.0,
+        "trampoline.enclosed.count": 0,
+        "trampoline.non-enclosed.count": 0,
+        "census-tract": null,
+        "metadata.camera-technology": null,
+        "metadata.gsd": 0.24416667448,
+        "metadata.image-id": null,
+        "metadata.ortho-date-estimate": "2025-12-31T00:00:00",
+        "metadata.version": "6.0.1",
+        "metadata.layer-name": "urban",
+        "metadata.collection": "us-tx-houston-2026",
+        "metadata.is-ortho-image": true,
+        "request-information.requested-wkt": "POINT(-95.5505272 29.7132915)",
+        "request-information.inside-parcel": true
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -95.55124,
+                29.71269
+              ],
+              [
+                -95.55124,
+                29.713183
+              ],
+              [
+                -95.551228,
+                29.71322
+              ],
+              [
+                -95.551218,
+                29.713236
+              ],
+              [
+                -95.551195,
+                29.713256
+              ],
+              [
+                -95.551191,
+                29.71327
+              ],
+              [
+                -95.551219,
+                29.713295
+              ],
+              [
+                -95.551233,
+                29.71332
+              ],
+              [
+                -95.55124,
+                29.713348
+              ],
+              [
+                -95.55124,
+                29.713824
+              ],
+              [
+                -95.551228,
+                29.713861
+              ],
+              [
+                -95.551211,
+                29.713885
+              ],
+              [
+                -95.551187,
+                29.713902
+              ],
+              [
+                -95.55115,
+                29.713914
+              ],
+              [
+                -95.550684,
+                29.713914
+              ],
+              [
+                -95.550644,
+                29.713906
+              ],
+              [
+                -95.550572,
+                29.713874
+              ],
+              [
+                -95.550516,
+                29.713824
+              ],
+              [
+                -95.550416,
+                29.713899
+              ],
+              [
+                -95.550336,
+                29.713916
+              ],
+              [
+                -95.550213,
+                29.713919
+              ],
+              [
+                -95.550185,
+                29.713933
+              ],
+              [
+                -95.550166,
+                29.713937
+              ],
+              [
+                -95.549864,
+                29.713937
+              ],
+              [
+                -95.549828,
+                29.713926
+              ],
+              [
+                -95.549792,
+                29.713895
+              ],
+              [
+                -95.549758,
+                29.713838
+              ],
+              [
+                -95.549749,
+                29.713812
+              ],
+              [
+                -95.549747,
+                29.71371
+              ],
+              [
+                -95.549741,
+                29.713655
+              ],
+              [
+                -95.549831,
+                29.713314
+              ],
+              [
+                -95.549834,
+                29.713266
+              ],
+              [
+                -95.549858,
+                29.713194
+              ],
+              [
+                -95.549858,
+                29.713104
+              ],
+              [
+                -95.549847,
+                29.713101
+              ],
+              [
+                -95.549847,
+                29.712737
+              ],
+              [
+                -95.549869,
+                29.712728
+              ],
+              [
+                -95.549882,
+                29.712698
+              ],
+              [
+                -95.550156,
+                29.712698
+              ],
+              [
+                -95.550156,
+                29.712711
+              ],
+              [
+                -95.550322,
+                29.712712
+              ],
+              [
+                -95.550448,
+                29.712772
+              ],
+              [
+                -95.550489,
+                29.712778
+              ],
+              [
+                -95.550583,
+                29.712756
+              ],
+              [
+                -95.550665,
+                29.712707
+              ],
+              [
+                -95.550817,
+                29.712704
+              ],
+              [
+                -95.551196,
+                29.712617
+              ],
+              [
+                -95.551223,
+                29.712644
+              ],
+              [
+                -95.55124,
+                29.71269
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

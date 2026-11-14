@@ -1,0 +1,14 @@
+{
+  "floor_id": "demo-building-1-floor-4",
+  "lease_end_date": "2027-03-01",
+  "office_rent_per_sqft": 38.0,
+  "residential_rent_per_sqft": 42.0,
+  "convertible_sqft": 10800,
+  "value_uplift_annual": 43200.0,
+  "conversion_cost_per_sqft": 185.0,
+  "conversion_cost_total": 1998000.0,
+  "payback_years": 46.25,
+  "cap_rate": 0.06,
+  "implied_value_impact": 720000.0,
+  "reasoning_text": "Converting this floor adds ~$43K/yr in rent uplift (implied property value impact ~$720K at a 6% cap rate). Lease on this floor runs through 2027-03-01."
+}
