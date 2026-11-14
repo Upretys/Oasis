@@ -16,6 +16,8 @@ import json
 import os
 from dataclasses import dataclass, field
 
+from anomaly_detection import check_anomaly
+
 KIT_PATH = os.environ.get("COSTAR_KIT_PATH", str(
     __import__("pathlib").Path.home() / "Downloads" / "costar-hackathon-kit"
 ))
@@ -590,6 +592,15 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
     if cap_rate is None:
         cap_rate = DEFAULT_CAP_RATE
 
+    # Automated anomaly check - a real model trained on the full real
+    # population of cap rates citywide (3,217 real comps), not a hand-picked
+    # threshold. Catches the exact class of bug found manually earlier
+    # tonight (a 52.5% cap rate from an unconverted percentage) before it
+    # ever reaches a verdict, instead of relying on a human to notice.
+    cap_rate_anomaly = check_anomaly("cap_rate", cap_rate)
+    if cap_rate_anomaly.is_anomaly:
+        notes.append(cap_rate_anomaly.message)
+
     residential_rent, rent_comp_source, vacancy_rate = None, "no location given", None
     if query_lat is not None and query_lon is not None:
         market = nearest_apartment_market_comp(query_lat, query_lon, n_comps=3)
@@ -614,6 +625,10 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
         notes.append(f"No real nearby apartment comp used for residential rent - {rent_comp_source}.")
     else:
         notes.append(f"Residential rent from {rent_comp_source}: ${residential_rent:.2f}/sf/yr.")
+
+    rent_anomaly = check_anomaly("residential_rent_psf_yr", residential_rent)
+    if rent_anomaly.is_anomaly:
+        notes.append(rent_anomaly.message)
 
     uplift_per_sqft = residential_rent - office_rent
     value_uplift = uplift_per_sqft * convertible_sqft
