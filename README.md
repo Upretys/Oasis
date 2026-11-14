@@ -36,10 +36,12 @@ that are genuinely vacant right now.
 - `track_c_agent/` - ties geometry + value together. `run_pipeline()` is the
   deterministic, trustworthy triage logic; `run_agent_llm()` is a real
   Claude tool-calling loop that decides the same thing on its own.
-- `demo/` - `render_floor.py` (matplotlib floor-plan renders), `webapp.py`
-  (the live interactive web demo: a Houston map, click-to-analyze on any
-  real building, the "ask the AI agent" narrated live run, and a portfolio
-  scan view), `portfolio_scan.py` (the blind-batch scan script).
+- `demo/` - the Oasis web app. `webapp.py` (Flask routes), `oasis.py`
+  (checks, floors, floor plans, nearby places, boardroom agents, quote
+  emails), `static/` (the single-page front end), `render_floor.py`
+  (matplotlib floor-plan renders), `portfolio_scan.py` (the blind-batch scan
+  script), `contractors.json` (the contractor list - sample entries, replace
+  with real verified contractors), `places_houston.json` (OpenStreetMap cache).
 - `vexcel_quickstart.py` - the original standalone Vexcel API script.
 
 ## Setup
@@ -48,19 +50,34 @@ that are genuinely vacant right now.
 2. Copy `.env.example` to `.env` and fill in real keys - **never commit `.env`**
 3. Set `COSTAR_KIT_PATH` to wherever you unzipped the CoStar hackathon kit
 
-## Running the live web demo
+## Running the Oasis web app
 
 ```bash
-COSTAR_KIT_PATH=/path/to/costar-hackathon-kit \
-VEXCEL_API_KEY=your_key \
-ANTHROPIC_API_KEY=your_key \
 .venv/bin/python3 demo/webapp.py
 ```
 
-Open `http://127.0.0.1:5050`. Pre-tested buildings run instantly; any other
-real Houston office building on the map triggers a genuinely live Vexcel
-fetch. The portfolio scan view shows results from `demo/portfolio_scan.json`
-(run `python3 demo/portfolio_scan.py` to regenerate it against a fresh batch).
+Open `http://127.0.0.1:5050`. Keys and `COSTAR_KIT_PATH` are read from `.env`.
+
+The screens: a 3D map of Houston with search and "near a hospital / school /
+grocery store / highway" filters; a building view with tabs for the verdict
+and checks, a clickable floor stack, a generated tentative floor plan, the
+area (market, census, places nearby) and a boardroom where a structural
+engineer, a city planner and a market analyst debate the conversion; then a
+"proceed?" step that drafts a quote-request email to the verified contractors.
+
+What runs depends on what is configured, and the app says which case applies
+(profile button, top right):
+
+| Setting | With it | Without it |
+| --- | --- | --- |
+| `COSTAR_KIT_PATH` | the pipeline runs live, for any floor | saved results from `demo/all_results.json`, tested floor only |
+| `VEXCEL_API_KEY` | untested buildings fetch their footprint live | cached footprints in `output/` only |
+| `ANTHROPIC_API_KEY` | boardroom agents and the email draft are live Claude calls (`OASIS_MODEL`, default `claude-opus-5-5`) | boardroom statements are written by rule from the same numbers |
+| `CENSUS_API_KEY` | census demographics and rent trend for the tract | that section is left empty |
+| `OASIS_SEND_EMAIL=1` + `SMTP_HOST`, `SMTP_FROM` (`SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`) | quote requests are really emailed | each email is written to `output/outbox/*.eml`, nothing is sent |
+
+Nearby places come from OpenStreetMap and are cached in
+`demo/places_houston.json`; delete that file to re-fetch (takes several minutes).
 
 ## Known, stated simplifications
 
