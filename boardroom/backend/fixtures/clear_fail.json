@@ -1,0 +1,110 @@
+{
+  "building_id": "clear_fail",
+  "name": "9 Corporate Park Drive (demo)",
+  "lat": 40.34,
+  "lon": -74.57,
+  "viability": 0.09,
+  "data_as_of": "2026-11-14",
+  "lot_area_sf": 172800,
+  "floors": [
+    {
+      "floor": 1,
+      "rsf": 42000,
+      "tenant": "Vantage Logistics",
+      "lease_expiry": "2034-12-31",
+      "costar_row": "CS-009-FL01"
+    },
+    {
+      "floor": 2,
+      "rsf": 42000,
+      "tenant": "Vantage Logistics",
+      "lease_expiry": "2034-12-31",
+      "costar_row": "CS-009-FL02"
+    },
+    {
+      "floor": 3,
+      "rsf": 42000,
+      "tenant": "Vantage Logistics",
+      "lease_expiry": "2034-12-31",
+      "costar_row": "CS-009-FL03"
+    },
+    {
+      "floor": 4,
+      "rsf": 42000,
+      "tenant": null,
+      "lease_expiry": null,
+      "costar_row": "CS-009-FL04"
+    }
+  ],
+  "plan": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "kind": "floor_plate"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                240,
+                0
+              ],
+              [
+                240,
+                180
+              ],
+              [
+                0,
+                180
+              ],
+              [
+                0,
+                0
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "kind": "window",
+          "facade": "street"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              0,
+              0
+            ],
+            [
+              240,
+              0
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  "aerial": {
+    "region_id": "AER-009-LOT",
+    "daylight_limit_ft": 40,
+    "facing_building_height_ft": 0,
+    "street_width_ft": 200
+  },
+  "costar": {
+    "row_id": "CS-009",
+    "column_depth_ft": 30,
+    "office_asking_rent_psf_yr": 24.0,
+    "mf_rent_psf_month": 2.4,
+    "cap_rate": 0.065
+  }
+}

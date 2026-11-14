@@ -1,0 +1,5 @@
+pydantic>=2.14
+shapely>=2.2
+anthropic>=2.8
+python-dotenv
+pytest
