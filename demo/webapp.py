@@ -183,16 +183,42 @@ def _resolve_vexcel(source, property_id, lat, lon, t0, timeline):
     return vexcel_response, None
 
 
+def _parse_analyze_request(body: dict):
+    """Shared, validated request parsing for /api/analyze and
+    /api/analyze_agent - both previously did body["property_id"] etc.
+    directly, so a missing or wrong-typed field (confirmed live: dropping
+    "latitude" from the request) raised an unhandled KeyError/TypeError
+    straight through to a raw Flask 500 HTML page, not a clean JSON error.
+    Returns (fields_dict, None) on success or (None, (response, status))
+    on a real validation failure."""
+    required = ["property_id", "source", "floor_name", "latitude", "longitude", "typical_floor_sqft"]
+    missing = [f for f in required if f not in body]
+    if missing:
+        return None, (jsonify({"error": "bad_request", "message": f"Missing required field(s): {', '.join(missing)}"}), 400)
+    try:
+        fields = {
+            "property_id": int(body["property_id"]),
+            "source": body["source"],
+            "floor_name": body["floor_name"],
+            "lat": float(body["latitude"]),
+            "lon": float(body["longitude"]),
+            "real_floor_area_sqft": float(body["typical_floor_sqft"]),
+            "real_column_depth_ft": body.get("column_depth_ft"),
+        }
+    except (TypeError, ValueError) as e:
+        return None, (jsonify({"error": "bad_request", "message": f"Invalid field value: {e}"}), 400)
+    return fields, None
+
+
 @app.route("/api/analyze", methods=["POST"])
 def api_analyze():
     body = request.get_json(force=True)
-    property_id = int(body["property_id"])
-    source = body["source"]
-    floor_name = body["floor_name"]
-    lat = float(body["latitude"])
-    lon = float(body["longitude"])
-    real_floor_area_sqft = float(body["typical_floor_sqft"])
-    real_column_depth_ft = body.get("column_depth_ft")
+    fields, err = _parse_analyze_request(body)
+    if err:
+        return err
+    property_id, source, floor_name = fields["property_id"], fields["source"], fields["floor_name"]
+    lat, lon = fields["lat"], fields["lon"]
+    real_floor_area_sqft, real_column_depth_ft = fields["real_floor_area_sqft"], fields["real_column_depth_ft"]
 
     timeline = []
     t0 = time.time()
@@ -274,13 +300,12 @@ def api_analyze_agent():
     run_geometry vs run_value and writes its own verdict, instead of the
     fixed Python sequence in run_pipeline(). Requires ANTHROPIC_API_KEY."""
     body = request.get_json(force=True)
-    property_id = int(body["property_id"])
-    source = body["source"]
-    floor_name = body["floor_name"]
-    lat = float(body["latitude"])
-    lon = float(body["longitude"])
-    real_floor_area_sqft = float(body["typical_floor_sqft"])
-    real_column_depth_ft = body.get("column_depth_ft")
+    fields, err = _parse_analyze_request(body)
+    if err:
+        return err
+    property_id, source, floor_name = fields["property_id"], fields["source"], fields["floor_name"]
+    lat, lon = fields["lat"], fields["lon"]
+    real_floor_area_sqft, real_column_depth_ft = fields["real_floor_area_sqft"], fields["real_column_depth_ft"]
 
     if not "".join(os.environ.get("ANTHROPIC_API_KEY", "").split()):
         return jsonify({"error": "anthropic_key_missing",
