@@ -1,5 +1,5 @@
 {
-  "_note": "FICTIONAL demo rules for a hackathon. Not a real ordinance. Missing fields = unknown.",
+  "_note": "Demo entries (demo-*) are FICTIONAL rules for a hackathon, not a real ordinance. The houston entry is real, from the city's published No Zoning Letter. Missing fields = unknown.",
   "rules": [
     {
       "jurisdiction_id": "demo-city",
@@ -44,6 +44,14 @@
       "conversion_pathway": "not_allowed",
       "source_url": "https://example.org/demo-rules/demo-township/zoning/m1",
       "as_of": "2026-11-14"
+    },
+    {
+      "jurisdiction_id": "houston",
+      "zoning_district": "none",
+      "conversion_pathway": "by_right",
+      "_why": "Houston has no citywide comprehensive zoning ordinance, so no zoning approval is needed. Separately filed deed restrictions are not covered by the letter and need a title check; a change of occupancy still needs building permits and a Certificate of Occupancy.",
+      "source_url": "https://houstontx.gov/planning/DevelopRegs/docs_pdfs/2026/No-Zoning-Letter-and-Boundary-Map-061726.pdf",
+      "as_of": "2026-06-17"
     }
   ]
 }

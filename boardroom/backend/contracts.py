@@ -108,15 +108,17 @@ class FloorRow(BaseModel):               # one row of the per-floor CoStar table
 class AerialContext(BaseModel):          # read off the aerial imagery
     region_id: str
     daylight_limit_ft: float             # max useful depth from a window, given obstructions
-    facing_building_height_ft: float
-    street_width_ft: float
+    daylight_limit_assumed: bool = False # True: a stated rule of thumb, not read off the imagery
+    facing_building_height_ft: Optional[float] = None   # None = not measured; no evidence emitted
+    street_width_ft: Optional[float] = None
 
 class CostarSummary(BaseModel):
     row_id: str
-    column_depth_ft: float
-    office_asking_rent_psf_yr: float
+    column_depth_ft: Optional[float] = None          # None = CoStar has no column data for this building
+    office_asking_rent_psf_yr: Optional[float] = None  # None = no real lease rate on record
     mf_rent_psf_month: float             # multifamily comp rent
     cap_rate: float
+    cap_rate_assumed: bool = False       # True: no sale comp, a default rate stands in
 
 class Building(BaseModel):
     building_id: str
@@ -125,7 +127,7 @@ class Building(BaseModel):
     lon: float
     viability: float = Field(ge=0, le=1) # triage score from the feasibility classifier
     data_as_of: str                      # ISO date all relative dates are measured from
-    lot_area_sf: float
+    lot_area_sf: Optional[float] = None  # None = unknown; Existing FAR is then not emitted
     floors: list[FloorRow]
     plan: dict                           # GeoJSON FeatureCollection in plan feet: floor_plate + windows
     aerial: AerialContext

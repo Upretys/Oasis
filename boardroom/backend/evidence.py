@@ -68,20 +68,30 @@ def build_evidence(b: Building, j: Jurisdiction) -> list[Evidence]:
     add("geometry", "Share of floor plate within the daylight limit", round(100 * m["daylit_share"], 1), "%",
         kind="plan_region", ref="daylit_zone")
 
-    # aerial (daylight context)
-    for label, value in [("Daylight limit from a window, given obstructions", limit),
+    # aerial (daylight context); a fact nobody measured is left out, not filled in
+    limit_label = ("Daylight limit from a window (assumed rule of thumb, no obstruction data)"
+                   if b.aerial.daylight_limit_assumed else "Daylight limit from a window, given obstructions")
+    for label, value in [(limit_label, limit),
                          ("Height of the facing building", b.aerial.facing_building_height_ft),
                          ("Street width", b.aerial.street_width_ft)]:
-        add("aerial", label, value, "ft", kind="aerial_region", ref=b.aerial.region_id)
+        if value is not None:
+            add("aerial", label, value, "ft", kind="aerial_region", ref=b.aerial.region_id)
 
     # costar
-    add("costar", "Column bay depth", c.column_depth_ft, "ft", kind="costar_row", ref=c.row_id)
-    add("costar", "Office asking rent", c.office_asking_rent_psf_yr, "$/sf/yr", kind="costar_row", ref=c.row_id)
+    if c.column_depth_ft is not None:
+        add("costar", "Column bay depth", c.column_depth_ft, "ft", kind="costar_row", ref=c.row_id)
+    if c.office_asking_rent_psf_yr is not None:
+        add("costar", "Office asking rent", c.office_asking_rent_psf_yr, "$/sf/yr", kind="costar_row", ref=c.row_id)
     add("costar", "Multifamily comp rent", c.mf_rent_psf_month, "$/sf/month", kind="costar_row", ref=c.row_id)
-    add("costar", "Cap rate", round(100 * c.cap_rate, 2), "%", kind="costar_row", ref=c.row_id)
+    add("costar", "Cap rate (assumed default, no sale comp)" if c.cap_rate_assumed else "Cap rate",
+        round(100 * c.cap_rate, 2), "%", kind="costar_row", ref=c.row_id)
     as_of = date.fromisoformat(b.data_as_of)
     for g in _lease_groups(b):
         span = f"Floor {g[0].floor}" if len(g) == 1 else f"Floors {g[0].floor}-{g[-1].floor}"
+        if g[0].lease_expiry is None:   # occupied, but no end date on record
+            add("costar", f"{span} lease: end date not on record", "unknown", None,
+                kind="costar_row", floor=g[0].floor, ref=g[0].costar_row)
+            continue
         days = (date.fromisoformat(g[0].lease_expiry) - as_of).days
         if days < 730:
             add("costar", f"{span} lease: months to expiry", round(days / 30.44, 1), "months",
@@ -106,12 +116,15 @@ def build_evidence(b: Building, j: Jurisdiction) -> list[Evidence]:
     # derived (code arithmetic on the facts above)
     beyond = max(0.0, m["deepest_ft"] - limit)
     add("derived", "Depth beyond the daylight limit", round(beyond, 1), "ft", kind="plan_region", ref="dark_core")
-    add("derived", "Column bays beyond the daylight limit", round(beyond / c.column_depth_ft, 1), "bays",
-        kind="plan_region", ref="dark_core")
-    add("derived", "Existing FAR", round(gba / b.lot_area_sf, 1), "FAR", kind="building")
+    if c.column_depth_ft:
+        add("derived", "Column bays beyond the daylight limit", round(beyond / c.column_depth_ft, 1), "bays",
+            kind="plan_region", ref="dark_core")
+    if b.lot_area_sf:
+        add("derived", "Existing FAR", round(gba / b.lot_area_sf, 1), "FAR", kind="building")
     add("derived", f"Conversion cost ({n_floors} floors x {m['plate_sf']:,.0f} sf x assumed ${COST_PER_SF:.0f}/sf)",
         round(gba * COST_PER_SF), "$", kind="building")
     value = gba * m["daylit_share"] * c.mf_rent_psf_month * 12 * NOI_MARGIN / c.cap_rate
-    add("derived", f"Residential value (daylit area only, assumed {NOI_MARGIN:.0%} NOI margin, CoStar cap rate)",
+    cap = "assumed cap rate" if c.cap_rate_assumed else "CoStar cap rate"
+    add("derived", f"Residential value (daylit area only, assumed {NOI_MARGIN:.0%} NOI margin, {cap})",
         round(value), "$", kind="building")
     return out

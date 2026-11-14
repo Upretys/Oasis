@@ -1,6 +1,6 @@
 {
   "type": "FeatureCollection",
-  "_note": "Fictional demo boundaries (lon/lat). Not real municipal data.",
+  "_note": "Demo entries (demo-*) are fictional. The houston entries are a real city with an APPROXIMATE bounding box, not the legal city limit.",
   "features": [
     {
       "type": "Feature",
@@ -305,6 +305,77 @@
             [
               -74.55,
               40.3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "municipality",
+        "id": "houston",
+        "name": "City of Houston",
+        "approximate": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -95.8,
+              29.5
+            ],
+            [
+              -95.15,
+              29.5
+            ],
+            [
+              -95.15,
+              30.15
+            ],
+            [
+              -95.8,
+              30.15
+            ],
+            [
+              -95.8,
+              29.5
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "layer": "zoning",
+        "district": "none",
+        "approximate": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -95.8,
+              29.5
+            ],
+            [
+              -95.15,
+              29.5
+            ],
+            [
+              -95.15,
+              30.15
+            ],
+            [
+              -95.8,
+              30.15
+            ],
+            [
+              -95.8,
+              29.5
             ]
           ]
         ]
