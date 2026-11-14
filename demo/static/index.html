@@ -271,6 +271,11 @@ function renderLegalPanel(lc) {
     ? { icon: '&#9888;&#65039;', cls: 'warn', text: lc.occupancy_change_note }
     : { icon: '&#8505;&#65039;', cls: 'na', text: lc.occupancy_change_note };
   const column = { icon: '&#8505;&#65039;', cls: 'na', text: lc.column_spacing_note };
+  const accessibility = lc.accessibility_flag === 'likely_concern'
+    ? { icon: '&#9888;&#65039;', cls: 'warn', text: lc.accessibility_note }
+    : lc.accessibility_flag === 'likely_ok' || lc.accessibility_flag === 'not_applicable_ground_floor'
+    ? { icon: '&#9989;', cls: 'ok', text: lc.accessibility_note }
+    : { icon: '&#8505;&#65039;', cls: 'na', text: lc.accessibility_note || 'Accessibility not evaluated.' };
 
   const row = (item) => `<div class="legal-item ${item.cls}"><span class="icon">${item.icon}</span><span>${item.text}</span></div>`;
   return `
@@ -280,6 +285,7 @@ function renderLegalPanel(lc) {
       ${row(parking)}
       ${row(sprinkler)}
       ${row(column)}
+      ${row(accessibility)}
     </div>
   `;
 }
@@ -553,6 +559,7 @@ LEGAL & BUILDING CODE CHECKS
   Parking: ${lc.parking_flag || 'unknown'}${lc.parking_ratio ? ` (${lc.parking_ratio}/1000sf)` : ''}
   Occupancy change: ${lc.occupancy_change_note || 'n/a'}
   Column spacing: ${lc.column_spacing_note || 'n/a'}
+  Accessibility (FHA Design Manual): ${lc.accessibility_note || 'n/a'}
 
 NOTES
 ${(d.notes || []).map(n => '  - ' + n).join('\n')}

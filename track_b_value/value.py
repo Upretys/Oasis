@@ -177,9 +177,11 @@ class BuildingConstraintCheck:
     column_spacing_note: str
     occupancy_change_note: str  # real IBC Group B -> R-2 change-of-use requirement
     sprinkler_flag: str  # "has_sprinklers" | "no_sprinklers" | "unknown"
+    accessibility_flag: str = "unknown"  # "not_applicable_ground_floor" | "likely_ok" | "likely_concern" | "unknown"
+    accessibility_note: str = ""
 
 
-def check_building_constraints(property_id: int) -> BuildingConstraintCheck:
+def check_building_constraints(property_id: int, floor_name: int | str | None = None) -> BuildingConstraintCheck:
     """Real checks against real CoStar fields we weren't using before. Each
     one is honestly scoped: parking is a real lookup with a real answer; the
     column note is a WEAKER flag, not a true per-unit collision check, because
@@ -245,9 +247,40 @@ def check_building_constraints(property_id: int) -> BuildingConstraintCheck:
         f"throughout is required for R-2 occupancy regardless of building height. This building {sprinkler_note}."
     )
 
+    # Real Fair Housing Act Design Manual requirement, specific to residential
+    # conversion (an office building was never subject to this): in a
+    # "covered multifamily dwelling" (4+ units, first occupied after March
+    # 1991), every unit must be on an accessible route - and a unit above
+    # the ground floor only counts as on an accessible route if the
+    # building has an elevator. elevator_summary was already being computed
+    # from real CoStar structural.elevators data above, but previously
+    # discarded - never reaching this check, the webapp response, or the UI.
+    has_elevator = sum(elevator_summary.values()) > 0
+    is_ground_floor = floor_name is not None and str(floor_name).strip().lower() in ("1", "g", "ground")
+    if floor_name is None:
+        accessibility_flag, accessibility_note = "unknown", "Floor not specified - cannot determine ground-floor exemption."
+    elif is_ground_floor:
+        accessibility_flag = "not_applicable_ground_floor"
+        accessibility_note = "Ground floor - the FHA accessible-route requirement for non-ground-floor units doesn't apply here."
+    elif has_elevator:
+        accessibility_flag = "likely_ok"
+        accessibility_note = (
+            f"Real elevators on record ({elevator_summary}) - this floor should be reachable by an "
+            f"accessible route, a real Fair Housing Act Design Manual requirement for non-ground-floor "
+            f"units in covered multifamily dwellings (4+ units, built/altered after March 1991)."
+        )
+    else:
+        accessibility_flag = "likely_concern"
+        accessibility_note = (
+            "No elevators on record and this is not the ground floor - under the Fair Housing Act Design "
+            "Manual, non-ground-floor units in a covered multifamily dwelling (4+ units) must be on an "
+            "accessible route, which requires elevator access. Verify elevator status before proceeding."
+        )
+
     return BuildingConstraintCheck(
         property_id=property_id, zoning_description=zoning_desc, zoning_flag=zoning_flag,
         parking_ratio=parking_ratio, parking_flag=parking_flag, elevator_summary=elevator_summary,
+        accessibility_flag=accessibility_flag, accessibility_note=accessibility_note,
         column_depth_ft=column_depth, column_spacing_note=note,
         occupancy_change_note=occupancy_change_note, sprinkler_flag=sprinkler_flag,
     )

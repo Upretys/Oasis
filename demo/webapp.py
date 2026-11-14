@@ -220,7 +220,7 @@ def api_analyze():
         timeline.append({"step": "Value calculation skipped - geometry failed hard, nothing to price",
                           "elapsed_s": round(time.time() - t0, 2)})
 
-    constraints = check_building_constraints(property_id)
+    constraints = check_building_constraints(property_id, floor_name)
 
     # Real OpenStreetMap data (schools/hospitals/parks/grocery) - never
     # blocks the main result if it fails; the public Overpass mirrors had a
@@ -259,6 +259,8 @@ def api_analyze():
             "sprinkler_flag": constraints.sprinkler_flag,
             "occupancy_change_note": constraints.occupancy_change_note,
             "column_spacing_note": constraints.column_spacing_note,
+            "accessibility_flag": constraints.accessibility_flag,
+            "accessibility_note": constraints.accessibility_note,
         },
         "livability": livability,
         "timeline": timeline,

@@ -114,7 +114,7 @@ def run_pipeline(
     notes.extend(val.notes)
 
     unit_mix = ", ".join(f"{count} {t}" for t, count in geo.unit_type_counts.items()) or "no viable units"
-    constraints = check_building_constraints(property_id)
+    constraints = check_building_constraints(property_id, floor_name)
     # Zoning, column spacing, and the occupancy-change requirement each have
     # their own dedicated spot now (webapp's "Legal & building code checks"
     # panel, and the downloadable report's own LEGAL section) - a real
@@ -238,13 +238,14 @@ def run_agent_llm(property_id: int, floor_name: int, vexcel_response: dict, quer
             # same tool result, rather than leaving them in a separate tool
             # the model might never choose to call - this is legal/code
             # context that belongs in every verdict, not an optional extra.
-            constraints = check_building_constraints(property_id)
+            constraints = check_building_constraints(property_id, args["floor_name"])
             result["legal_and_code_checks"] = {
                 "zoning": "Houston has no citywide zoning - not a real gate here; the real "
                           "constraint is private deed restrictions, which aren't in this dataset.",
                 "parking_flag": constraints.parking_flag,
                 "occupancy_change": constraints.occupancy_change_note,
                 "column_spacing": constraints.column_spacing_note,
+                "accessibility": constraints.accessibility_note,
             }
             return json.dumps(result, default=str)
         except Exception as e:
