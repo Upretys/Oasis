@@ -477,19 +477,29 @@ def current_occupancy_for_floor(property_id: int, property_floor_id: int) -> tup
 
 
 def real_cap_rate_for_property(property_id: int) -> tuple[float | None, str]:
-    """Pull an actual cap rate from a sale comp covering this property, if any.
+    """Pull a real cap rate from a sale comp covering this property, if any.
 
     CoStar stores this as a plain percentage number (5.25 meaning 5.25%), not
     a fraction - confirmed by checking the raw record directly (comp 2862872
     on property 233930 has capitalizationRateActual: 5.25). Dividing by 100
     here fixes a real bug where an unconverted 5.25 got used as a fraction
-    and printed as a nonsensical "525.0% cap rate" in a real pipeline run."""
+    and printed as a nonsensical "525.0% cap rate" in a real pipeline run.
+
+    Checks capitalizationRateProForma too, not just Actual - re-checked after
+    being asked to verify this against the raw data again: 480 real sale-comp
+    entities across the kit have a cap rate ONLY on the pro-forma field, which
+    the original version of this function silently never looked at. Pro forma
+    is a projection, not an in-place actual rate, so the source string says
+    so explicitly rather than presenting it as equally certain."""
     for rec in _iter_jsonl("commercial-sale-comp.jsonl"):
         for entity in rec.get("entities") or []:
             if entity.get("propertyId") == property_id:
-                rate = entity.get("capitalizationRateActual") or rec.get("capitalizationRateActual")
-                if rate:
-                    return rate / 100.0, f"real sale comp {rec['id']}"
+                actual = entity.get("capitalizationRateActual") or rec.get("capitalizationRateActual")
+                if actual:
+                    return actual / 100.0, f"real actual (in-place) cap rate, sale comp {rec['id']}"
+                proforma = entity.get("capitalizationRateProForma") or rec.get("capitalizationRateProForma")
+                if proforma:
+                    return proforma / 100.0, f"real pro-forma (projected, not in-place actual) cap rate, sale comp {rec['id']}"
     return None, "no comp found - using default assumption"
 
 

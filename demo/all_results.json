@@ -114,7 +114,7 @@
     "value_uplift_high": -82688.0,
     "implied_value_impact_low": -4965113.0,
     "implied_value_impact_high": -3821079.0,
-    "reasoning_text": "Geometry pass (42.5ft depth, confidence 70%). Real unit mix: 22 studio, 1 2br (14,212 sqft of actual apartment-sized space, not the raw convertible zone). Floor 34: office rent $24.00/sf/yr (assumed Houston office market rate (real current tenant found, but no rate on the lease deal)) vs. residential $18.94/sf/yr (avg of 3 real comps: 1900 Yorktown (0.4km), The William (0.6km), Creole on Yorktown (0.7km)) -> $-71,903/yr uplift on 14,212 convertible sf. At a 5.2% cap rate (real sale comp 2862872), implied value impact is $-4,965,113-$-3,821,079 after construction cost (real buildingConstructionMaterial = ReinforcedConcrete, 1.15x baseline). Current lease runs through 2018-09-30.",
+    "reasoning_text": "Geometry pass (42.5ft depth, confidence 70%). Real unit mix: 22 studio, 1 2br (14,212 sqft of actual apartment-sized space, not the raw convertible zone). Floor 34: office rent $24.00/sf/yr (assumed Houston office market rate (real current tenant found, but no rate on the lease deal)) vs. residential $18.94/sf/yr (avg of 3 real comps: 1900 Yorktown (0.4km), The William (0.6km), Creole on Yorktown (0.7km)) -> $-71,903/yr uplift on 14,212 convertible sf. At a 5.2% cap rate (real actual (in-place) cap rate, sale comp 2862872), implied value impact is $-4,965,113-$-3,821,079 after construction cost (real buildingConstructionMaterial = ReinforcedConcrete, 1.15x baseline). Current lease runs through 2018-09-30.",
     "notes": [
       "Only 14,212 sqft fits real apartment-sized units (min studio/1BR/2BR dimensions) out of a 94% geometrically-convertible zone - most of that zone is unusable slivers, not a count to trust at face value.",
       "Max depth exceeds threshold by -2.5ft in at least one spot, but 52% of the floor's area still fits real units - passing on that basis.",
@@ -195,9 +195,9 @@
     "value_skipped": false,
     "value_uplift_low": 265225.0,
     "value_uplift_high": 358834.0,
-    "implied_value_impact_low": 381238.0,
-    "implied_value_impact_high": 1787350.0,
-    "reasoning_text": "Geometry pass (90.2ft depth, confidence 70%). Real unit mix: 14 studio, 14 1br (18,261 sqft of actual apartment-sized space, not the raw convertible zone). Floor 24: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $17.09/sf/yr (avg of 3 real comps: Skye Ridge Apartments (0.3km), Salado At Cityview Apartments (1.4km), Collingwood Gardens (1.5km)) -> $312,029/yr uplift on 18,261 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $381,238-$1,787,350 after construction cost (real buildingConstructionMaterial = Masonry, 1.10x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
+    "implied_value_impact_low": 679305.0,
+    "implied_value_impact_high": 2085417.0,
+    "reasoning_text": "Geometry pass (90.2ft depth, confidence 70%). Real unit mix: 14 studio, 14 1br (18,261 sqft of actual apartment-sized space, not the raw convertible zone). Floor 24: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $17.09/sf/yr (avg of 3 real comps: Skye Ridge Apartments (0.3km), Salado At Cityview Apartments (1.4km), Collingwood Gardens (1.5km)) -> $312,029/yr uplift on 18,261 convertible sf. At a 6.1% cap rate (real pro-forma (projected, not in-place actual) cap rate, sale comp 1479750), implied value impact is $679,305-$2,085,417 after construction cost (real buildingConstructionMaterial = Masonry, 1.10x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
     "notes": [
       "Max depth exceeds threshold by 45.2ft in at least one spot, but 54% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
