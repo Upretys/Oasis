@@ -47,6 +47,11 @@
   .reasoning-details { margin-top: 14px; }
   .reasoning-details summary { cursor: pointer; font-size: 12.5px; color: var(--muted); font-weight: 600; padding: 6px 0; }
   .reasoning-details summary:hover { color: var(--ink); }
+  .mini-gauge-track { position: relative; height: 6px; background: #eee; border-radius: 3px; margin-top: 6px; width: 90px; }
+  .mini-gauge-fill { height: 100%; border-radius: 3px; }
+  .mini-gauge-threshold { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #333; }
+  .mini-mix-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 6px; width: 140px; }
+  .mini-mix-legend { font-size: 9.5px; color: var(--muted); margin-top: 3px; white-space: nowrap; }
   .notes { margin-top: 14px; }
   .legal-panel { margin-top: 20px; border: 1.5px solid #d9dde3; border-radius: 10px; padding: 16px 18px; background: #fafbfc; }
   .legal-panel h3 { margin: 0 0 10px; font-size: 14px; }
@@ -318,6 +323,46 @@ function renderBottomLine(d) {
   `;
 }
 
+const UNIT_TYPE_BAR_COLORS = { studio: '#4a90d9', '1br': '#2e7d32', '2br': '#8e44ad' };
+
+function renderDepthGauge(depthFt) {
+  const threshold = 45;
+  const scaleMax = Math.max(depthFt, threshold) * 1.15;
+  const depthPct = (depthFt / scaleMax) * 100;
+  const thresholdPct = (threshold / scaleMax) * 100;
+  const overThreshold = depthFt > threshold;
+  return `
+    <div class="stat">
+      <div class="v">${depthFt.toFixed(1)} ft</div>
+      <div class="l">Depth (45ft threshold)</div>
+      <div class="mini-gauge-track">
+        <div class="mini-gauge-fill" style="width:${depthPct}%; background:${overThreshold ? '#f9a825' : '#2e7d32'}"></div>
+        <div class="mini-gauge-threshold" style="left:${thresholdPct}%"></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderUnitMixBar(counts) {
+  const entries = Object.entries(counts || {});
+  const total = entries.reduce((s, [, c]) => s + c, 0);
+  if (!total) return `<div class="stat"><div class="v">0</div><div class="l">No viable units</div></div>`;
+  const segments = entries.map(([t, c]) =>
+    `<div style="width:${(c/total)*100}%; background:${UNIT_TYPE_BAR_COLORS[t] || '#999'}" title="${c} ${t}"></div>`
+  ).join('');
+  const legend = entries.map(([t, c]) =>
+    `<span style="color:${UNIT_TYPE_BAR_COLORS[t] || '#999'}">&#9632;</span> ${c} ${t.toUpperCase()}`
+  ).join('  ');
+  return `
+    <div class="stat">
+      <div class="v">${total}</div>
+      <div class="l">Real units</div>
+      <div class="mini-mix-bar">${segments}</div>
+      <div class="mini-mix-legend">${legend}</div>
+    </div>
+  `;
+}
+
 function renderResult(b, d) {
   const main = document.getElementById('main');
   const unitMix = Object.entries(d.unit_type_counts || {}).map(([t, c]) => `${c} ${t}`).join(', ') || 'no viable units';
@@ -338,8 +383,9 @@ function renderResult(b, d) {
 
     <div class="stat-row">
       <div class="stat"><div class="v">${(d.confidence * 100).toFixed(0)}%</div><div class="l">Confidence</div></div>
-      <div class="stat"><div class="v">${d.window_to_core_max_ft.toFixed(1)} ft</div><div class="l">Depth (45ft threshold)</div></div>
-      <div class="stat"><div class="v">${Math.round(d.viable_leasable_sqft).toLocaleString()} sf</div><div class="l">Real viable sqft (${unitMix})</div></div>
+      ${renderDepthGauge(d.window_to_core_max_ft)}
+      ${renderUnitMixBar(d.unit_type_counts)}
+      <div class="stat"><div class="v">${Math.round(d.viable_leasable_sqft).toLocaleString()} sf</div><div class="l">Real viable sqft</div></div>
       ${valueHtml}
     </div>
 
