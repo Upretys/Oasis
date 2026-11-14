@@ -198,6 +198,20 @@
           }
         },
         {
+          "id": "E-CST-07",
+          "layer": "costar",
+          "label": "Vacant now, free to convert: floors 2-3, 7, 9-10",
+          "value": 5.0,
+          "unit": "floors",
+          "anchor": {
+            "kind": "costar_row",
+            "floor": 2,
+            "x": null,
+            "y": null,
+            "ref": "CS-210-FL02"
+          }
+        },
+        {
           "id": "E-ZON-01",
           "layer": "zoning",
           "label": "Conversion pathway",

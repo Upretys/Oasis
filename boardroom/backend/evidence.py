@@ -46,6 +46,18 @@ def _lease_groups(b: Building) -> list[list]:
     return groups
 
 
+def _vacant_runs(b: Building) -> list[str]:
+    """Vacant floors as consecutive runs: ['2-3', '7', '9-10']. tenant None means
+    confirmed vacant (unknown occupancy carries a tenant string instead)."""
+    runs: list[list[int]] = []
+    for f in sorted(r.floor for r in b.floors if r.tenant is None):
+        if runs and runs[-1][-1] == f - 1:
+            runs[-1].append(f)
+        else:
+            runs.append([f])
+    return [str(r[0]) if len(r) == 1 else f"{r[0]}-{r[-1]}" for r in runs]
+
+
 def build_evidence(b: Building, j: Jurisdiction) -> list[Evidence]:
     out: list[Evidence] = []
     counts: dict[str, int] = {}
@@ -99,6 +111,13 @@ def build_evidence(b: Building, j: Jurisdiction) -> list[Evidence]:
         else:
             add("costar", f"{span} lease: years remaining", round(days / 365.25, 1), "years",
                 kind="costar_row", floor=g[0].floor, ref=g[0].costar_row)
+    # after the lease facts, so adding it never renumbers the ones golden_run.json cites
+    vacant = _vacant_runs(b)
+    if vacant:
+        n = sum(1 for r in b.floors if r.tenant is None)
+        first = min((r for r in b.floors if r.tenant is None), key=lambda r: r.floor)
+        add("costar", f"Vacant now, free to convert: floor{'s' if n > 1 else ''} {', '.join(vacant)}", n, "floors",
+            kind="costar_row", floor=first.floor, ref=first.costar_row)
 
     # zoning (only fields the rules file actually publishes)
     zone = dict(kind="map_region", ref=j.zoning_district)

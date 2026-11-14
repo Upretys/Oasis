@@ -122,3 +122,17 @@ def test_demo_fixtures_keep_the_flat_model():
     b = load_building("hero")
     assert b.economics is None
     assert any("$350/sf" in e.label for e in build_evidence(b, place(b)))
+
+
+# --- vacancy: confirmed-vacant floors are stated, unknown occupancy is not -----
+
+@pytest.mark.parametrize("name", ["TC Energy Center", "Woodway Center", "7900 Fannin", "Two Bering Park"])
+def test_confirmed_vacant_floor_is_stated_and_the_analyst_sees_it(name):
+    b = load_saved_building(name, AS_OF)
+    seen = [e for e in visible("analyst", build_evidence(b, place(b))) if e.label.startswith("Vacant now")]
+    assert [(e.label, e.value) for e in seen] == [(f"Vacant now, free to convert: floor {b.floors[0].floor}", 1.0)]
+
+
+def test_occupied_floor_is_not_called_vacant():
+    b = load_saved_building("Williams Tower", AS_OF)
+    assert not any(e.label.startswith("Vacant now") for e in build_evidence(b, place(b)))

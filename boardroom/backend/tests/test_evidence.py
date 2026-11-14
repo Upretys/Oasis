@@ -114,3 +114,24 @@ def test_golden_run_cites_only_real_evidence(golden):
         if isinstance(e, RecommendationEvent):
             cited += [i for p in e.recommendation.phases for i in p.evidence_ids]
     assert cited and set(cited) <= known, set(cited) - known
+
+
+def test_vacant_floors_are_one_grouped_fact(placed):
+    b, _, ev = placed["hero"]
+    vacant = [e for e in ev if e.label.startswith("Vacant now")]
+    assert [(e.id, e.label, e.value) for e in vacant] == \
+        [("E-CST-07", "Vacant now, free to convert: floors 2-3, 7, 9-10", 5.0)]
+    assert vacant[0].anchor.floor == 2
+
+
+def test_vacancy_fact_does_not_renumber_lease_facts(placed):
+    ev = {e.id: e.label for e in placed["hero"][2]}
+    assert ev["E-CST-05"] == "Floors 4-6 lease: months to expiry"
+    assert ev["E-CST-06"] == "Floor 8 lease: years remaining"
+
+
+def test_no_vacancy_fact_when_every_floor_is_let(placed):
+    b = placed["hero"][0]
+    let = b.model_copy(update={"floors": [r.model_copy(update={"tenant": "X", "lease_expiry": "2030-01-01"})
+                                          for r in b.floors]})
+    assert not any(e.label.startswith("Vacant now") for e in build_evidence(let, place(let)))
