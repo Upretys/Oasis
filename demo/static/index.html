@@ -435,11 +435,11 @@ function renderResult(b, d) {
       <summary>Full reasoning &amp; technical detail</summary>
       <div class="reasoning"><strong>Reasoning:</strong><br>${d.reasoning_text}</div>
       <div class="notes"><strong style="font-size:13px;">Notes</strong><ul>${(d.notes || []).map(n => `<li>${n}</li>`).join('')}</ul></div>
+      ${renderSensitivityChart(d)}
     </details>
 
     ${renderLegalPanel(d.legal_checks)}
     ${renderLivabilityPanel(d.livability)}
-    ${renderSensitivityChart(d)}
   `;
 
   document.getElementById('agentBtn').onclick = () => runAgent(b);
@@ -484,6 +484,24 @@ async function runAgent(b) {
 // still exists after the browser tab (and this server) are gone, combining
 // the deterministic pipeline's numbers with the live AI agent's own written
 // verdict when it was run.
+function renderSensitivityText(d) {
+  if (!d.cap_rate_sensitivity || !d.cap_rate_sensitivity.length || d.value_skipped) return '';
+  const fmt = (x) => x < 0 ? `-$${Math.abs(Math.round(x)).toLocaleString()}` : `$${Math.round(x).toLocaleString()}`;
+  const rows = d.cap_rate_sensitivity.map(p => {
+    const mark = Math.abs(p.cap_rate - d.cap_rate_used) < 0.001 ? '  <- real rate used' : '';
+    return `  ${(p.cap_rate*100).toFixed(1)}% cap rate: ${fmt(p.implied_low)} to ${fmt(p.implied_high)}${mark}`;
+  }).join('\n');
+  const breakeven = d.breakeven_cap_rate_low
+    ? `Breaks even between ${(d.breakeven_cap_rate_low*100).toFixed(1)}% and ${(d.breakeven_cap_rate_high*100).toFixed(1)}% cap rate.`
+    : 'No real cap rate makes this profitable at current rent/cost assumptions.';
+  return `
+CAP RATE SENSITIVITY (same real math, other real cap rate points - the
+cap rate is the most commonly-defaulted real input here)
+${rows}
+  ${breakeven}
+`;
+}
+
 function downloadReport() {
   const b = currentBuilding, d = currentAnalysis;
   if (!b || !d) return;
@@ -517,7 +535,7 @@ GEOMETRY
 
 VALUE IMPACT
   ${valueLine}
-
+${renderSensitivityText(d)}
 REASONING
   ${d.reasoning_text}
 
