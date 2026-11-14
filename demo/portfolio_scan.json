@@ -83,8 +83,8 @@
     "longitude": -95.387156,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 381238.0,
-    "value_impact_high": 1787350.0,
+    "value_impact_low": 679305.0,
+    "value_impact_high": 2085417.0,
     "already_tested": true
   },
   {
@@ -138,8 +138,8 @@
     "longitude": -95.4602233,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 3430953.0,
-    "value_impact_high": 5500258.0,
+    "value_impact_low": 2721347.0,
+    "value_impact_high": 4790652.0,
     "already_tested": false
   },
   {
@@ -160,8 +160,8 @@
     "longitude": -95.5604318,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -611998.0,
-    "value_impact_high": 1629409.0,
+    "value_impact_low": 288541.0,
+    "value_impact_high": 2529948.0,
     "already_tested": false
   },
   {
@@ -248,8 +248,8 @@
     "longitude": -95.388258,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 908840.0,
-    "value_impact_high": 2321698.0,
+    "value_impact_low": 1240983.0,
+    "value_impact_high": 2653841.0,
     "already_tested": false
   },
   {
