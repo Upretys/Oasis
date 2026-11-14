@@ -631,11 +631,16 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
         not rent_comp_source.startswith("assumed") and not rent_comp_source.startswith("no location"),
     ]) / 4.0
 
+    def _fmt_money(x: float) -> str:
+        # "-$1,958,403", not "$-1,958,403" - a real screenshot caught the
+        # latter reading as a malformed double-negative in the UI.
+        return f"-${abs(x):,.0f}" if x < 0 else f"${x:,.0f}"
+
     reasoning = (
         f"Floor {floor_name}: office rent ${office_rent:.2f}/sf/yr ({rent_source}) vs. "
         f"residential ${residential_rent:.2f}/sf/yr ({rent_comp_source}) -> ${value_uplift:,.0f}/yr uplift on "
         f"{convertible_sqft:,.0f} convertible sf. At a {cap_rate:.1%} cap rate ({cap_rate_source}), "
-        f"implied value impact is ${implied_low:,.0f}-${implied_high:,.0f} after construction cost "
+        f"implied value impact is {_fmt_money(implied_low)} to {_fmt_money(implied_high)} after construction cost "
         f"({cost_multiplier_source}, {cost_multiplier:.2f}x baseline)."
     )
     if lease_expiration:

@@ -37,6 +37,16 @@
   .stat .l { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
   img.render { max-width: 100%; border: 1px solid var(--border); border-radius: 8px; margin-top: 10px; background: white; }
   .reasoning { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 18px; font-size: 13.5px; line-height: 1.55; }
+  .bottom-line { border: 2px solid; border-radius: 10px; padding: 16px 18px; margin: 14px 0; background: white; }
+  .bl-headline { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+  .bl-sub { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .bl-bar-track { position: relative; height: 10px; background: #eee; border-radius: 5px; margin-bottom: 4px; }
+  .bl-bar-zero { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: #999; }
+  .bl-bar-fill { position: absolute; top: 0; bottom: 0; border-radius: 5px; opacity: 0.85; }
+  .bl-bar-labels { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); }
+  .reasoning-details { margin-top: 14px; }
+  .reasoning-details summary { cursor: pointer; font-size: 12.5px; color: var(--muted); font-weight: 600; padding: 6px 0; }
+  .reasoning-details summary:hover { color: var(--ink); }
   .notes { margin-top: 14px; }
   .legal-panel { margin-top: 20px; border: 1.5px solid #d9dde3; border-radius: 10px; padding: 16px 18px; background: #fafbfc; }
   .legal-panel h3 { margin: 0 0 10px; font-size: 14px; }
@@ -274,6 +284,40 @@ function renderLivabilityPanel(lv) {
   return `<div class="legal-panel"><h3>Nearby amenities (real, OpenStreetMap)</h3>${rows}</div>`;
 }
 
+const CLASS_META = {
+  feasible: { icon: '✅', color: '#2e7d32', verb: 'Worth converting' },
+  marginal: { icon: '⚠️', color: '#f9a825', verb: 'Borderline — needs human review' },
+  not_feasible: { icon: '❌', color: '#c62828', verb: 'Not worth converting' },
+};
+
+function renderBottomLine(d) {
+  const meta = CLASS_META[d.classification] || { icon: 'ℹ️', color: '#999', verb: d.classification };
+  if (d.value_skipped) {
+    return `<div class="bottom-line" style="border-color:${meta.color}">
+      <div class="bl-headline" style="color:${meta.color}">${meta.icon} ${meta.verb}</div>
+      <div class="bl-sub">Geometry failed outright — not enough real apartment-sized space to even price this one.</div>
+    </div>`;
+  }
+  const lo = d.value_impact_low, hi = d.value_impact_high;
+  const fmt = (x) => x < 0 ? `-$${Math.abs(Math.round(x)).toLocaleString()}` : `$${Math.round(x).toLocaleString()}`;
+  // Simple number-line bar: where does [lo, hi] sit relative to $0?
+  const span = Math.max(Math.abs(lo), Math.abs(hi)) * 1.15 || 1;
+  const pct = (x) => ((x + span) / (2 * span)) * 100;
+  const barLeft = Math.min(pct(lo), pct(hi));
+  const barWidth = Math.abs(pct(hi) - pct(lo));
+  return `
+    <div class="bottom-line" style="border-color:${meta.color}">
+      <div class="bl-headline" style="color:${meta.color}">${meta.icon} ${meta.verb}</div>
+      <div class="bl-sub">Real implied value impact: <strong>${fmt(lo)} to ${fmt(hi)}</strong> (${(d.confidence*100).toFixed(0)}% confidence this call is right)</div>
+      <div class="bl-bar-track">
+        <div class="bl-bar-zero"></div>
+        <div class="bl-bar-fill" style="left:${barLeft}%; width:${Math.max(barWidth,1.5)}%; background:${meta.color}"></div>
+      </div>
+      <div class="bl-bar-labels"><span>${fmt(-span)}</span><span>$0</span><span>${fmt(span)}</span></div>
+    </div>
+  `;
+}
+
 function renderResult(b, d) {
   const main = document.getElementById('main');
   const unitMix = Object.entries(d.unit_type_counts || {}).map(([t, c]) => `${c} ${t}`).join(', ') || 'no viable units';
@@ -290,6 +334,8 @@ function renderResult(b, d) {
     </div>
     <div style="color:var(--muted); font-size:13px;">${b.address || ''} &middot; floor ${b.floor_name}</div>
 
+    ${renderBottomLine(d)}
+
     <div class="stat-row">
       <div class="stat"><div class="v">${(d.confidence * 100).toFixed(0)}%</div><div class="l">Confidence</div></div>
       <div class="stat"><div class="v">${d.window_to_core_max_ft.toFixed(1)} ft</div><div class="l">Depth (45ft threshold)</div></div>
@@ -299,12 +345,14 @@ function renderResult(b, d) {
 
     <img class="render" src="data:image/png;base64,${d.image_base64}">
 
-    <div class="reasoning"><strong>Reasoning:</strong><br>${d.reasoning_text}</div>
+    <details class="reasoning-details">
+      <summary>Full reasoning &amp; technical detail</summary>
+      <div class="reasoning"><strong>Reasoning:</strong><br>${d.reasoning_text}</div>
+      <div class="notes"><strong style="font-size:13px;">Notes</strong><ul>${(d.notes || []).map(n => `<li>${n}</li>`).join('')}</ul></div>
+    </details>
 
     ${renderLegalPanel(d.legal_checks)}
     ${renderLivabilityPanel(d.livability)}
-
-    <div class="notes"><strong style="font-size:13px;">Notes</strong><ul>${(d.notes || []).map(n => `<li>${n}</li>`).join('')}</ul></div>
   `;
 
   document.getElementById('agentBtn').onclick = () => runAgent(b);

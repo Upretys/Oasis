@@ -19,14 +19,11 @@
       "combined confidence = geometry_confidence (70%) x value_confidence (50%) = 35%",
       "value impact is zero or negative on current real/assumed inputs -> not feasible"
     ],
-    "reasoning_text": "Geometry pass (22.2ft depth, confidence 70%). Real unit mix: 14 studio, 7 1br (13,095 sqft of actual apartment-sized space, not the raw convertible zone). Floor 18: office rent $24.00/sf/yr (assumed Houston office market rate (real current tenant found, but no rate on the lease deal)) vs. residential $28.58/sf/yr (avg of 3 real comps: WaterWall Place (0.2km), MAA Afton Oaks (0.4km), Alexan 5151 (0.5km)) -> $59,968/yr uplift on 13,095 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $-1,958,403-$-1,041,725 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
+    "reasoning_text": "Geometry pass (22.2ft depth, confidence 70%). Real unit mix: 14 studio, 7 1br (13,095 sqft of actual apartment-sized space, not the raw convertible zone). Floor 18: office rent $24.00/sf/yr (assumed Houston office market rate (real current tenant found, but no rate on the lease deal)) vs. residential $28.58/sf/yr (avg of 3 real comps: WaterWall Place (0.2km), MAA Afton Oaks (0.4km), Alexan 5151 (0.5km)) -> $59,968/yr uplift on 13,095 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is -$1,958,403 to -$1,041,725 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
     "notes": [
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Local apartment vacancy near this building (real, from 3 nearby comps): 7.0% - healthy local demand. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
-      "Residential rent from avg of 3 real comps: WaterWall Place (0.2km), MAA Afton Oaks (0.4km), Alexan 5151 (0.5km): $28.58/sf/yr.",
-      "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available.",
-      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building sprinkler status not on record - verify before assuming compliance."
+      "Residential rent from avg of 3 real comps: WaterWall Place (0.2km), MAA Afton Oaks (0.4km), Alexan 5151 (0.5km): $28.58/sf/yr."
     ],
     "building_name": "Williams Tower",
     "lat": 29.7375702,
@@ -53,16 +50,13 @@
       "combined confidence = geometry_confidence (70%) x value_confidence (75%) = 52%",
       "positive value + geometry pass + confidence above threshold -> feasible"
     ],
-    "reasoning_text": "Geometry pass (73.2ft depth, confidence 70%). Real unit mix: 17 1br, 1 studio (12,432 sqft of actual apartment-sized space, not the raw convertible zone). Floor 24: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $32.53/sf/yr (avg of 3 real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km)) -> $404,373/yr uplift on 12,432 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $3,486,044-$4,356,298 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
+    "reasoning_text": "Geometry pass (73.2ft depth, confidence 70%). Real unit mix: 17 1br, 1 studio (12,432 sqft of actual apartment-sized space, not the raw convertible zone). Floor 24: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $32.53/sf/yr (avg of 3 real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km)) -> $404,373/yr uplift on 12,432 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $3,486,044 to $4,356,298 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
     "notes": [
       "Max depth exceeds threshold by 28.2ft in at least one spot, but 55% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Real cross-check: 20% of 15 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 15 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
       "Local apartment vacancy near this building (real, from 3 nearby comps): 7.0% - healthy local demand. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
-      "Residential rent from avg of 3 real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km): $32.53/sf/yr.",
-      "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available.",
-      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
+      "Residential rent from avg of 3 real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km): $32.53/sf/yr."
     ],
     "building_name": "TC Energy Center",
     "lat": 29.7607687,
@@ -89,16 +83,13 @@
       "combined confidence = geometry_confidence (70%) x value_confidence (100%) = 70%",
       "positive value + geometry pass + confidence above threshold -> feasible"
     ],
-    "reasoning_text": "Geometry pass (51.8ft depth, confidence 70%). Real unit mix: 25 1br, 21 studio (29,562 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $21.84/sf/yr (avg of 3 real comps: The Bordeaux (0.3km), Astor Tanglewood (0.4km), High Point Uptown (0.5km)) -> $645,741/yr uplift on 29,562 convertible sf. At a 7.0% cap rate (real pro-forma (projected, not in-place actual) cap rate, sale comp 3154125), implied value impact is $2,721,347-$4,790,652 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
+    "reasoning_text": "Geometry pass (51.8ft depth, confidence 70%). Real unit mix: 25 1br, 21 studio (29,562 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $21.84/sf/yr (avg of 3 real comps: The Bordeaux (0.3km), Astor Tanglewood (0.4km), High Point Uptown (0.5km)) -> $645,741/yr uplift on 29,562 convertible sf. At a 7.0% cap rate (real pro-forma (projected, not in-place actual) cap rate, sale comp 3154125), implied value impact is $2,721,347 to $4,790,652 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
     "notes": [
       "Max depth exceeds threshold by 6.8ft in at least one spot, but 54% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "This simplification ignores the option value of eventually re-leasing the floor as office at market rate - a real consideration a landlord would weigh, not modeled here (no other real office buildings found in this submarket, so no real submarket cross-check was available either).",
       "Local apartment vacancy near this building (real, from 3 nearby comps): 11.2% - elevated leasing risk. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
-      "Residential rent from avg of 3 real comps: The Bordeaux (0.3km), Astor Tanglewood (0.4km), High Point Uptown (0.5km): $21.84/sf/yr.",
-      "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available.",
-      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
+      "Residential rent from avg of 3 real comps: The Bordeaux (0.3km), Astor Tanglewood (0.4km), High Point Uptown (0.5km): $21.84/sf/yr."
     ],
     "building_name": "Woodway Center",
     "lat": 29.7635027,
@@ -125,16 +116,13 @@
       "combined confidence = geometry_confidence (70%) x value_confidence (100%) = 70%",
       "positive value + geometry pass + confidence above threshold -> feasible"
     ],
-    "reasoning_text": "Geometry pass (21.2ft depth, confidence 70%). Real unit mix: 15 1br, 22 studio (23,976 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $28.22/sf/yr (avg of 3 real comps: Revl Med Center (0.3km), 8181 Med Center Apartments (0.5km), Lanesborough Apartments (0.8km)) -> $676,609/yr uplift on 23,976 convertible sf. At a 8.2% cap rate (real actual (in-place) cap rate, sale comp 1943739), implied value impact is $2,399,207-$4,245,336 after construction cost (real buildingConstructionMaterial = Masonry, 1.10x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
+    "reasoning_text": "Geometry pass (21.2ft depth, confidence 70%). Real unit mix: 15 1br, 22 studio (23,976 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $28.22/sf/yr (avg of 3 real comps: Revl Med Center (0.3km), 8181 Med Center Apartments (0.5km), Lanesborough Apartments (0.8km)) -> $676,609/yr uplift on 23,976 convertible sf. At a 8.2% cap rate (real actual (in-place) cap rate, sale comp 1943739), implied value impact is $2,399,207 to $4,245,336 after construction cost (real buildingConstructionMaterial = Masonry, 1.10x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
     "notes": [
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Real cross-check: 0% of 4 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 4 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
       "Local apartment vacancy near this building (real, from 3 nearby comps): 7.2% - healthy local demand. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
       "Residential rent from avg of 3 real comps: Revl Med Center (0.3km), 8181 Med Center Apartments (0.5km), Lanesborough Apartments (0.8km): $28.22/sf/yr.",
-      "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building.",
-      "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available.",
-      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building sprinkler status not on record - verify before assuming compliance."
+      "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building."
     ],
     "building_name": "7900 Fannin",
     "lat": 29.6915081,
@@ -161,17 +149,14 @@
       "combined confidence = geometry_confidence (70%) x value_confidence (75%) = 52%",
       "positive value but geometry escalated or combined confidence below 40% -> marginal, needs human review before relying on this"
     ],
-    "reasoning_text": "Geometry escalate (61.9ft depth, confidence 70%). Real unit mix: 7 1br, 26 studio (20,923 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $17.76/sf/yr (avg of 3 real comps: Tuscany Apartments (0.3km), San Felipe Square Townhomes (0.6km), Tanglebrook Apartments (0.8km)) -> $371,576/yr uplift on 20,923 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $653,264-$2,264,312 after construction cost (real buildingConstructionMaterial = Masonry, 1.10x baseline). No confirmed lease end date - verify occupancy before assuming vacancy. Flagging for human review rather than forcing a pass/fail.",
+    "reasoning_text": "Geometry escalate (61.9ft depth, confidence 70%). Real unit mix: 7 1br, 26 studio (20,923 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $17.76/sf/yr (avg of 3 real comps: Tuscany Apartments (0.3km), San Felipe Square Townhomes (0.6km), Tanglebrook Apartments (0.8km)) -> $371,576/yr uplift on 20,923 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $653,264 to $2,264,312 after construction cost (real buildingConstructionMaterial = Masonry, 1.10x baseline). No confirmed lease end date - verify occupancy before assuming vacancy. Flagging for human review rather than forcing a pass/fail.",
     "notes": [
       "Only 47% of the floor's area fits real units - partial conversion may be viable, flagging for human review rather than a flat pass/fail.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Real cross-check: 0% of 4 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 4 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
       "Local apartment vacancy near this building (real, from 3 nearby comps): 10.0% - elevated leasing risk. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
       "Residential rent from avg of 3 real comps: Tuscany Apartments (0.3km), San Felipe Square Townhomes (0.6km), Tanglebrook Apartments (0.8km): $17.76/sf/yr.",
-      "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building.",
-      "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available.",
-      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building has NO sprinkler system on record - a real retrofit cost/scope item, not modeled in the dollar estimate."
+      "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building."
     ],
     "building_name": "Two Bering Park",
     "lat": 29.7578818,

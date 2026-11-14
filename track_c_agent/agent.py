@@ -110,19 +110,15 @@ def run_pipeline(
 
     unit_mix = ", ".join(f"{count} {t}" for t, count in geo.unit_type_counts.items()) or "no viable units"
     constraints = check_building_constraints(property_id)
-    # Correction: Houston has no citywide zoning (confirmed - City of
-    # Houston Planning Dept's own "No Zoning Letter"). CoStar's
-    # zoningDescription is not a real conversion gate here; the real one is
-    # deed restrictions, which we have no data source for. Say so honestly
-    # instead of flagging a zoning change that isn't the real-world blocker.
-    notes.append(
-        "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. "
-        "The real constraint is private deed restrictions, which aren't in this dataset."
-    )
+    # Zoning, column spacing, and the occupancy-change requirement each have
+    # their own dedicated spot now (webapp's "Legal & building code checks"
+    # panel, and the downloadable report's own LEGAL section) - a real
+    # screenshot caught them appearing a second time, word-for-word, in this
+    # generic notes list too. Only the parking warning stays here since it's
+    # conditional, not a value every caller of PipelineResult already gets
+    # from check_building_constraints() directly.
     if constraints.parking_flag == "likely_short":
         notes.append(f"Parking ratio ({constraints.parking_ratio}/1000sf) may be short for residential use.")
-    notes.append(constraints.column_spacing_note)
-    notes.append(constraints.occupancy_change_note)
 
     reasoning = (
         f"Geometry {geo.verdict} ({geo.window_to_core_max_ft:.1f}ft depth, "
