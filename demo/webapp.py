@@ -1,21 +1,20 @@
 """
-Live interactive demo server.
+Oasis - live interactive demo server.
 
-Two kinds of buildings, both run through the exact same real pipeline
-(run_pipeline / run_feasibility / run_value - nothing special-cased for the
-demo):
+Every building goes through the same real pipeline (run_pipeline /
+run_feasibility / run_value). What the server can do depends on what is on
+this machine, and the UI is told which case applies instead of faking it:
 
-  - "cached": the 7 buildings already tested tonight. Vexcel's response is
-    read from a saved output/*.json file (no new network call) so these are
-    instant.
-  - "live": any other real Houston office building from the CoStar kit. Its
-    Vexcel footprint has never been fetched before - this hits the real
-    Vexcel /property/extract endpoint over the network, live, in front of
-    whoever is watching. Requires VEXCEL_API_KEY in this terminal's
-    environment; if it's missing, the UI says so honestly instead of faking
-    a result.
+  - "live"   the CoStar kit is present: the pipeline runs now, for any floor.
+             A building whose Vexcel footprint is not cached yet triggers a
+             real /property/extract call (needs VEXCEL_API_KEY).
+  - "saved"  no CoStar kit: the real result saved by the last batch run
+             (demo/all_results.json) is served for the floor that was tested.
+             The floor plan is still computed live from the cached footprint.
+  - "scan"   a building only seen by the blind portfolio scan: verdict and
+             value from demo/portfolio_scan.json, nothing else.
 
-Run: COSTAR_KIT_PATH=... VEXCEL_API_KEY=... .venv/bin/python3 demo/webapp.py
+Run: .venv/bin/python3 demo/webapp.py     (keys are read from .env)
 Then open http://127.0.0.1:5050
 """
 
@@ -26,50 +25,214 @@ import json
 import os
 import sys
 import time
+import tempfile
 
-_ENV_PATH = os.path.join(os.path.dirname(__file__), "..", ".env")
-if os.path.exists(_ENV_PATH):
-    # Minimal .env loader - no new dependency needed for 3 KEY=VALUE lines.
-    # Never overwrites a key already set in the real environment.
-    with open(_ENV_PATH) as _f:
-        for _line in _f:
-            _line = _line.strip()
-            if not _line or _line.startswith("#") or "=" not in _line:
-                continue
-            _k, _, _v = _line.partition("=")
-            os.environ.setdefault(_k.strip(), _v.strip())
+HERE = os.path.dirname(os.path.abspath(__file__))
+for sub in ("track_a_geometry", "track_b_value", "track_c_agent"):
+    sys.path.insert(0, os.path.join(HERE, "..", sub))
+sys.path.insert(0, HERE)
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "track_a_geometry"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "track_b_value"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "track_c_agent"))
+import oasis  # noqa: E402
 
-from flask import Flask, jsonify, request, send_from_directory
+oasis.load_env()  # before track_b_value is imported - it reads COSTAR_KIT_PATH at import time
+import tempfile
 
-from vexcel_live import fetch_vexcel_property, VexcelKeyMissing, VexcelNoPropertyData  # noqa: E402
-from value import list_houston_office_buildings_broad, check_building_constraints, _iter_jsonl  # noqa: E402
-from render_floor import render, BUILDINGS as CACHED_BUILDINGS  # noqa: E402
-from agent import run_agent_llm, AgentError  # noqa: E402
-from livability import real_nearby_amenities, LivabilityUnavailable  # noqa: E402
-from anomaly_detection import _build_populations, _populations  # noqa: E402
+from flask import Flask, jsonify, request, send_from_directory  # noqa: E402
+
+PIPELINE_ERROR = None
+try:
+    from vexcel_live import fetch_vexcel_property, VexcelKeyMissing, VexcelNoPropertyData  # noqa: E402
+    from value import list_houston_office_buildings_broad, check_building_constraints, _iter_jsonl  # noqa: E402
+    from render_floor import render, BUILDINGS as CACHED_BUILDINGS  # noqa: E402
+    from agent import run_agent_llm  # noqa: E402
+    from anomaly_detection import _build_populations, _populations  # noqa: E402
+except Exception as e:  # missing dependency - the saved results still work
+    PIPELINE_ERROR = f"{type(e).__name__}: {e}"
+    CACHED_BUILDINGS = []
 
 app = Flask(__name__, static_folder=None)
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
-CACHED_BY_ID = {b["property_id"]: b for b in CACHED_BUILDINGS}
-PORTFOLIO_SCAN_PATH = os.path.join(os.path.dirname(__file__), "portfolio_scan.json")
+OUTPUT_DIR = oasis.OUTPUT_DIR
+STATIC_DIR = os.path.join(HERE, "static")
+_registry: dict | None = None
+ANALYSES: dict = {}  # (property_id, floor) -> last analysis, so the boardroom and email agent use the server's own numbers
 
+
+# ---------------------------------------------------------------------------
+# Building registry
+# ---------------------------------------------------------------------------
+
+def registry() -> dict:
+    global _registry
+    if _registry is not None:
+        return _registry
+    saved = oasis.load_saved_results()
+    reg: dict = {}
+    for b in CACHED_BUILDINGS:
+        reg[b["property_id"]] = {
+            "property_id": b["property_id"], "name": b["name"], "source": "cached",
+            "floor_name": b["floor_name"], "latitude": b["query_lat"], "longitude": b["query_lon"],
+            "typical_floor_sqft": b["real_floor_area_sqft"], "column_depth_ft": b["real_column_depth_ft"],
+            "vexcel_file": b["vexcel_file"], "saved": saved.get(b["name"]),
+        }
+    if oasis.costar_available() and not PIPELINE_ERROR:
+        try:
+            for c in list_houston_office_buildings_broad():
+                entry = reg.setdefault(c["property_id"], {
+                    "property_id": c["property_id"], "name": c["name"], "source": "live",
+                    "floor_name": c["floor_names_available"][0], "latitude": c["latitude"], "longitude": c["longitude"],
+                    "typical_floor_sqft": c["typical_floor_sqft"], "column_depth_ft": c["column_depth_ft"],
+                })
+                entry["address"], entry["stories"] = c["address"], c["stories"]
+        except Exception:
+            pass
+    for s in oasis.load_portfolio_scan():
+        entry = reg.setdefault(s["property_id"], {
+            "property_id": s["property_id"], "name": s["name"], "source": "scan",
+            "latitude": s["latitude"], "longitude": s["longitude"],
+        })
+        entry["scan"] = {"verdict": s["verdict"], "value_skipped": s["value_skipped"],
+                         "impact_low": s["value_impact_low"], "impact_high": s["value_impact_high"]}
+    for entry in reg.values():
+        path = oasis.find_vexcel_file(entry["latitude"], entry["longitude"], entry.get("vexcel_file"))
+        if path and not PIPELINE_ERROR:
+            try:
+                with open(path) as f:
+                    entry["footprint"] = oasis.ground_footprint_lonlat(
+                        json.load(f), entry["latitude"], entry["longitude"])
+            except (OSError, ValueError, AttributeError):
+                app.logger.warning("Could not load footprint for property %s", entry["property_id"])
+        entry["near"] = oasis.nearest_by_kind(entry["latitude"], entry["longitude"])
+    _registry = reg
+    return reg
+
+
+def public(b: dict) -> dict:
+    scan, saved = b.get("scan") or {}, b.get("saved") or {}
+    lo = scan.get("impact_low", saved.get("implied_value_impact_low"))
+    hi = scan.get("impact_high", saved.get("implied_value_impact_high"))
+    return {
+        "property_id": b["property_id"], "name": b["name"], "source": b["source"],
+        "latitude": b["latitude"], "longitude": b["longitude"], "address": b.get("address"),
+        "floor_name": b.get("floor_name"), "stories": b.get("stories"),
+        "typical_floor_sqft": b.get("typical_floor_sqft"),
+        "verdict": scan.get("verdict") or saved.get("geometry_verdict"),
+        "confidence": saved.get("geometry_confidence"), "footprint": b.get("footprint"),
+        "convertible_fraction": saved.get("convertible_fraction"),
+        "impact_low": lo, "impact_high": hi, "near": b.get("near", {}),
+    }
+
+
+@app.route("/")
+def index():
+    return send_from_directory(STATIC_DIR, "index.html")
+
+
+@app.route("/static/<path:name>")
+def static_files(name):
+    return send_from_directory(STATIC_DIR, name)
+
+
+@app.get("/api/map-config")
+def map_config():
+    return jsonify(google_browser_key=os.environ.get("GOOGLE_MAPS_DEMO_KEY", "").strip(),
+                   vexcel_imagery=oasis.has_key("VEXCEL_IMAGERY_API_KEY") or oasis.has_key("VEXCEL_API_KEY"))
+
+
+@app.get("/api/map/vexcel/photo/<int:property_id>/<view>")
+def vexcel_photo(property_id, view):
+    import requests
+    from flask import Response
+
+    building = registry().get(property_id)
+    key = os.environ.get("VEXCEL_IMAGERY_API_KEY") or os.environ.get("VEXCEL_API_KEY")
+    if not key or not building or view not in ("ortho", "oblique-north", "oblique-south", "oblique-east", "oblique-west"):
+        return "", 404
+    ring = building.get("footprint")
+    if ring:
+        coordinates = ", ".join(f"{lon} {lat}" for lon, lat in ring)
+        wkt = f"POLYGON(({coordinates}))"
+    else:
+        wkt = f"POINT({building['longitude']} {building['latitude']})"
+    oblique = view != "ortho"
+    endpoint = "oriented/extract" if oblique else "ortho/extract"
+    params = {"wkt": wkt, "srid": 4326, "buffer-meter": 25,
+              "layer": "urban" if oblique else "urban,urban-r,wide-area,urban-g",
+              "image-format": "jpeg"}
+    if oblique:
+        params.update({"product-type": view, "rotation": "natural"})
+    try:
+        photo = requests.post(f"https://api.vexcelgroup.com/v2/{endpoint}",
+                              headers={"X-API-KEY": key.strip()}, json=params, timeout=15)
+    except requests.RequestException:
+        return "", 502
+    content_type = photo.headers.get("Content-Type", "").split(";")[0]
+    if not photo.ok or content_type not in ("image/jpeg", "image/png"):
+        return "", 404 if photo.status_code == 404 else 502
+    return Response(photo.content, mimetype=content_type, headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/map/vexcel/<int:z>/<int:x>/<int:y>.png")
+def vexcel_tile(z, x, y):
+    import requests
+    from flask import Response
+
+    key = (os.environ.get("VEXCEL_IMAGERY_API_KEY") or os.environ.get("VEXCEL_API_KEY", "")).strip()
+    if not key or not 10 <= z <= 21 or max(x, y) >= 2**z:
+        return "", 404
+    try:
+        tile = requests.get("https://api.vexcelgroup.com/v2/ortho/tile", timeout=8,
+                            headers={"X-API-KEY": key},
+                            params={"layer": "urban", "zoom": z, "tile-x": x, "tile-y": y,
+                                    "image-format": "png"})
+    except requests.RequestException:
+        return "", 502
+    if tile.status_code == 404:
+        return "", 404
+    if not tile.ok or not tile.headers.get("Content-Type", "").startswith("image/png"):
+        return "", 502
+    return Response(tile.content, mimetype="image/png", headers={"Cache-Control": "no-store"})
+
+
+@app.route("/api/overview")
+def api_overview():
+    buildings = [public(b) for b in registry().values()]
+    scanned = [b for b in buildings if b["impact_low"] is not None or b["verdict"]]
+    positive = [b for b in buildings if b["impact_low"] is not None and b["impact_low"] > 0]
+    return jsonify({
+        "buildings": buildings,
+        "stats": {"scanned": len(scanned), "positive": len(positive),
+                  "pretested": sum(1 for b in buildings if b["source"] == "cached")},
+        "top": sorted(positive, key=lambda b: -b["impact_low"])[:20],
+        "agents": [{k: a[k] for k in ("id", "name", "initials")} for a in oasis.AGENTS],
+        "place_kinds": {k: v["label"] for k, v in oasis.PLACE_KINDS.items()},
+        "sources": {
+            "costar": oasis.costar_available(), "vexcel": oasis.has_key("VEXCEL_API_KEY"),
+            "agents": oasis.has_key("ANTHROPIC_API_KEY"), "census": oasis.has_key("CENSUS_API_KEY"),
+            "places": bool(oasis.places()), "pipeline_error": PIPELINE_ERROR,
+        },
+    })
+
+
+# ---------------------------------------------------------------------------
+# Kept from the first demo (same contracts)
+# ---------------------------------------------------------------------------
 
 @app.route("/api/portfolio_scan")
 def api_portfolio_scan():
-    """Pre-screened, real results (demo/portfolio_scan.py) across a blind
-    batch of real Houston office buildings - not cherry-picked, not run live
-    on stage (that would take minutes of real network calls per building).
-    Served instantly here; the run itself was real and is reproducible."""
-    try:
-        with open(PORTFOLIO_SCAN_PATH) as f:
-            return jsonify(json.load(f))
-    except FileNotFoundError:
-        return jsonify([])
+    return jsonify(oasis.load_portfolio_scan())
+
+
+@app.route("/api/buildings")
+def api_buildings():
+    reg = registry().values()
+    keep = ("property_id", "name", "source", "floor_name", "latitude", "longitude",
+            "typical_floor_sqft", "column_depth_ft", "address", "stories")
+    return jsonify({
+        "cached": [{k: b.get(k) for k in keep} for b in reg if b["source"] == "cached"],
+        "live": [{k: b.get(k) for k in keep} for b in reg if b["source"] == "live"],
+        "vexcel_key_set": oasis.has_key("VEXCEL_API_KEY"),
+    })
 
 
 _DATASET_FILES = [
@@ -81,8 +244,6 @@ _DATASET_FILES = [
 
 # A real, specific list of bugs found by checking raw data against this
 # project's own assumptions - not a generic "we tested thoroughly" claim.
-# Each one was caught, traced to its root cause, and fixed during this
-# build; kept here as the honest record, not polished after the fact.
 REAL_BUGS_FOUND = [
     {"bug": "Cap rate off by 100x", "detail": "CoStar stores capitalizationRateActual as a plain percentage (5.25 meaning 5.25%), not a fraction - an early version divided nowhere, producing a nonsensical 525% cap rate on a real property.", "fix": "Divide by 100.0 at the source; the anomaly detector below now catches this class of bug automatically."},
     {"bug": "480 real cap rates silently ignored", "detail": "The cap rate lookup only checked capitalizationRateActual - but 480 real sale-comp entities across the kit have a cap rate ONLY on capitalizationRateProForma (a projection, not an in-place rate).", "fix": "Check both fields; label pro-forma results as projected, not equally certain as an actual sale."},
@@ -92,6 +253,7 @@ REAL_BUGS_FOUND = [
     {"bug": "Portfolio ranking didn't match its own documentation", "detail": "The README always claimed buildings are ranked by value impact x geometry confidence x value confidence - but the actual code only ever sorted by raw dollar value, discarding the confidence scores already computed.", "fix": "Added a real rank_score to the scan script and UI; the top-ranked building changed once confidence was actually factored in."},
     {"bug": "Negative dollar ranges printed as a double-negative", "detail": "f\"${lo}-${hi}\" produced \"$-1,958,403-$-1,041,725\" for a negative value range - caught from a real screenshot.", "fix": "A _fmt_money() helper that puts the sign before the dollar sign."},
     {"bug": "Legal/code notes duplicated", "detail": "Zoning, column-spacing, and occupancy-change notes appeared twice: once in the dedicated Legal panel, again word-for-word in the generic Notes list.", "fix": "Removed the duplicates from the generic notes list; each caller already gets them from check_building_constraints() directly."},
+    {"bug": "Real elevator data computed, then silently discarded", "detail": "elevator_summary was already being built from CoStar's real structural.elevators field, but never reached any check, the webapp response, or the UI - a real FHA accessibility requirement (non-ground-floor units need elevator access) went unevaluated.", "fix": "Added a real accessibility_flag/accessibility_note using the data that was already there."},
 ]
 
 
@@ -100,6 +262,8 @@ def api_data_methodology():
     """Real scale + real verification story - not a claim, a count. Every
     number here is computed live from the actual kit files and the actual
     anomaly-detection populations, not hardcoded."""
+    if PIPELINE_ERROR:
+        return jsonify({"error": "pipeline_unavailable", "message": PIPELINE_ERROR}), 503
     datasets = []
     total = 0
     for fname, desc in _DATASET_FILES:
@@ -121,237 +285,316 @@ def api_data_methodology():
     })
 
 
-@app.route("/")
-def index():
-    return send_from_directory(os.path.join(os.path.dirname(__file__), "static"), "index.html")
+# ---------------------------------------------------------------------------
+# Analysis
+# ---------------------------------------------------------------------------
+
+class AnalysisError(Exception):
+    def __init__(self, code, message, status=400):
+        super().__init__(message)
+        self.code, self.message, self.status = code, message, status
 
 
-@app.route("/api/buildings")
-def api_buildings():
-    cached = [{
-        "property_id": b["property_id"], "name": b["name"], "source": "cached",
-        "floor_name": b["floor_name"], "latitude": b["query_lat"], "longitude": b["query_lon"],
-        "typical_floor_sqft": b["real_floor_area_sqft"], "column_depth_ft": b["real_column_depth_ft"],
-    } for b in CACHED_BUILDINGS]
+@app.errorhandler(AnalysisError)
+def handle_analysis_error(error):
+    return jsonify({"error": error.code, "message": error.message}), error.status
 
-    live = []
+
+def json_body():
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise AnalysisError("bad_request", "Expected a JSON object.")
+    return body
+
+
+def integer(value, field):
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        raise AnalysisError("bad_request", f"{field} must be an integer.")
     try:
-        broad = list_houston_office_buildings_broad()
-        for c in broad:
-            if c["property_id"] in CACHED_BY_ID:
-                continue  # already covered by the cached list above
-            live.append({
-                "property_id": c["property_id"], "name": c["name"], "source": "live",
-                "floor_name": c["floor_names_available"][0],
-                "latitude": c["latitude"], "longitude": c["longitude"],
-                "typical_floor_sqft": c["typical_floor_sqft"], "column_depth_ft": c["column_depth_ft"],
-                "address": c["address"], "stories": c["stories"],
-            })
-    except FileNotFoundError as e:
-        pass  # COSTAR_KIT_PATH not reachable - cached list still works
-
-    return jsonify({"cached": cached, "live": live, "vexcel_key_set": bool("".join(os.environ.get("VEXCEL_API_KEY", "").split()))})
+        return int(value)
+    except ValueError as e:
+        raise AnalysisError("bad_request", f"{field} must be an integer.") from e
 
 
-def _resolve_vexcel(source, property_id, lat, lon, t0, timeline):
-    """Shared by both endpoints: load the cached Vexcel response, or fetch it
-    live and cache it for next time. Returns None (with a jsonify error tuple
-    already written to timeline's caller) on failure - callers check first."""
-    if source == "cached":
-        b = CACHED_BY_ID.get(property_id)
-        vexcel_path = os.path.join(OUTPUT_DIR, b["vexcel_file"])
-        with open(vexcel_path) as f:
-            vexcel_response = json.load(f)
-        timeline.append({"step": f"Loaded cached Vexcel footprint for {b['name']} (already fetched tonight)",
-                          "elapsed_s": round(time.time() - t0, 2)})
-        return vexcel_response, None
-
+def _vexcel(b: dict, timeline: list, t0: float, allow_fetch: bool):
+    path = oasis.find_vexcel_file(b["latitude"], b["longitude"], b.get("vexcel_file"))
+    if path:
+        with open(path) as f:
+            timeline.append({"step": "Loaded the cached Vexcel aerial footprint", "elapsed_s": round(time.time() - t0, 2)})
+            return json.load(f)
+    if not allow_fetch or PIPELINE_ERROR:
+        return None
     try:
-        vexcel_response = fetch_vexcel_property(lat, lon)
+        resp = fetch_vexcel_property(b["latitude"], b["longitude"])
     except VexcelKeyMissing as e:
-        return None, (jsonify({"error": "vexcel_key_missing", "message": str(e)}), 400)
+        raise AnalysisError("vexcel_key_missing", str(e))
     except VexcelNoPropertyData as e:
-        return None, (jsonify({"error": "no_property_data", "message": str(e)}), 404)
-    timeline.append({"step": f"Live Vexcel /property/extract call at ({lat}, {lon}) - real-time network request",
-                      "elapsed_s": round(time.time() - t0, 2)})
-    cache_name = f"property_{lat}_{lon}.json"
+        raise AnalysisError("no_property_data", str(e), 404)
+    timeline.append({"step": "Live Vexcel request for this building's aerial footprint", "elapsed_s": round(time.time() - t0, 2)})
+    path = os.path.join(OUTPUT_DIR, f"property_{b['latitude']}_{b['longitude']}.json")
+    temporary = None
     try:
-        with open(os.path.join(OUTPUT_DIR, cache_name), "w") as f:
-            json.dump(vexcel_response, f)
+        with tempfile.NamedTemporaryFile(mode="w", dir=OUTPUT_DIR, delete=False) as f:
+            temporary = f.name
+            json.dump(resp, f)
+        os.replace(temporary, path)
+        temporary = None
     except OSError:
         pass
-    return vexcel_response, None
+    finally:
+        if temporary:
+            os.unlink(temporary)
+    return resp
 
 
-def _parse_analyze_request(body: dict):
-    """Shared, validated request parsing for /api/analyze and
-    /api/analyze_agent - both previously did body["property_id"] etc.
-    directly, so a missing or wrong-typed field (confirmed live: dropping
-    "latitude" from the request) raised an unhandled KeyError/TypeError
-    straight through to a raw Flask 500 HTML page, not a clean JSON error.
-    Returns (fields_dict, None) on success or (None, (response, status))
-    on a real validation failure."""
-    required = ["property_id", "source", "floor_name", "latitude", "longitude", "typical_floor_sqft"]
-    missing = [f for f in required if f not in body]
-    if missing:
-        return None, (jsonify({"error": "bad_request", "message": f"Missing required field(s): {', '.join(missing)}"}), 400)
+@app.get("/api/footprint/<int:property_id>")
+def api_footprint(property_id):
+    building = registry().get(property_id)
+    if building is None:
+        raise AnalysisError("unknown_building", "That building is not in the list.", 404)
+    footprint = building.get("footprint")
+    if not footprint and not PIPELINE_ERROR:
+        data = _vexcel(building, [], time.time(), allow_fetch=oasis.has_key("VEXCEL_API_KEY"))
+        if data:
+            footprint = oasis.ground_footprint_lonlat(data, building["latitude"], building["longitude"])
+    return jsonify(footprint=footprint)
+
+
+def analyze(property_id: int, floor) -> dict:
+    b = registry().get(property_id)
+    if b is None:
+        raise AnalysisError("unknown_building", "That building is not in the list.", 404)
+    floor = integer(floor, "floor") if floor not in (None, "") else b.get("floor_name")
+    timeline, t0 = [], time.time()
+    live_ok = oasis.costar_available() and not PIPELINE_ERROR and b.get("typical_floor_sqft")
+    vexcel = _vexcel(b, timeline, t0, allow_fetch=bool(live_ok))
+    image_b64, r, source = None, None, None
+
+    if live_ok and vexcel is not None:
+        try:
+            png, result, geo = render(
+                property_id=property_id, floor_name=floor, vexcel_response=vexcel,
+                query_lat=b["latitude"], query_lon=b["longitude"],
+                real_floor_area_sqft=float(b["typical_floor_sqft"]), real_column_depth_ft=b.get("column_depth_ft"), out_path=None)
+        except Exception as e:
+            raise AnalysisError("pipeline_failed", str(e), 500)
+        image_b64 = base64.b64encode(png).decode("ascii")
+        r = {"verdict": result.geometry_verdict, "confidence": result.geometry_confidence,
+             "window_to_core_max_ft": result.window_to_core_max_ft, "convertible_fraction": result.convertible_fraction,
+             "value_skipped": result.value_skipped, "uplift_low": result.value_uplift_low, "uplift_high": result.value_uplift_high,
+             "impact_low": result.implied_value_impact_low, "impact_high": result.implied_value_impact_high,
+             "reasoning_text": result.reasoning_text, "notes": result.notes,
+             "viable_sqft": geo.viable_leasable_sqft, "unit_counts": geo.unit_type_counts,
+             "value_confidence": result.value_confidence, "classification": result.classification,
+             "classification_confidence": result.classification_confidence, "classification_path": result.classification_path,
+             "cap_rate_sensitivity": result.cap_rate_sensitivity, "cap_rate_used": result.cap_rate_used,
+             "breakeven_cap_rate_low": result.breakeven_cap_rate_low, "breakeven_cap_rate_high": result.breakeven_cap_rate_high}
+        source = "live"
+        timeline.append({"step": "Ran the geometry and value pipeline on live CoStar data", "elapsed_s": round(time.time() - t0, 2)})
+    elif b.get("saved") and floor == b.get("floor_name"):
+        s = b["saved"]
+        r = {"verdict": s["geometry_verdict"], "confidence": s["geometry_confidence"],
+             "window_to_core_max_ft": s["window_to_core_max_ft"], "convertible_fraction": s["convertible_fraction"],
+             "value_skipped": s["value_skipped"], "uplift_low": s.get("value_uplift_low"), "uplift_high": s.get("value_uplift_high"),
+             "impact_low": s.get("implied_value_impact_low"), "impact_high": s.get("implied_value_impact_high"),
+             "reasoning_text": s["reasoning_text"], "notes": s["notes"],
+             "value_confidence": s.get("value_confidence"), "classification": s.get("classification"),
+             "classification_confidence": s.get("classification_confidence"), "classification_path": s.get("classification_path"),
+             "cap_rate_sensitivity": s.get("cap_rate_sensitivity"), "cap_rate_used": s.get("cap_rate_used"),
+             "breakeven_cap_rate_low": s.get("breakeven_cap_rate_low"), "breakeven_cap_rate_high": s.get("breakeven_cap_rate_high")}
+        source = "saved"
+        img = os.path.join(OUTPUT_DIR, s.get("image") or "")
+        if s.get("image") and os.path.exists(img):
+            with open(img, "rb") as f:
+                image_b64 = base64.b64encode(f.read()).decode("ascii")
+        timeline.append({"step": "Loaded the saved result of the last real pipeline run", "elapsed_s": round(time.time() - t0, 2)})
+    elif b.get("scan") and (floor is None or floor == b.get("floor_name")):
+        s = b["scan"]
+        r = {"verdict": s["verdict"], "confidence": None, "window_to_core_max_ft": None, "convertible_fraction": None,
+             "value_skipped": s["value_skipped"], "uplift_low": None, "uplift_high": None,
+             "impact_low": s["impact_low"], "impact_high": s["impact_high"], "reasoning_text": "",
+             "notes": ["This building was only screened by the portfolio scan. Add the CoStar data kit to run the full analysis."],
+             "partial": True}
+        source = "scan"
+        timeline.append({"step": "Loaded the portfolio scan result", "elapsed_s": round(time.time() - t0, 2)})
+    else:
+        raise AnalysisError("needs_costar",
+                            f"Floor {floor} has not been analyzed yet. Analyzing a new floor needs the CoStar data kit "
+                            f"(COSTAR_KIT_PATH), which is not on this machine.", 409)
+
+    footprint, plan = None, None
+    if vexcel is not None and not PIPELINE_ERROR:
+        try:
+            footprint = oasis.ground_footprint_lonlat(vexcel, b["latitude"], b["longitude"])
+            if b.get("typical_floor_sqft"):
+                plan = oasis.floor_plan(vexcel, b["latitude"], b["longitude"], float(b["typical_floor_sqft"]))
+        except Exception:
+            pass
+
+    # Real FHA accessibility check, zoning/parking/sprinkler/column-spacing -
+    # computed from CoStar's real fields, independent of whether this floor
+    # ran live or came from a saved result (property_id + floor is all it
+    # needs). Not derivable from reasoning_text, so it's added directly
+    # here rather than through oasis.summarize()'s text-parsing path.
     try:
-        fields = {
-            "property_id": int(body["property_id"]),
-            "source": body["source"],
-            "floor_name": body["floor_name"],
-            "lat": float(body["latitude"]),
-            "lon": float(body["longitude"]),
-            "real_floor_area_sqft": float(body["typical_floor_sqft"]),
-            "real_column_depth_ft": body.get("column_depth_ft"),
+        constraints = check_building_constraints(property_id, floor)
+        legal_checks = {
+            "zoning_flag": constraints.zoning_flag, "parking_flag": constraints.parking_flag,
+            "parking_ratio": constraints.parking_ratio, "sprinkler_flag": constraints.sprinkler_flag,
+            "occupancy_change_note": constraints.occupancy_change_note,
+            "column_spacing_note": constraints.column_spacing_note,
+            "accessibility_flag": constraints.accessibility_flag, "accessibility_note": constraints.accessibility_note,
         }
-    except (TypeError, ValueError) as e:
-        return None, (jsonify({"error": "bad_request", "message": f"Invalid field value: {e}"}), 400)
-    return fields, None
+    except Exception:
+        legal_checks = None
+
+    out = {"building": public(b), "floor": floor, "source": source, **oasis.summarize(r),
+           "verdict": r["verdict"], "depth_ft": r["window_to_core_max_ft"], "convertible_fraction": r["convertible_fraction"],
+           "reasoning_text": r["reasoning_text"], "notes": r["notes"], "image_base64": image_b64,
+           "footprint": footprint, "floorplan": plan, "timeline": timeline, "total_elapsed_s": round(time.time() - t0, 2),
+           "legal_checks": legal_checks, "value_confidence": r.get("value_confidence"),
+           "classification": r.get("classification"), "classification_confidence": r.get("classification_confidence"),
+           "classification_path": r.get("classification_path"), "cap_rate_sensitivity": r.get("cap_rate_sensitivity"),
+           "cap_rate_used": r.get("cap_rate_used"), "breakeven_cap_rate_low": r.get("breakeven_cap_rate_low"),
+           "breakeven_cap_rate_high": r.get("breakeven_cap_rate_high")}
+    ANALYSES[(property_id, floor)] = out
+    return out
 
 
 @app.route("/api/analyze", methods=["POST"])
 def api_analyze():
-    body = request.get_json(force=True)
-    fields, err = _parse_analyze_request(body)
-    if err:
-        return err
-    property_id, source, floor_name = fields["property_id"], fields["source"], fields["floor_name"]
-    lat, lon = fields["lat"], fields["lon"]
-    real_floor_area_sqft, real_column_depth_ft = fields["real_floor_area_sqft"], fields["real_column_depth_ft"]
-
-    timeline = []
-    t0 = time.time()
-
-    vexcel_response, err = _resolve_vexcel(source, property_id, lat, lon, t0, timeline)
-    if err:
-        return err
-
+    body = json_body()
     try:
-        png_bytes, result, geo = render(
-            property_id=property_id, floor_name=floor_name, vexcel_response=vexcel_response,
-            query_lat=lat, query_lon=lon, real_floor_area_sqft=real_floor_area_sqft,
-            real_column_depth_ft=real_column_depth_ft, out_path=None,
-        )
-    except Exception as e:
-        return jsonify({"error": "pipeline_failed", "message": str(e)}), 500
+        return jsonify(analyze(integer(body.get("property_id"), "property_id"), body.get("floor_name")))
+    except AnalysisError as e:
+        return jsonify({"error": e.code, "message": e.message}), e.status
 
-    timeline.append({"step": "Geometry: Vexcel footprint scaled to CoStar's real floor area, "
-                              "sliced into real apartment-sized units",
-                      "elapsed_s": round(time.time() - t0, 2)})
-    if not result.value_skipped:
-        timeline.append({"step": "Value: priced against real CoStar lease/comp data and nearest real apartment comps",
-                          "elapsed_s": round(time.time() - t0, 2)})
-    else:
-        timeline.append({"step": "Value calculation skipped - geometry failed hard, nothing to price",
-                          "elapsed_s": round(time.time() - t0, 2)})
 
-    constraints = check_building_constraints(property_id, floor_name)
+@app.route("/api/floorplan", methods=["POST"])
+def api_floorplan():
+    body = json_body()
+    b = registry().get(integer(body.get("property_id"), "property_id"))
+    if b is None or not b.get("typical_floor_sqft") or PIPELINE_ERROR:
+        return jsonify({"error": "no_plan", "message": "No floor area on record for this building, so a plan can't be drawn."}), 404
+    path = oasis.find_vexcel_file(b["latitude"], b["longitude"], b.get("vexcel_file"))
+    if not path:
+        return jsonify({"error": "no_footprint", "message": "No aerial footprint is cached for this building."}), 404
+    mix = body.get("mix", "balanced")
+    if not isinstance(mix, str):
+        raise AnalysisError("bad_request", "mix must be a string.")
+    with open(path) as f:
+        plan = oasis.floor_plan(json.load(f), b["latitude"], b["longitude"], float(b["typical_floor_sqft"]), mix)
+    if plan is None:
+        return jsonify({"error": "no_footprint", "message": "No structure was found at this location."}), 404
+    return jsonify(plan)
 
-    # Real OpenStreetMap data (schools/hospitals/parks/grocery) - never
-    # blocks the main result if it fails; the public Overpass mirrors had a
-    # real multi-hour outage tonight, confirmed across several mirrors
-    # before finding a working one. Falls back to an honest "unavailable"
-    # rather than fake amenity counts.
+
+@app.route("/api/floors")
+def api_floors():
+    b = registry().get(integer(request.args.get("property_id"), "property_id"))
+    if b is None:
+        return jsonify({"error": "unknown_building"}), 404
+    out = oasis.floors_for(b["property_id"], b.get("floor_name"), b.get("stories"))
+    out["analyzed_floor"] = b.get("floor_name")
+    return jsonify(out)
+
+
+@app.route("/api/area")
+def api_area():
+    b = registry().get(integer(request.args.get("property_id"), "property_id"))
+    if b is None:
+        return jsonify({"error": "unknown_building"}), 404
+    return jsonify({"places": oasis.places_near(b["latitude"], b["longitude"]),
+                    "demographics": oasis.demographics(b["latitude"], b["longitude"])})
+
+
+# ---------------------------------------------------------------------------
+# Boardroom and quotes
+# ---------------------------------------------------------------------------
+
+def _facts(property_id: int, floor) -> dict:
+    building = registry().get(property_id)
+    default_floor = building.get("floor_name") if building else None
+    floor = integer(floor, "floor") if floor not in (None, "") else default_floor
+    a = ANALYSES.get((property_id, floor))
+    if a is None:
+        a = analyze(property_id, floor)
+    notes = a.get("notes") or []
+    col = next((n for n in notes if n.startswith("Column bays")), None)
+    return {
+        "name": a["building"]["name"], "floor": a["floor"], "verdict": a["verdict"], "confidence": a.get("confidence"),
+        "depth_ft": a.get("depth_ft"), "depth_limit_ft": oasis.DEPTH_LIMIT_FT, "convertible_fraction": a.get("convertible_fraction"),
+        "numbers": a["numbers"], "checks": [{"check": c["title"], "result": c["state"], "detail": c["note"]} for c in a["checks"]],
+        "column_note": (col.split(" - ")[0] if col else None),
+        "parking_note": next((n for n in notes if n.startswith("Parking ratio")), None),
+        "notes": notes, "construction_cost_assumption_per_sqft": [oasis.COST_LOW, oasis.COST_HIGH],
+    }
+
+
+@app.route("/api/boardroom/turn", methods=["POST"])
+def api_board_turn():
+    body = json_body()
     try:
-        livability = real_nearby_amenities(lat, lon)
-    except LivabilityUnavailable as e:
-        livability = {"error": str(e)}
+        facts = _facts(integer(body.get("property_id"), "property_id"), body.get("floor"))
+        turn = oasis.board_turn(body["agent"], facts, int(body.get("round", 1)), body.get("transcript") or [])
+    except AnalysisError as e:
+        return jsonify({"error": e.code, "message": e.message}), e.status
+    except ValueError as e:
+        return jsonify({"error": "bad_request", "message": str(e)}), 400
+    return jsonify(turn)
 
-    return jsonify({
-        "image_base64": base64.b64encode(png_bytes).decode("ascii"),
-        "verdict": result.geometry_verdict,
-        "confidence": result.geometry_confidence,
-        "window_to_core_max_ft": result.window_to_core_max_ft,
-        "convertible_fraction": result.convertible_fraction,
-        "viable_leasable_sqft": geo.viable_leasable_sqft,
-        "unit_type_counts": geo.unit_type_counts,
-        "value_skipped": result.value_skipped,
-        "value_impact_low": result.implied_value_impact_low,
-        "value_impact_high": result.implied_value_impact_high,
-        "classification": result.classification,
-        "classification_confidence": result.classification_confidence,
-        "classification_path": result.classification_path,
-        "cap_rate_sensitivity": result.cap_rate_sensitivity,
-        "cap_rate_used": result.cap_rate_used,
-        "breakeven_cap_rate_low": result.breakeven_cap_rate_low,
-        "breakeven_cap_rate_high": result.breakeven_cap_rate_high,
-        "reasoning_text": result.reasoning_text,
-        "notes": result.notes,
-        "legal_checks": {
-            "zoning_flag": constraints.zoning_flag,
-            "parking_flag": constraints.parking_flag,
-            "parking_ratio": constraints.parking_ratio,
-            "sprinkler_flag": constraints.sprinkler_flag,
-            "occupancy_change_note": constraints.occupancy_change_note,
-            "column_spacing_note": constraints.column_spacing_note,
-            "accessibility_flag": constraints.accessibility_flag,
-            "accessibility_note": constraints.accessibility_note,
-        },
-        "livability": livability,
-        "timeline": timeline,
-        "total_elapsed_s": round(time.time() - t0, 2),
-    })
+
+@app.route("/api/quotes/draft", methods=["POST"])
+def api_quotes_draft():
+    body = json_body()
+    try:
+        facts = _facts(integer(body.get("property_id"), "property_id"), body.get("floor"))
+    except AnalysisError as e:
+        return jsonify({"error": e.code, "message": e.message}), e.status
+    draft = oasis.draft_email(facts, body.get("sender") or "")
+    draft["contractors"] = oasis.load_contractors()
+    draft["will_send"] = os.environ.get("OASIS_SEND_EMAIL") == "1" and oasis.has_key("SMTP_HOST") and oasis.has_key("SMTP_FROM")
+    return jsonify(draft)
+
+
+@app.route("/api/quotes/send", methods=["POST"])
+def api_quotes_send():
+    body = json_body()
+    subject, text = (body.get("subject") or "").strip(), (body.get("body") or "").strip()
+    ids = body.get("contractor_ids") or []
+    if not subject or not text or not ids:
+        return jsonify({"error": "bad_request", "message": "The email needs a subject, a body and at least one contractor."}), 400
+    attachments = {}
+    if body.get("report_html"):
+        attachments["oasis-report.html"] = body["report_html"]
+    if body.get("plan_svg"):
+        attachments["tentative-floor-plan.svg"] = body["plan_svg"]
+    return jsonify(oasis.send_quotes(subject, text, ids, attachments))
 
 
 @app.route("/api/analyze_agent", methods=["POST"])
 def api_analyze_agent():
-    """Real tool-calling LLM run - the model itself decides when to call
-    run_geometry vs run_value and writes its own verdict, instead of the
-    fixed Python sequence in run_pipeline(). Requires ANTHROPIC_API_KEY."""
-    body = request.get_json(force=True)
-    fields, err = _parse_analyze_request(body)
-    if err:
-        return err
-    property_id, source, floor_name = fields["property_id"], fields["source"], fields["floor_name"]
-    lat, lon = fields["lat"], fields["lon"]
-    real_floor_area_sqft, real_column_depth_ft = fields["real_floor_area_sqft"], fields["real_column_depth_ft"]
-
-    if not "".join(os.environ.get("ANTHROPIC_API_KEY", "").split()):
-        return jsonify({"error": "anthropic_key_missing",
-                         "message": "ANTHROPIC_API_KEY is not set in the terminal running this server."}), 400
-
-    timeline = []
-    t0 = time.time()
-
-    vexcel_response, err = _resolve_vexcel(source, property_id, lat, lon, t0, timeline)
-    if err:
-        return err
-
+    """Real tool-calling LLM run (kept from the first demo). Needs
+    ANTHROPIC_API_KEY, the CoStar kit and a Vexcel footprint."""
+    body = json_body()
+    b = registry().get(integer(body.get("property_id"), "property_id"))
+    if not oasis.has_key("ANTHROPIC_API_KEY"):
+        return jsonify({"error": "anthropic_key_missing", "message": "ANTHROPIC_API_KEY is not set."}), 400
+    if b is None or PIPELINE_ERROR or not oasis.costar_available():
+        return jsonify({"error": "needs_costar", "message": "The live agent run needs the CoStar data kit."}), 409
+    timeline, t0 = [], time.time()
     try:
-        png_bytes, _result, _geo = render(
-            property_id=property_id, floor_name=floor_name, vexcel_response=vexcel_response,
-            query_lat=lat, query_lon=lon, real_floor_area_sqft=real_floor_area_sqft,
-            real_column_depth_ft=real_column_depth_ft, out_path=None,
-        )
+        vexcel = _vexcel(b, timeline, t0, allow_fetch=True)
+        out = run_agent_llm(property_id=b["property_id"], floor_name=int(body.get("floor_name") or b["floor_name"]),
+                            vexcel_response=vexcel, query_lat=b["latitude"], query_lon=b["longitude"],
+                            real_floor_area_sqft=float(b["typical_floor_sqft"]), real_column_depth_ft=b.get("column_depth_ft"))
+    except AnalysisError as e:
+        return jsonify({"error": e.code, "message": e.message}), e.status
     except Exception as e:
-        return jsonify({"error": "pipeline_failed", "message": str(e)}), 500
-
-    try:
-        agent_out = run_agent_llm(
-            property_id=property_id, floor_name=floor_name, vexcel_response=vexcel_response,
-            query_lat=lat, query_lon=lon, real_floor_area_sqft=real_floor_area_sqft,
-            real_column_depth_ft=real_column_depth_ft,
-        )
-    except AgentError as e:
-        # A clean, already-user-safe message (auth/rate-limit/bad-request) -
-        # the retry logic inside run_agent_llm already absorbed transient
-        # failures, so anything surfacing here is worth showing as-is.
-        return jsonify({"error": "agent_failed", "message": str(e)}), 502
-    except Exception as e:
-        return jsonify({"error": "agent_failed", "message": f"Unexpected error: {e}"}), 500
-
-    timeline.append({"step": "Live LLM agent run - the model chose its own tool-call sequence",
-                      "elapsed_s": round(time.time() - t0, 2)})
-
-    return jsonify({
-        "image_base64": base64.b64encode(png_bytes).decode("ascii"),
-        "trace": agent_out["trace"],
-        "final_text": agent_out["final_text"],
-        "timeline": timeline,
-        "total_elapsed_s": round(time.time() - t0, 2),
-    })
+        return jsonify({"error": "agent_failed", "message": str(e)}), 500
+    return jsonify({"trace": out["trace"], "final_text": out["final_text"], "timeline": timeline,
+                    "total_elapsed_s": round(time.time() - t0, 2)})
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5050, debug=False)
+    app.run(host="127.0.0.1", port=int(os.environ.get("PORT", "5050")), debug=False, threaded=True)
