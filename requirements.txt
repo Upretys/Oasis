@@ -1,5 +1,6 @@
 shapely>=2.0
-numpy
 anthropic
-python-dotenv
-streamlit
+requests
+flask
+matplotlib
+pillow
