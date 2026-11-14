@@ -261,14 +261,19 @@ def run_agent_llm(property_id: int, floor_name: int, vexcel_response: dict, quer
             try:
                 return client.messages.create(**kwargs)
             except anthropic.AuthenticationError as e:
-                raise AgentError(f"Anthropic API rejected the key (401): {e}") from e
+                raise AgentError(
+                    "The ANTHROPIC_API_KEY in .env isn't valid - get a real key from "
+                    "console.anthropic.com/settings/keys and try again."
+                ) from e
             except anthropic.PermissionDeniedError as e:
-                raise AgentError(f"Anthropic API permission denied: {e}") from e
+                raise AgentError("Anthropic API key doesn't have permission for this request.") from e
             except anthropic.BadRequestError as e:
-                raise AgentError(f"Anthropic API rejected the request: {e}") from e
+                raise AgentError(f"Anthropic API rejected the request: {e.message if hasattr(e, 'message') else e}") from e
             except (anthropic.RateLimitError, anthropic.APIConnectionError, anthropic.InternalServerError) as e:
                 if attempt == max_retries:
-                    raise AgentError(f"Anthropic API still failing after {max_retries} retries: {e}") from e
+                    raise AgentError(
+                        f"Anthropic API still unavailable after {max_retries} retries - try again in a moment."
+                    ) from e
                 wait = min(2 ** attempt, 20) + random.random()
                 time.sleep(wait)
         raise AgentError("Unreachable")  # loop always returns or raises above
