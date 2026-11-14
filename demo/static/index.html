@@ -38,6 +38,14 @@
   img.render { max-width: 100%; border: 1px solid var(--border); border-radius: 8px; margin-top: 10px; background: white; }
   .reasoning { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 18px; font-size: 13.5px; line-height: 1.55; }
   .notes { margin-top: 14px; }
+  .legal-panel { margin-top: 20px; border: 1.5px solid #d9dde3; border-radius: 10px; padding: 16px 18px; background: #fafbfc; }
+  .legal-panel h3 { margin: 0 0 10px; font-size: 14px; }
+  .legal-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: 13px; line-height: 1.5; }
+  .legal-item:last-child { margin-bottom: 0; }
+  .legal-item .icon { font-size: 15px; flex-shrink: 0; line-height: 1.5; }
+  .legal-item.ok .icon { color: var(--pass); }
+  .legal-item.warn .icon { color: var(--escalate); }
+  .legal-item.na .icon { color: var(--muted); }
   .notes li { font-size: 12.5px; color: var(--muted); margin-bottom: 5px; line-height: 1.4; }
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #d9dde3; border-top-color: #4a90d9; border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -213,6 +221,34 @@ async function selectBuilding(b) {
 
 const VERDICT_COLORS = { pass: '#2e7d32', escalate: '#f9a825', fail: '#c62828' };
 
+function renderLegalPanel(lc) {
+  if (!lc) return '';
+  const zoning = { icon: '&#9888;&#65039;', cls: 'warn',
+    text: 'Houston has no citywide zoning — not a real gate here. The real constraint is private deed restrictions, which aren\'t in this dataset.' };
+  const parking = lc.parking_flag === 'likely_short'
+    ? { icon: '&#9888;&#65039;', cls: 'warn', text: `Parking ratio (${lc.parking_ratio}/1000sf) may be short for residential use.` }
+    : lc.parking_flag === 'likely_ok'
+    ? { icon: '&#9989;', cls: 'ok', text: `Parking ratio (${lc.parking_ratio}/1000sf) looks adequate for residential use.` }
+    : { icon: '&#8505;&#65039;', cls: 'na', text: 'Parking ratio not on record.' };
+  const sprinkler = lc.sprinkler_flag === 'has_sprinklers'
+    ? { icon: '&#9989;', cls: 'ok', text: lc.occupancy_change_note }
+    : lc.sprinkler_flag === 'no_sprinklers'
+    ? { icon: '&#9888;&#65039;', cls: 'warn', text: lc.occupancy_change_note }
+    : { icon: '&#8505;&#65039;', cls: 'na', text: lc.occupancy_change_note };
+  const column = { icon: '&#8505;&#65039;', cls: 'na', text: lc.column_spacing_note };
+
+  const row = (item) => `<div class="legal-item ${item.cls}"><span class="icon">${item.icon}</span><span>${item.text}</span></div>`;
+  return `
+    <div class="legal-panel">
+      <h3>Legal &amp; building code checks</h3>
+      ${row(zoning)}
+      ${row(parking)}
+      ${row(sprinkler)}
+      ${row(column)}
+    </div>
+  `;
+}
+
 function renderResult(b, d) {
   const main = document.getElementById('main');
   const unitMix = Object.entries(d.unit_type_counts || {}).map(([t, c]) => `${c} ${t}`).join(', ') || 'no viable units';
@@ -238,6 +274,8 @@ function renderResult(b, d) {
     <img class="render" src="data:image/png;base64,${d.image_base64}">
 
     <div class="reasoning"><strong>Reasoning:</strong><br>${d.reasoning_text}</div>
+
+    ${renderLegalPanel(d.legal_checks)}
 
     <div class="notes"><strong style="font-size:13px;">Notes</strong><ul>${(d.notes || []).map(n => `<li>${n}</li>`).join('')}</ul></div>
   `;

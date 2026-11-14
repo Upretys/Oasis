@@ -206,7 +206,20 @@ def run_agent_llm(property_id: int, floor_name: int, vexcel_response: dict, quer
         try:
             val = run_value(property_id=property_id, floor_name=args["floor_name"],
                              convertible_sqft=args["convertible_sqft"], query_lat=query_lat, query_lon=query_lon)
-            return json.dumps(asdict(val), default=str)
+            result = asdict(val)
+            # Bundle the real zoning/parking/occupancy-change checks into the
+            # same tool result, rather than leaving them in a separate tool
+            # the model might never choose to call - this is legal/code
+            # context that belongs in every verdict, not an optional extra.
+            constraints = check_building_constraints(property_id)
+            result["legal_and_code_checks"] = {
+                "zoning": "Houston has no citywide zoning - not a real gate here; the real "
+                          "constraint is private deed restrictions, which aren't in this dataset.",
+                "parking_flag": constraints.parking_flag,
+                "occupancy_change": constraints.occupancy_change_note,
+                "column_spacing": constraints.column_spacing_note,
+            }
+            return json.dumps(result, default=str)
         except Exception as e:
             return json.dumps({"error": f"run_value failed: {e}"})
 
@@ -242,8 +255,11 @@ def run_agent_llm(property_id: int, floor_name: int, vexcel_response: dict, quer
             f"convertible_sqft, NOT convertible_fraction x floor area (convertible_fraction is the "
             f"raw geometric zone before real apartment-size filtering; viable_leasable_sqft already "
             f"excludes slivers too small/narrow to be a real studio or 1BR, so it's the honest number "
-            f"to price). End with a one-paragraph verdict and dollar estimate, or a clear explanation "
-            f"of why it was skipped."
+            f"to price). The run_value result also includes legal_and_code_checks (zoning, parking, "
+            f"the real occupancy-change/sprinkler requirement) - you MUST address zoning and the "
+            f"occupancy-change requirement explicitly in your final verdict, even briefly, not just "
+            f"the dollar estimate. End with a one-paragraph verdict and dollar estimate, or a clear "
+            f"explanation of why it was skipped."
         ),
     }]
 

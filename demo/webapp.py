@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "track_c_agent"
 from flask import Flask, jsonify, request, send_from_directory
 
 from vexcel_live import fetch_vexcel_property, VexcelKeyMissing, VexcelNoPropertyData  # noqa: E402
-from value import list_houston_office_buildings_broad  # noqa: E402
+from value import list_houston_office_buildings_broad, check_building_constraints  # noqa: E402
 from render_floor import render, BUILDINGS as CACHED_BUILDINGS  # noqa: E402
 from agent import run_agent_llm, AgentError  # noqa: E402
 
@@ -157,6 +157,8 @@ def api_analyze():
         timeline.append({"step": "Value calculation skipped - geometry failed hard, nothing to price",
                           "elapsed_s": round(time.time() - t0, 2)})
 
+    constraints = check_building_constraints(property_id)
+
     return jsonify({
         "image_base64": base64.b64encode(png_bytes).decode("ascii"),
         "verdict": result.geometry_verdict,
@@ -170,6 +172,14 @@ def api_analyze():
         "value_impact_high": result.implied_value_impact_high,
         "reasoning_text": result.reasoning_text,
         "notes": result.notes,
+        "legal_checks": {
+            "zoning_flag": constraints.zoning_flag,
+            "parking_flag": constraints.parking_flag,
+            "parking_ratio": constraints.parking_ratio,
+            "sprinkler_flag": constraints.sprinkler_flag,
+            "occupancy_change_note": constraints.occupancy_change_note,
+            "column_spacing_note": constraints.column_spacing_note,
+        },
         "timeline": timeline,
         "total_elapsed_s": round(time.time() - t0, 2),
     })
