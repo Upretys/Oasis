@@ -25,6 +25,7 @@ import json
 import os
 import sys
 import time
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 for sub in ("track_a_geometry", "track_b_value", "track_c_agent"):
@@ -34,6 +35,7 @@ sys.path.insert(0, HERE)
 import oasis  # noqa: E402
 
 oasis.load_env()  # before track_b_value is imported - it reads COSTAR_KIT_PATH at import time
+import tempfile
 
 from flask import Flask, jsonify, request, send_from_directory  # noqa: E402
 
@@ -143,7 +145,7 @@ def vexcel_photo(property_id, view):
 
     building = registry().get(property_id)
     key = os.environ.get("VEXCEL_IMAGERY_API_KEY") or os.environ.get("VEXCEL_API_KEY")
-    if not key or not building or view not in ("ortho", "oblique-north"):
+    if not key or not building or view not in ("ortho", "oblique-north", "oblique-south", "oblique-east", "oblique-west"):
         return "", 404
     ring = building.get("footprint")
     if ring:
@@ -151,7 +153,7 @@ def vexcel_photo(property_id, view):
         wkt = f"POLYGON(({coordinates}))"
     else:
         wkt = f"POINT({building['longitude']} {building['latitude']})"
-    oblique = view == "oblique-north"
+    oblique = view != "ortho"
     endpoint = "oriented/extract" if oblique else "ortho/extract"
     params = {"wkt": wkt, "srid": 4326, "buffer-meter": 25,
               "layer": "urban" if oblique else "urban,urban-r,wide-area,urban-g",
@@ -278,12 +280,33 @@ def _vexcel(b: dict, timeline: list, t0: float, allow_fetch: bool):
     except VexcelNoPropertyData as e:
         raise AnalysisError("no_property_data", str(e), 404)
     timeline.append({"step": "Live Vexcel request for this building's aerial footprint", "elapsed_s": round(time.time() - t0, 2)})
+    path = os.path.join(OUTPUT_DIR, f"property_{b['latitude']}_{b['longitude']}.json")
+    temporary = None
     try:
-        with open(os.path.join(OUTPUT_DIR, f"property_{b['latitude']}_{b['longitude']}.json"), "w") as f:
+        with tempfile.NamedTemporaryFile(mode="w", dir=OUTPUT_DIR, delete=False) as f:
+            temporary = f.name
             json.dump(resp, f)
+        os.replace(temporary, path)
+        temporary = None
     except OSError:
         pass
+    finally:
+        if temporary:
+            os.unlink(temporary)
     return resp
+
+
+@app.get("/api/footprint/<int:property_id>")
+def api_footprint(property_id):
+    building = registry().get(property_id)
+    if building is None:
+        raise AnalysisError("unknown_building", "That building is not in the list.", 404)
+    footprint = building.get("footprint")
+    if not footprint and not PIPELINE_ERROR:
+        data = _vexcel(building, [], time.time(), allow_fetch=oasis.has_key("VEXCEL_API_KEY"))
+        if data:
+            footprint = oasis.ground_footprint_lonlat(data, building["latitude"], building["longitude"])
+    return jsonify(footprint=footprint)
 
 
 def analyze(property_id: int, floor) -> dict:

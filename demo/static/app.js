@@ -136,6 +136,16 @@ function selectBuilding(b, analyzeNow) {
   S.sel = b; S.floor = b.floor_name ?? null; S.armed = !analyzeNow;
   M.focus(b, S.armed);
   if (analyzeNow) runAnalysis(b.floor_name);
+  else if (!b.footprint) {
+    const selection = S.selection;
+    api(`/api/footprint/${b.property_id}`).then(({ footprint }) => {
+      if (!footprint || S.selection !== selection) return;
+      b.footprint = footprint;
+      M.lastKey = '';
+      M.drawStack();
+      render();
+    }).catch(() => {});
+  }
 }
 
 function selectMapBuilding(building) {
@@ -152,9 +162,9 @@ async function runAnalysis(floor) {
   const b = S.sel, selection = S.selection, request = ++S.analysisRequest;
   const current = () => S.selection === selection && S.analysisRequest === request;
   S.armed = false; S.anLoading = true; S.anErr = null; S.floorErr = null;
-  M.closeCallout();
-  render();
   try {
+    M.closeCallout();
+    render();
     if (!S.floors) {
       api(`/api/floors?property_id=${b.property_id}`).then(floors => {
         if (!current()) return;
@@ -374,10 +384,14 @@ function render() {
   const priorFloors = panel.querySelector('.floorlist');
   const floorScroll = priorFloors?.dataset.building === String(S.sel?.property_id) ? priorFloors.scrollTop : 0;
   panel.innerHTML = S.view === 'home' ? homePanel() : S.view === 'quotes' ? quotesPanel() : buildingPanel();
-  $('#mapui').innerHTML = mapUi();
   const floors = panel.querySelector('.floorlist');
   if (floors) floors.scrollTop = floorScroll;
-  M.sync();
+  try {
+    $('#mapui').innerHTML = mapUi();
+    M.sync();
+  } catch (error) {
+    console.warn('Oasis map update failed:', error);
+  }
 }
 
 function buildingRow(b) {
@@ -666,10 +680,7 @@ function mapUi() {
   if (a && (S.tab === 'verdict' || S.tab === 'boardroom') && S.view === 'building' && !S.modal && visible('numbers')) {
     const n = a.numbers;
     html += `<div class="m-tr"><div class="row between"><span class="eyebrow">The numbers</span>${overlayControls('numbers', 'the numbers')}</div>
-      ${M.mode === 'google' && S.ov.sources.vexcel ? `<div class="row" style="flex-wrap:wrap">
-        <a href="/api/map/vexcel/photo/${S.sel.property_id}/ortho" target="_blank" rel="noopener">Vexcel aerial photo</a>
-        <a href="/api/map/vexcel/photo/${S.sel.property_id}/oblique-north" target="_blank" rel="noopener">Angled photo</a>
-      </div>` : ''}
+      ${S.ov.sources.vexcel ? '<button class="btn" data-act="photos">Additional photos</button>' : ''}
       <div class="money"><div class="l">Total cost of renovation</div><div class="v">${n.reno_low ? range(n.reno_low, n.reno_high) : 'Not available'}</div><div class="s">${n.viable_sqft ? `${num(n.viable_sqft)} sq ft at $150 to $220 a sq ft` : 'Needs the full analysis'}</div></div>
       <div class="hr"></div>
       <div class="money"><div class="l">Expected return</div><div class="v">${n.uplift_low != null ? `${money((n.uplift_low + n.uplift_high) / 2)} a year` : 'Not available'}</div><div class="s">${n.uplift_low != null ? `Extra rent, ${range(n.uplift_low, n.uplift_high)}` : 'Needs the full analysis'}</div></div>
@@ -701,11 +712,12 @@ function mapUi() {
       <div class="mail-meta"><span class="muted">To</span><span>${q.picked.size} verified contractor${q.picked.size === 1 ? '' : 's'}, one email each</span>
         <label class="muted" for="mailSubject">Subject</label>${sent ? `<b>${esc(q.subject)}</b>` : `<input class="field" id="mailSubject" value="${esc(q.subject)}">`}</div>
       ${sent ? `<div class="mail-body">${esc(q.body.replace('{contractor}', '[each contact’s name]'))}</div>` : `<label class="sr" for="mailBody">Email body</label><textarea class="field" id="mailBody">${esc(q.body)}</textarea><p class="small muted">{contractor} is replaced with each contact’s name.</p>`}
+      ${!sent && !q.willSend ? '<p class="small muted">Demo mode saves requests to the outbox.</p>' : ''}
       <div class="quote-actions">
         <button class="attach" data-act="quote-report">${ic('download', 16)}oasis-report.html</button>
         ${S.plan ? `<button class="attach" data-act="quote-plan">${ic('download', 16)}tentative-floor-plan.svg</button>` : ''}
         ${sent ? '' : `<button class="btn primary" data-act="send" ${q.sending || !q.picked.size ? 'disabled' : ''}>
-          ${q.sending ? 'Working…' : q.willSend ? 'Send quote requests' : 'Save to outbox'}
+          ${q.sending ? 'Working…' : ic('mail') + (q.picked.size === q.contractors.length ? 'Send to all' : 'Send to selected')}
         </button>`}
       </div></div>`;
 
@@ -757,8 +769,25 @@ const M = {
       map.addLayer({ id: 'rings', type: 'line', source: 'rings', paint: { 'line-color': '#FFFFFF', 'line-opacity': 0.55, 'line-width': 1.4, 'line-dasharray': [3, 3] } });
       map.addLayer({ id: 'stack', type: 'fill-extrusion', source: 'stack', paint: { 'fill-extrusion-color': ['get', 'color'], 'fill-extrusion-height': ['get', 'top'], 'fill-extrusion-base': ['get', 'base'], 'fill-extrusion-opacity': 1 } });
       map.addLayer({ id: 'pts-match', type: 'circle', source: 'pts', filter: ['==', ['get', 'ring'], true], paint: { 'circle-radius': 15, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2 } });
-      map.addLayer({ id: 'pts', type: 'circle', source: 'pts', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 5, 12, 8, 16, 10], 'circle-color': ['get', 'color'],
-        'circle-stroke-color': '#0D1920', 'circle-stroke-width': 2, 'circle-opacity': ['get', 'op'], 'circle-stroke-opacity': ['get', 'op'] } });
+      for (const [source, color] of Object.entries(SRC_COLOR)) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 48; canvas.height = 60;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = color;
+        ctx.strokeStyle = '#0D1920';
+        ctx.lineWidth = 3;
+        const pin = new Path2D('M24 57 C20 49 5 34 5 22 A19 19 0 1 1 43 22 C43 34 28 49 24 57 Z');
+        ctx.fill(pin);
+        ctx.stroke(pin);
+        ctx.fillStyle = '#0D1920';
+        ctx.beginPath();
+        ctx.arc(24, 22, 6, 0, 2 * Math.PI);
+        ctx.fill();
+        map.addImage('property-pin-' + source, ctx.getImageData(0, 0, 48, 60), { pixelRatio: 2 });
+      }
+      map.addLayer({ id: 'pts', type: 'symbol', source: 'pts',
+        layout: { 'icon-image': ['get', 'icon'], 'icon-anchor': 'bottom', 'icon-allow-overlap': true },
+        paint: { 'icon-opacity': ['get', 'op'] } });
 
       map.dragPan.enable();
       map.touchZoomRotate.enableRotation();
@@ -771,7 +800,12 @@ const M = {
       });
       map.on('click', () => { onStack = false; });
       ['pts', 'stack'].forEach(l => { map.on('mouseenter', l, () => { map.getCanvas().style.cursor = 'pointer'; }); map.on('mouseleave', l, () => { map.getCanvas().style.cursor = ''; if (this.tip) { this.tip.remove(); this.tip = null; } }); });
-      map.on('mousemove', 'pts', e => { const p = e.features[0].properties; if (!this.tip) this.tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12, className: 'hovertip' }).addTo(map);
+      map.on('mousemove', 'pts', e => { const p = e.features[0].properties;
+        if (String(p.id) === String(S.sel?.property_id)) {
+          if (this.tip) { this.tip.remove(); this.tip = null; }
+          return;
+        }
+        if (!this.tip) this.tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12, className: 'hovertip' }).addTo(map);
         this.tip.setLngLat(e.features[0].geometry.coordinates).setText(p.name); });
       map.on('mousemove', 'stack', e => { const p = e.features[0].properties; if (!this.tip) this.tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12, className: 'hovertip' }).addTo(map);
         this.tip.setLngLat(e.lngLat).setText(`Floor ${p.floor}`); });
@@ -813,6 +847,7 @@ const M = {
           const { Map3DElement } = await google.maps.importLibrary('maps3d');
           this.google = new Map3DElement({ mode: 'SATELLITE', tilt: 55 });
           this.googleMarkers = new Map();
+          const { PinElement } = await google.maps.importLibrary('marker');
           const { Marker3DInteractiveElement, Polyline3DElement } = await google.maps.importLibrary('maps3d');
           for (const building of S.ov.buildings) {
             const marker = new Marker3DInteractiveElement({
@@ -823,14 +858,38 @@ const M = {
             this.googleMarkers.set(building.property_id, marker);
             this.google.append(marker);
           }
+          this.googlePlacePin = (kind, place) => {
+            const marker = new Marker3DInteractiveElement({
+              position: { lat: place.lat, lng: place.lon },
+              title: `${place.name} · ${place.miles.toFixed(1)} mi`,
+              altitudeMode: 'CLAMP_TO_GROUND', drawsWhenOccluded: true,
+            });
+            marker.append(new PinElement({
+              background: KIND[kind].color, borderColor: '#fff',
+              glyphColor: '#fff', glyphText: KIND[kind].letter,
+            }));
+            return marker;
+          };
+          this.googleRing = coordinates => {
+            const line = new Polyline3DElement({
+              altitudeMode: 'RELATIVE_TO_GROUND', strokeColor: '#fff',
+              strokeWidth: 2, drawsOccludedSegments: true,
+            });
+            const points = coordinates.map(([lng, lat]) => ({ lat, lng, altitude: 1 }));
+            if ('path' in line) line.path = points;
+            else line.coordinates = points;
+            return line;
+          };
           this.googleOutline = new Polyline3DElement({
             altitudeMode: 'RELATIVE_TO_GROUND', strokeColor: '#ffc25c',
-            outerColor: '#503000', outerWidth: 0.4, strokeWidth: 7, drawsOccludedSegments: true,
+            outerColor: '#503000', outerWidth: 0.4, strokeWidth: 7, drawsOccludedSegments: true, extruded: true,
           });
           $('#google-map').append(this.google);
         }
         this.closeCallout();
         this.centerGoogle(S.sel);
+        this.googlePlacesKey = null;
+        this.googleAreaProperty = null;
       }
       if (mode === 'vexcel') {
         if (!this.mapConfig.vexcel_imagery) throw new Error('Add VEXCEL_IMAGERY_API_KEY with imagery access to .env and restart Oasis.');
@@ -873,18 +932,11 @@ const M = {
   set(id, features) { if (this.ready) this.map.getSource(id).setData({ type: 'FeatureCollection', features }); },
 
   sync() {
-    if (this.mode === 'google') {
+    if (this.mode === 'google' && this.googleOutline) {
       const ring = S.an?.footprint || S.sel?.footprint;
-      for (const building of S.ov.buildings) {
-        const marker = this.googleMarkers.get(building.property_id);
-        const selected = building === S.sel;
-        marker.label = selected ? building.name : '';
-        const show = selected ? !ring : !searching() || matches(building);
-        if (show && !marker.parentNode) this.google.append(marker);
-        if (!show && marker.parentNode) marker.remove();
-      }
       if (ring) {
-        const coordinates = ring.map(([lng, lat]) => ({ lat, lng, altitude: 1 }));
+        const height = this.osmHeight || (S.sel.stories || S.floors?.floors.length || S.sel.floor_name || 1) * 3.9;
+        const coordinates = ring.map(([lng, lat]) => ({ lat, lng, altitude: height }));
         // Older Maps JavaScript channels expose coordinates instead of path.
         if ('path' in this.googleOutline) this.googleOutline.path = coordinates;
         else this.googleOutline.coordinates = coordinates;
@@ -892,7 +944,15 @@ const M = {
       } else {
         this.googleOutline.remove();
       }
+      for (const building of S.ov.buildings) {
+        const marker = this.googleMarkers.get(building.property_id);
+        const selected = building === S.sel;
+        const show = selected ? !ring : S.tab !== 'area' && (!searching() || matches(building));
+        if (show && !marker.parentNode) this.google.append(marker);
+        if (!show && marker.parentNode) marker.remove();
+      }
     }
+    if (this.mode === 'google') this.drawGooglePlaces();
     if (!this.ready || !S.ov) return;
     const key = JSON.stringify([S.view, S.tab, S.q, S.near, S.dist, S.positiveOnly, S.sel && S.sel.property_id, S.floor, S.placeKind, !!S.area, !!S.an, S.full, S.floors && S.floors.floors.length]);
     if (key === this.lastKey) return;
@@ -902,7 +962,7 @@ const M = {
     this.set('pts', S.ov.buildings.map(b => {
       const m = !filtering || matches(b), isSel = S.sel && S.sel.property_id === b.property_id;
       return { type: 'Feature', geometry: { type: 'Point', coordinates: [b.longitude, b.latitude] },
-        properties: { id: b.property_id, name: b.name, color: SRC_COLOR[b.source], op: isSel && !S.armed && (S.an?.footprint || S.sel.footprint) ? 0 : m ? 1 : 0.18, ring: filtering && m && filtersActive() } };
+        properties: { id: b.property_id, name: b.name, icon: 'property-pin-' + b.source, op: isSel && (S.an?.footprint || S.sel.footprint) ? 0 : m ? 1 : 0.18, ring: filtering && m && filtersActive() } };
     }));
     this.colorStack();
     this.drawPlaces();
@@ -937,6 +997,7 @@ const M = {
   closeCallout() { if (this.callout) { this.callout.remove(); this.callout = null; } },
 
   clearSelection() {
+    if (this.tip) { this.tip.remove(); this.tip = null; }
     this.closeCallout(); this.set('halo', []); this.set('outline', []); this.set('selected-building', []); this.set('stack', []); this.set('rings', []);
     this.markers.forEach(m => m.remove()); this.markers = [];
     if (this.ready) this.map.setLayoutProperty('oasis-3d', 'visibility', 'visible');
@@ -996,6 +1057,39 @@ const M = {
     this.colorStack();
   },
 
+  areaRings() {
+    const { longitude, latitude } = S.sel;
+    return [0.5, 1].map(miles => Array.from({ length: 65 }, (_, i) => {
+      const angle = i / 64 * 2 * Math.PI, degrees = miles * 1609.34 / 111320;
+      return [longitude + degrees * Math.cos(angle) / Math.cos(latitude * Math.PI / 180),
+        latitude + degrees * Math.sin(angle)];
+    }));
+  },
+
+  drawGooglePlaces() {
+    const show = S.view === 'building' && S.tab === 'area' && S.sel && S.area?.places.available;
+    const property = show ? S.sel.property_id : null;
+    const key = JSON.stringify([property, S.placeKind]);
+    if (this.googlePlacesKey === key) return;
+    this.googlePlaceOverlays?.forEach(element => element.remove());
+    this.googlePlaceOverlays = [];
+    if (show) {
+      this.googlePlaceOverlays.push(...this.areaRings().map(ring => this.googleRing(ring)));
+      for (const kind of Object.keys(KIND)) {
+        if (S.placeKind !== 'all' && S.placeKind !== kind) continue;
+        for (const place of S.area.places.kinds[kind].items.slice(0, 6)) {
+          this.googlePlaceOverlays.push(this.googlePlacePin(kind, place));
+        }
+      }
+      this.google.append(...this.googlePlaceOverlays);
+      if (property !== this.googleAreaProperty) this.google.range = 4200;
+    } else if (this.googleAreaProperty != null && S.sel) {
+      this.centerGoogle(S.sel);
+    }
+    this.googleAreaProperty = property;
+    this.googlePlacesKey = key;
+  },
+
   drawPlaces() {
     this.markers.forEach(m => m.remove()); this.markers = [];
     const show = S.view === 'building' && S.tab === 'area' && S.sel && S.area && S.area.places.available;
@@ -1005,8 +1099,9 @@ const M = {
       return;
     }
     const c = [S.sel.longitude, S.sel.latitude];
-    this.set('rings', [0.5, 1].map(mi => ({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: Array.from({ length: 65 }, (_, i) => {
-      const t = i / 64 * 2 * Math.PI, d = mi * 1609.34; return [c[0] + d * Math.cos(t) / (111320 * Math.cos(c[1] * Math.PI / 180)), c[1] + d * Math.sin(t) / 111320]; }) } })));
+    this.set('rings', this.areaRings().map(coordinates => ({
+      type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates },
+    })));
     Object.keys(KIND).forEach(k => { if (S.placeKind !== 'all' && S.placeKind !== k) return;
       S.area.places.kinds[k].items.slice(0, S.placeKind === 'all' ? 3 : 6).forEach(p => {
         const el = document.createElement('div'); el.className = 'pin'; el.style.background = KIND[k].color; el.textContent = KIND[k].letter; el.title = `${p.name}, ${p.miles.toFixed(1)} mi`;
@@ -1048,6 +1143,30 @@ const ACT = {
   open(el) { if (S.full) S.full = false; go(bHash('verdict', el.dataset.id)); },
   analyze() { if (S.sel && !S.anLoading) runAnalysis(S.sel.floor_name); },
   'analyze-floor'() { runAnalysis(S.floor); },
+  photos() {
+    const building = S.sel;
+    if (!building) return;
+    const dialog = document.createElement('dialog');
+    dialog.className = 'photo-gallery';
+    dialog.innerHTML = `<div class="row between"><h2>Photos of ${esc(building.name)}</h2>
+      <form method="dialog"><button class="icon-btn" aria-label="Close photos">${ic('x')}</button></form></div>
+      <p class="muted">Imagery © Vexcel Imaging</p><div class="photo-grid"></div>`;
+    const grid = dialog.querySelector('.photo-grid');
+    for (const [view, label] of Object.entries({ ortho: 'Aerial view', 'oblique-north': 'North angle',
+      'oblique-south': 'South angle', 'oblique-east': 'East angle', 'oblique-west': 'West angle' })) {
+      const figure = document.createElement('figure');
+      figure.innerHTML = `<figcaption>${label}</figcaption><img alt="${label}" loading="lazy">`;
+      const photo = figure.querySelector('img');
+      photo.addEventListener('error', () => {
+        photo.replaceWith(Object.assign(document.createElement('p'), { textContent: 'Photo unavailable.' }));
+      }, { once: true });
+      photo.src = `/api/map/vexcel/photo/${building.property_id}/${view}`;
+      grid.append(figure);
+    }
+    dialog.addEventListener('close', () => dialog.remove(), { once: true });
+    document.body.append(dialog);
+    dialog.showModal();
+  },
   report() { downloadReport(); },
   'quote-report'() { download('oasis-report.html', buildReport(), 'text/html'); },
   'quote-plan'() { if (S.plan) download('tentative-floor-plan.svg', planSvg(S.plan, 'after', null, true), 'image/svg+xml'); },
@@ -1099,7 +1218,7 @@ document.addEventListener('input', e => {
   }
 });
 document.addEventListener('keydown', e => {
-  if (e.key !== 'Escape') return;
+  if (e.key !== 'Escape' || document.querySelector('.photo-gallery[open]')) return;
   if (S.view === 'quotes') go('#/'); else if (S.modal) ACT['modal-close'](); else if (S.planOpen) ACT['plan-close'](); else if (!$('#profilePop').hidden) ACT.profile();
 });
 window.addEventListener('hashchange', route);

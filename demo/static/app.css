@@ -274,3 +274,10 @@ textarea.field { flex: 1; min-height: 240px; resize: vertical; line-height: 1.55
 
 .floor-legend { flex: none; display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--muted); }
 .floor-legend span { vertical-align: middle; }
+
+.photo-gallery { width: min(840px, calc(100% - 32px)); max-height: 85vh; padding: 24px; border: 1px solid var(--line); border-radius: 20px; color: var(--ink); }
+.photo-gallery::backdrop { background: rgba(13,25,32,.7); }
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 16px; margin-top: 16px; }
+.photo-grid figure { margin: 0; }
+.photo-grid figcaption { margin-bottom: 6px; font-weight: 600; }
+.photo-grid img { width: 100%; display: block; border-radius: 10px; }
