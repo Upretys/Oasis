@@ -38,7 +38,7 @@ SEATS: dict[SeatId, dict] = {
         "name": "Market Analyst",
         "weight": 1.0,
         "layers": ["costar"],
-        "also": ["Conversion cost", "Residential value"],
+        "also": ["Conversion cost", "Residential value", "Rent uplift", "Net value impact", "Apartment-sized area"],
         "layers_text": "CoStar rents, cap rate and lease rows, plus the derived cost and value",
         "mandate": "Decide whether the conversion pays. Weigh cost against value and say when floors free up: "
                    "cite each lease expiry fact. Propose at least one contractual or financial condition, such "

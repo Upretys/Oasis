@@ -121,10 +121,26 @@ def build_evidence(b: Building, j: Jurisdiction) -> list[Evidence]:
             kind="plan_region", ref="dark_core")
     if b.lot_area_sf:
         add("derived", "Existing FAR", round(gba / b.lot_area_sf, 1), "FAR", kind="building")
-    add("derived", f"Conversion cost ({n_floors} floors x {m['plate_sf']:,.0f} sf x assumed ${COST_PER_SF:.0f}/sf)",
-        round(gba * COST_PER_SF), "$", kind="building")
-    value = gba * m["daylit_share"] * c.mf_rent_psf_month * 12 * NOI_MARGIN / c.cap_rate
     cap = "assumed cap rate" if c.cap_rate_assumed else "CoStar cap rate"
-    add("derived", f"Residential value (daylit area only, assumed {NOI_MARGIN:.0%} NOI margin, {cap})",
-        round(value), "$", kind="building")
+    e = b.economics
+    if e is None:   # flat model: whole plate at COST_PER_SF, daylit area at NOI_MARGIN
+        add("derived", f"Conversion cost ({n_floors} floors x {m['plate_sf']:,.0f} sf x assumed ${COST_PER_SF:.0f}/sf)",
+            round(gba * COST_PER_SF), "$", kind="building")
+        value = gba * m["daylit_share"] * c.mf_rent_psf_month * 12 * NOI_MARGIN / c.cap_rate
+        add("derived", f"Residential value (daylit area only, assumed {NOI_MARGIN:.0%} NOI margin, {cap})",
+            round(value), "$", kind="building")
+        return out
+
+    # the source's own model, quoted as-is so the board and the source never disagree on the money
+    sf = e.convertible_sf
+    add("costar", "Office rent given up by converting" + (" (assumed market rate, the lease has none)"
+        if e.office_rent_assumed else ""), e.office_rent_given_up_psf_yr, "$/sf/yr", kind="costar_row", ref=c.row_id)
+    add("derived", f"Apartment-sized area the units fill ({e.source})", round(sf), "sf", kind="plan_region", ref="units")
+    add("derived", f"Rent uplift over office, per year ({e.source})", round(e.rent_uplift_usd_yr), "$", kind="building")
+    for end, cost in (("low", e.cost_low_usd), ("high", e.cost_high_usd)):
+        add("derived", f"Conversion cost, {end} end ({sf:,.0f} sf x ${cost / sf:.0f}/sf, {e.source})",
+            round(cost), "$", kind="building")
+    add("derived", f"Residential value (rent uplift / {cap}, {e.source})", round(e.value_usd), "$", kind="building")
+    for end, net in (("low", e.net_low_usd), ("high", e.net_high_usd)):
+        add("derived", f"Net value impact after construction, {end} end ({e.source})", round(net), "$", kind="building")
     return out

@@ -12,6 +12,9 @@ The two stand-ins that are needed are flagged as assumptions, so their evidence
 labels say so: the 45 ft daylight limit (Oasis's own WINDOW_TO_CORE_THRESHOLD_FT)
 and the default cap rate when no sale comp exists.
 
+The money comes from Oasis too (Building.economics), so the board argues over
+the same cost and value the Oasis UI shows, not the boardroom's flat $/sf model.
+
     from backend.oasis_adapter import load_saved_building
     b = load_saved_building("Williams Tower")
 """
@@ -23,7 +26,7 @@ from datetime import date
 from pathlib import Path
 from typing import Optional
 
-from backend.contracts import AerialContext, Building, CostarSummary, FloorRow
+from backend.contracts import AerialContext, Building, CostarSummary, Economics, FloorRow
 
 OASIS = Path(__file__).resolve().parents[2]          # repo root: track_*/, demo/, output/
 SAVED_RESULTS = OASIS / "demo" / "all_results.json"
@@ -62,6 +65,29 @@ def cached_buildings() -> list[dict]:
 _OFFICE = re.compile(r"office rent \$([\d,.]+)/sf/yr \((.*?)\) vs\. residential")
 _RESI = re.compile(r"residential \$([\d,.]+)/sf/yr")
 _LEASE_END = re.compile(r"Current lease runs through (\d{4}-\d{2}-\d{2})")
+_UPLIFT = re.compile(r"-> \$(-?[\d,.]+)/yr uplift on ([\d,.]+) convertible sf")
+
+
+def _num(s: str) -> float:
+    return float(s.replace(",", ""))
+
+
+def economics(result: dict, reasoning: str) -> Optional[Economics]:
+    """Oasis's own money model, unchanged. The cost range is read back out of
+    Oasis's outputs (value - net impact) rather than recomputed from its
+    $150-220/sf constants, so the two can never drift apart."""
+    up, office = _UPLIFT.search(reasoning), _OFFICE.search(reasoning)
+    lo, hi = result.get("implied_value_impact_low"), result.get("implied_value_impact_high")
+    if result.get("value_skipped") or not (up and office) or lo is None or hi is None:
+        return None
+    uplift, value = _num(up.group(1)), _num(up.group(1)) / result["cap_rate_used"]
+    return Economics(
+        source="Oasis", convertible_sf=_num(up.group(2)),
+        office_rent_given_up_psf_yr=_num(office.group(1)),
+        office_rent_assumed="current tenant found" in office.group(2),
+        rent_uplift_usd_yr=uplift, value_usd=value,
+        cost_low_usd=value - hi, cost_high_usd=value - lo, net_low_usd=lo, net_high_usd=hi,
+    )
 
 
 def _office(reasoning: str) -> tuple[Optional[float], str]:
@@ -132,6 +158,7 @@ def building_from_result(result: dict, cached: dict, vexcel: dict, as_of: Option
             cap_rate=result["cap_rate_used"],
             cap_rate_assumed="default assumption" in reasoning,
         ),
+        economics=economics(result, reasoning),
     )
 
 

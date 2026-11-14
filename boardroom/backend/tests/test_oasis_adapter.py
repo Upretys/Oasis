@@ -47,7 +47,7 @@ def test_assumed_cap_rate_is_labelled():
 
 def test_occupied_floor_without_end_date_is_stated_not_dropped():
     b = load_saved_building("Williams Tower", AS_OF)
-    lease = [e for e in build_evidence(b, place(b)) if "lease" in e.label]
+    lease = [e for e in build_evidence(b, place(b)) if " lease: " in e.label]
     assert [(e.label, e.value) for e in lease] == [("Floor 18 lease: end date not on record", "unknown")]
 
 
@@ -73,3 +73,52 @@ def test_every_seat_sees_evidence(building):
     ev = build_evidence(building, place(building))
     for seat in ("engineer", "planner", "analyst"):
         assert visible(seat, ev), seat
+
+
+# --- money: the board quotes Oasis's own cost/value model --------------------
+
+def _saved(name):
+    import json
+    from backend.oasis_adapter import SAVED_RESULTS
+    return next(r for r in json.loads(SAVED_RESULTS.read_text()) if r["building_name"] == name)
+
+
+def _fact(b, prefix):
+    return next(e.value for e in build_evidence(b, place(b)) if e.label.startswith(prefix))
+
+
+def test_net_impact_matches_oasis_exactly(building):
+    s = _saved(building.name)
+    assert _fact(building, "Net value impact after construction, low end") == round(s["implied_value_impact_low"])
+    assert _fact(building, "Net value impact after construction, high end") == round(s["implied_value_impact_high"])
+
+
+def test_cost_range_is_oasis_150_to_220_per_sf_times_material(building):
+    e = building.economics
+    mult = float(__import__("re").search(r"([\d.]+)x baseline", _saved(building.name)["reasoning_text"]).group(1))
+    assert e.cost_low_usd / e.convertible_sf == pytest.approx(150 * mult, abs=0.5)
+    assert e.cost_high_usd / e.convertible_sf == pytest.approx(220 * mult, abs=0.5)
+
+
+def test_flat_350_model_is_not_used_for_oasis_buildings(building):
+    labels = [e.label for e in build_evidence(building, place(building))]
+    assert not any("$350/sf" in l or "NOI margin" in l for l in labels)
+
+
+def test_analyst_sees_the_oasis_money(building):
+    seen = {e.label.split(" (")[0].split(",")[0] for e in visible("analyst", build_evidence(building, place(building)))}
+    assert {"Rent uplift over office", "Conversion cost", "Residential value",
+            "Net value impact after construction", "Office rent given up by converting"} <= seen
+
+
+def test_assumed_office_rent_is_labelled():
+    b = load_saved_building("Williams Tower", AS_OF)
+    rent = next(e for e in build_evidence(b, place(b)) if e.label.startswith("Office rent given up"))
+    assert rent.value == 24.0 and "assumed" in rent.label
+
+
+def test_demo_fixtures_keep_the_flat_model():
+    from backend.jurisdiction import load_building
+    b = load_building("hero")
+    assert b.economics is None
+    assert any("$350/sf" in e.label for e in build_evidence(b, place(b)))

@@ -120,6 +120,18 @@ class CostarSummary(BaseModel):
     cap_rate: float
     cap_rate_assumed: bool = False       # True: no sale comp, a default rate stands in
 
+class Economics(BaseModel):              # a source's own cost/value model; replaces the flat $/sf one
+    source: str                          # "Oasis value pipeline (track_b_value)"
+    convertible_sf: float                # apartment-sized area the units actually fill
+    office_rent_given_up_psf_yr: float   # 0 when the floor is confirmed vacant
+    office_rent_assumed: bool = False    # True: tenant is real but the lease has no rate, a market rate stands in
+    rent_uplift_usd_yr: float            # (apartment rent - office rent) x convertible_sf
+    value_usd: float                     # rent_uplift / cap rate
+    cost_low_usd: float
+    cost_high_usd: float
+    net_low_usd: float                   # value - cost_high
+    net_high_usd: float                  # value - cost_low
+
 class Building(BaseModel):
     building_id: str
     name: str
@@ -132,6 +144,7 @@ class Building(BaseModel):
     plan: dict                           # GeoJSON FeatureCollection in plan feet: floor_plate + windows
     aerial: AerialContext
     costar: CostarSummary
+    economics: Optional[Economics] = None   # None: evidence uses the flat COST_PER_SF / NOI_MARGIN model
 
 class RunStarted(BaseModel):
     type: Literal["run_started"] = "run_started"
