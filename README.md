@@ -89,6 +89,20 @@ project's own assumptions, each with its real root cause and fix.
 2. Copy `.env.example` to `.env` and fill in real keys - **never commit `.env`**
 3. Set `COSTAR_KIT_PATH` to wherever you unzipped the CoStar hackathon kit
 
+## Tests
+
+```bash
+COSTAR_KIT_PATH=/path/to/costar-hackathon-kit .venv/bin/python3 -m pytest tests/ -v
+```
+
+52 tests, all offline (no live network calls - runs against the real
+cached Vexcel responses in `output/`), parametrized across the 5 real
+featured buildings: zero unit overlaps, zero units outside their real
+footprint, unit square footage sums match exactly, the anomaly detector
+catches the real cap-rate-off-by-100x bug found tonight, cap rate
+sensitivity is financially monotonic, and the real FHA accessibility
+check behaves correctly on ground vs. non-ground floors.
+
 ## Running the live web demo
 
 ```bash

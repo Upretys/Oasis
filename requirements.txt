@@ -4,3 +4,4 @@ requests
 flask
 matplotlib
 pillow
+pytest
