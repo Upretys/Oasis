@@ -348,7 +348,15 @@ def generate_unit_layout(footprint: Polygon, convertible_zone, unit_width_ft: fl
             # next wall's edge gets a clean shot at that same corner instead.
             bounding_rect = unit_poly.minimum_rotated_rectangle
             rectangularity = unit_poly.area / bounding_rect.area if bounding_rect.area else 0.0
-            if rectangularity < 0.55:
+            # 0.55 was too lenient - a real screenshot caught a thin spike/tail
+            # still passing through at a building corner (First Community
+            # Tower unit K, 0.684). Checked across all 10 buildings: there's a
+            # real cluster of similar corner-spike shapes at 0.61-0.70 in four
+            # other buildings too, and a gap before the next-lowest legitimate
+            # trapezoidal unit at 0.764 - so 0.72 cuts precisely between the
+            # spike artifacts and real (just angled) units, confirmed by
+            # re-rendering and re-inspecting both groups after raising it.
+            if rectangularity < 0.72:
                 continue
 
             remaining = remaining.difference(quad)

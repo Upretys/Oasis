@@ -36,7 +36,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from vexcel_live import fetch_vexcel_property, VexcelKeyMissing, VexcelNoPropertyData  # noqa: E402
 from value import list_houston_office_buildings_broad  # noqa: E402
 from render_floor import render, BUILDINGS as CACHED_BUILDINGS  # noqa: E402
-from agent import run_agent_llm  # noqa: E402
+from agent import run_agent_llm, AgentError  # noqa: E402
 
 app = Flask(__name__, static_folder=None)
 
@@ -215,8 +215,13 @@ def api_analyze_agent():
             query_lat=lat, query_lon=lon, real_floor_area_sqft=real_floor_area_sqft,
             real_column_depth_ft=real_column_depth_ft,
         )
+    except AgentError as e:
+        # A clean, already-user-safe message (auth/rate-limit/bad-request) -
+        # the retry logic inside run_agent_llm already absorbed transient
+        # failures, so anything surfacing here is worth showing as-is.
+        return jsonify({"error": "agent_failed", "message": str(e)}), 502
     except Exception as e:
-        return jsonify({"error": "agent_failed", "message": str(e)}), 500
+        return jsonify({"error": "agent_failed", "message": f"Unexpected error: {e}"}), 500
 
     timeline.append({"step": "Live LLM agent run - the model chose its own tool-call sequence",
                       "elapsed_s": round(time.time() - t0, 2)})

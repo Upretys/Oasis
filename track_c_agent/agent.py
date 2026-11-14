@@ -161,6 +161,10 @@ TOOLS = [
 ]
 
 
+class AgentError(Exception):
+    """Raised with a message safe to show a user - never a raw SDK traceback."""
+
+
 def run_agent_llm(property_id: int, floor_name: int, vexcel_response: dict, query_lat: float,
                    query_lon: float, real_floor_area_sqft: float, real_column_depth_ft: float | None) -> dict:
     """Lets Claude decide the tool-call sequence itself, rather than following
@@ -171,24 +175,62 @@ def run_agent_llm(property_id: int, floor_name: int, vexcel_response: dict, quer
     what arguments, and the real tool result it got back. This is what makes
     it provably agentic for a demo: the UI can show the model's own decisions,
     not a pre-written Python string dressed up as reasoning."""
+    import random
+    import time
+
     import anthropic
 
-    client = anthropic.Anthropic()
+    api_key = "".join(os.environ.get("ANTHROPIC_API_KEY", "").split())
+    if not api_key:
+        raise AgentError("ANTHROPIC_API_KEY is not set in this process's environment.")
+
+    client = anthropic.Anthropic(api_key=api_key, timeout=60.0)
 
     def call_run_geometry(args):
-        geo = run_feasibility(
-            floor_id=f"{property_id}-floor-{args['floor_name']}", vexcel_response=vexcel_response,
-            query_lat=query_lat, query_lon=query_lon, real_floor_area_sqft=real_floor_area_sqft,
-            real_column_depth_ft=real_column_depth_ft,
-        )
-        return json.dumps(asdict(geo), default=str)
+        try:
+            geo = run_feasibility(
+                floor_id=f"{property_id}-floor-{args['floor_name']}", vexcel_response=vexcel_response,
+                query_lat=query_lat, query_lon=query_lon, real_floor_area_sqft=real_floor_area_sqft,
+                real_column_depth_ft=real_column_depth_ft,
+            )
+            return json.dumps(asdict(geo), default=str)
+        except Exception as e:
+            # Hand the model a real error string instead of crashing the
+            # whole run - a tool failing is something the agent should be
+            # able to reason about and report, not something that should take
+            # down the request.
+            return json.dumps({"error": f"run_geometry failed: {e}"})
 
     def call_run_value(args):
-        val = run_value(property_id=property_id, floor_name=args["floor_name"],
-                         convertible_sqft=args["convertible_sqft"], query_lat=query_lat, query_lon=query_lon)
-        return json.dumps(asdict(val), default=str)
+        try:
+            val = run_value(property_id=property_id, floor_name=args["floor_name"],
+                             convertible_sqft=args["convertible_sqft"], query_lat=query_lat, query_lon=query_lon)
+            return json.dumps(asdict(val), default=str)
+        except Exception as e:
+            return json.dumps({"error": f"run_value failed: {e}"})
 
     tool_fns = {"run_geometry": call_run_geometry, "run_value": call_run_value}
+
+    def create_with_retry(**kwargs):
+        """Retries only on genuinely transient failures (rate limit, server
+        overload, connection blip) - never on a bad request or auth failure,
+        which would just fail identically every time."""
+        max_retries = 4
+        for attempt in range(max_retries + 1):
+            try:
+                return client.messages.create(**kwargs)
+            except anthropic.AuthenticationError as e:
+                raise AgentError(f"Anthropic API rejected the key (401): {e}") from e
+            except anthropic.PermissionDeniedError as e:
+                raise AgentError(f"Anthropic API permission denied: {e}") from e
+            except anthropic.BadRequestError as e:
+                raise AgentError(f"Anthropic API rejected the request: {e}") from e
+            except (anthropic.RateLimitError, anthropic.APIConnectionError, anthropic.InternalServerError) as e:
+                if attempt == max_retries:
+                    raise AgentError(f"Anthropic API still failing after {max_retries} retries: {e}") from e
+                wait = min(2 ** attempt, 20) + random.random()
+                time.sleep(wait)
+        raise AgentError("Unreachable")  # loop always returns or raises above
 
     messages = [{
         "role": "user",
@@ -206,7 +248,7 @@ def run_agent_llm(property_id: int, floor_name: int, vexcel_response: dict, quer
 
     trace = []
     for _ in range(5):  # bounded loop, not infinite
-        response = client.messages.create(
+        response = create_with_retry(
             model="claude-sonnet-5-5", max_tokens=1024, tools=TOOLS, messages=messages,
         )
         messages.append({"role": "assistant", "content": response.content})
