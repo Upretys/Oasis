@@ -289,10 +289,10 @@ def run_agent_llm(property_id: int, floor_name: int, vexcel_response: dict, quer
             f"raw geometric zone before real apartment-size filtering; viable_leasable_sqft already "
             f"excludes slivers too small/narrow to be a real studio or 1BR, so it's the honest number "
             f"to price). The run_value result also includes legal_and_code_checks (zoning, parking, "
-            f"the real occupancy-change/sprinkler requirement) - you MUST address zoning and the "
-            f"occupancy-change requirement explicitly in your final verdict, even briefly, not just "
-            f"the dollar estimate. End with a one-paragraph verdict and dollar estimate, or a clear "
-            f"explanation of why it was skipped."
+            f"the real occupancy-change/sprinkler requirement, and accessibility) - you MUST address "
+            f"zoning, the occupancy-change requirement, and accessibility explicitly in your final "
+            f"verdict, even briefly, not just the dollar estimate. End with a one-paragraph verdict "
+            f"and dollar estimate, or a clear explanation of why it was skipped."
         ),
     }]
 

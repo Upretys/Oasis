@@ -406,6 +406,14 @@ def load_scaled_footprint(
         return None
 
     geom = shapely_wkt.loads(structure["footprint.wkt"])
+    # Every real structure checked across all 35 cached buildings (492
+    # structures) came back as a plain POLYGON, never a MULTIPOLYGON - but
+    # Vexcel's schema doesn't guarantee that for every real building, and
+    # .exterior doesn't exist on a MultiPolygon (would crash with
+    # AttributeError on an untested live building). Defensive, zero-risk to
+    # every case actually observed: take the largest real part by area.
+    if geom.geom_type == "MultiPolygon":
+        geom = max(geom.geoms, key=lambda g: g.area)
     coords = list(geom.exterior.coords)
     lon0 = sum(c[0] for c in coords) / len(coords)
     lat0 = sum(c[1] for c in coords) / len(coords)
