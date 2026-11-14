@@ -6,3 +6,7 @@ venv/
 records/
 *.egg-info/
 .DS_Store
+
+# Oasis demo output that should not be committed
+output/outbox/
+output/area_cache/

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "oasis",
+      "runtimeExecutable": ".venv/bin/python3",
+      "runtimeArgs": ["demo/webapp.py"],
+      "port": 5050
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+[
+  {"id": "c1", "company": "Sample Bayou Builders", "contact": "Sample Contact 1", "trade": "General contractor", "email": "quotes@bayou-builders.example.com", "verified": true, "sample": true},
+  {"id": "c2", "company": "Sample Gulf Coast Construction", "contact": "Sample Contact 2", "trade": "General contractor", "email": "bids@gulfcoast-construction.example.com", "verified": true, "sample": true},
+  {"id": "c3", "company": "Sample Lone Star MEP", "contact": "Sample Contact 3", "trade": "Mechanical, electrical and plumbing", "email": "estimating@lonestar-mep.example.com", "verified": true, "sample": true},
+  {"id": "c4", "company": "Sample Heights Interiors", "contact": "Sample Contact 4", "trade": "Interior build-out", "email": "projects@heights-interiors.example.com", "verified": true, "sample": true},
+  {"id": "c5", "company": "Sample Unverified Co", "contact": "Sample Contact 5", "trade": "General contractor", "email": "hello@unverified.example.com", "verified": false, "sample": true}
+]
