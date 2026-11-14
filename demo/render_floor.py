@@ -225,6 +225,30 @@ BUILDINGS = [
         "vexcel_file": "property_29.9435561_-95.4058157.json", "query_lat": 29.9435561, "query_lon": -95.4058157,
         "real_floor_area_sqft": 21130.0, "real_column_depth_ft": None,
     },
+    # The top 5 by confidence-weighted rank_score (real value impact x real
+    # geometry_confidence x real value_confidence) across a 35-building blind
+    # scan - the strongest results by actual data quality, not hand-picked.
+    # TC Energy Center already above; these 4 are new.
+    {
+        "name": "Woodway Center", "property_id": 239944, "floor_name": 1,
+        "vexcel_file": "property_29.7635027_-95.4602233.json", "query_lat": 29.7635027, "query_lon": -95.4602233,
+        "real_floor_area_sqft": 55146.0, "real_column_depth_ft": None,
+    },
+    {
+        "name": "7900 Fannin", "property_id": 6550930, "floor_name": 1,
+        "vexcel_file": "property_29.6915081_-95.4034524.json", "query_lat": 29.6915081, "query_lon": -95.4034524,
+        "real_floor_area_sqft": 43980.0, "real_column_depth_ft": None,
+    },
+    {
+        "name": "Sage Park Office Building", "property_id": 240038, "floor_name": 1,
+        "vexcel_file": "property_29.745295_-95.4665119.json", "query_lat": 29.745295, "query_lon": -95.4665119,
+        "real_floor_area_sqft": 36796.0, "real_column_depth_ft": None,
+    },
+    {
+        "name": "1113 Vine St", "property_id": 235123, "floor_name": 1,
+        "vexcel_file": "property_29.768557_-95.357148.json", "query_lat": 29.768557, "query_lon": -95.357148,
+        "real_floor_area_sqft": 33000.0, "real_column_depth_ft": None,
+    },
 ]
 
 if __name__ == "__main__":
