@@ -108,6 +108,7 @@ def run_pipeline(
     if constraints.parking_flag == "likely_short":
         notes.append(f"Parking ratio ({constraints.parking_ratio}/1000sf) may be short for residential use.")
     notes.append(constraints.column_spacing_note)
+    notes.append(constraints.occupancy_change_note)
 
     reasoning = (
         f"Geometry {geo.verdict} ({geo.window_to_core_max_ft:.1f}ft depth, "

@@ -162,6 +162,8 @@ class BuildingConstraintCheck:
     elevator_summary: dict
     column_depth_ft: float | None
     column_spacing_note: str
+    occupancy_change_note: str  # real IBC Group B -> R-2 change-of-use requirement
+    sprinkler_flag: str  # "has_sprinklers" | "no_sprinklers" | "unknown"
 
 
 def check_building_constraints(property_id: int) -> BuildingConstraintCheck:
@@ -178,6 +180,7 @@ def check_building_constraints(property_id: int) -> BuildingConstraintCheck:
             property_id=property_id, zoning_description=None, zoning_flag="unknown",
             parking_ratio=None, parking_flag="unknown", elevator_summary={},
             column_depth_ft=None, column_spacing_note="Property not found.",
+            occupancy_change_note="Property not found.", sprinkler_flag="unknown",
         )
 
     zoning_desc = prop.get("zoningDescription")
@@ -205,10 +208,35 @@ def check_building_constraints(property_id: int) -> BuildingConstraintCheck:
     else:
         note = "No column spacing data available."
 
+    # Real, standard building-code trigger for ANY office-to-residential
+    # conversion, independent of Houston-specific amendments: converting
+    # IBC occupancy Group B (Business/office) to Group R-2 (Residential)
+    # requires a Certificate of Occupancy for the new use, and Group R-2
+    # occupancy requires an automatic sprinkler system throughout (IBC
+    # Section 903.2.8) regardless of building height. Houston has adopted
+    # the 2021 IBC with ~148 local amendments (effective Jan 2024, Ordinance
+    # 2023-9071) - the model-code baseline below still applies under that.
+    has_sprinklers = prop.get("hasSprinklers")
+    if has_sprinklers is True:
+        sprinkler_flag = "has_sprinklers"
+        sprinkler_note = "already has a real fire sprinkler system on record - meets this requirement"
+    elif has_sprinklers is False:
+        sprinkler_flag = "no_sprinklers"
+        sprinkler_note = "has NO sprinkler system on record - a real retrofit cost/scope item, not modeled in the dollar estimate"
+    else:
+        sprinkler_flag = "unknown"
+        sprinkler_note = "sprinkler status not on record - verify before assuming compliance"
+    occupancy_change_note = (
+        "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new "
+        "Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system "
+        f"throughout is required for R-2 occupancy regardless of building height. This building {sprinkler_note}."
+    )
+
     return BuildingConstraintCheck(
         property_id=property_id, zoning_description=zoning_desc, zoning_flag=zoning_flag,
         parking_ratio=parking_ratio, parking_flag=parking_flag, elevator_summary=elevator_summary,
         column_depth_ft=column_depth, column_spacing_note=note,
+        occupancy_change_note=occupancy_change_note, sprinkler_flag=sprinkler_flag,
     )
 
 

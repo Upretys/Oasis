@@ -17,7 +17,8 @@
       "Local apartment vacancy rate unavailable - CoStar's numUnitsVacant field exists but is not populated for any apartment comp in this dataset.",
       "Residential rent from avg of 3 real comps: Palm Living at Vintage Park (0.4km), MAA Legacy Pines (0.6km), MAA Vintage Park (1.0km): $24.25/sf/yr.",
       "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "Column bays are 40ft deep - real column positions aren't in this data, so this is a spacing flag for human review, not a verified per-unit collision check."
+      "Column bays are 40ft deep - real column positions aren't in this data, so this is a spacing flag for human review, not a verified per-unit collision check.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
     ],
     "building_name": "First Community Tower",
     "lat": 29.995495,
@@ -41,7 +42,8 @@
       "Local apartment vacancy rate unavailable - CoStar's numUnitsVacant field exists but is not populated for any apartment comp in this dataset.",
       "Residential rent from avg of 3 real comps: WaterWall Place (0.2km), MAA Afton Oaks (0.4km), Alexan 5151 (0.5km): $28.58/sf/yr.",
       "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available."
+      "No column spacing data available.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building sprinkler status not on record - verify before assuming compliance."
     ],
     "building_name": "Williams Tower",
     "lat": 29.7375702,
@@ -67,7 +69,8 @@
       "Local apartment vacancy rate unavailable - CoStar's numUnitsVacant field exists but is not populated for any apartment comp in this dataset.",
       "Residential rent from avg of 3 real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km): $32.53/sf/yr.",
       "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available."
+      "No column spacing data available.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
     ],
     "building_name": "TC Energy Center",
     "lat": 29.7607687,
@@ -92,7 +95,8 @@
       "Local apartment vacancy rate unavailable - CoStar's numUnitsVacant field exists but is not populated for any apartment comp in this dataset.",
       "Residential rent from avg of 3 real comps: Block 334 Apartments (0.3km), Elev8 Downtown (0.4km), Houston House (0.4km): $28.55/sf/yr.",
       "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available."
+      "No column spacing data available.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
     ],
     "building_name": "1415 Louisiana",
     "lat": 29.7547798,
@@ -119,7 +123,8 @@
       "Residential rent from avg of 3 real comps: 1900 Yorktown (0.4km), The William (0.6km), Creole on Yorktown (0.7km): $18.94/sf/yr.",
       "Construction cost adjusted 1.15x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = ReinforcedConcrete - real per-building adjustment, not the same flat number applied to every building.",
       "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available."
+      "No column spacing data available.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
     ],
     "building_name": "5555 San Felipe",
     "lat": 29.7498236,
@@ -146,7 +151,8 @@
       "Residential rent from avg of 3 real comps: Serena Heights (0.7km), Royal Phoenician (0.7km), Summit at Renaissance Park (0.8km): $17.16/sf/yr.",
       "Construction cost adjusted 1.15x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = ReinforcedConcrete - real per-building adjustment, not the same flat number applied to every building.",
       "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available."
+      "No column spacing data available.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
     ],
     "building_name": "Belchase Bldg",
     "lat": 29.9416795,
@@ -172,7 +178,8 @@
       "Residential rent from avg of 3 real comps: Falls of Town Park (0.5km), Town Park Townhomes (0.5km), TOWN PARK (0.7km): $18.45/sf/yr.",
       "Construction cost adjusted 1.15x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = ReinforcedConcrete - real per-building adjustment, not the same flat number applied to every building.",
       "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available."
+      "No column spacing data available.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
     ],
     "building_name": "Houston Technology Center",
     "lat": 29.7132915,
@@ -199,7 +206,8 @@
       "Residential rent from avg of 3 real comps: Skye Ridge Apartments (0.3km), Salado At Cityview Apartments (1.4km), Collingwood Gardens (1.5km): $17.09/sf/yr.",
       "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building.",
       "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available."
+      "No column spacing data available.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
     ],
     "building_name": "Bridgewood I",
     "lat": 29.937547,
@@ -226,7 +234,8 @@
       "Residential rent from avg of 3 real comps: Galleria Court Apartments (0.2km), Caroline Post Oak (0.3km), Marquee Uptown & Carriage Square (0.3km): $23.32/sf/yr.",
       "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building.",
       "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available."
+      "No column spacing data available.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
     ],
     "building_name": "Halbouty Center",
     "lat": 29.7410658,
@@ -252,7 +261,8 @@
       "Residential rent from avg of 3 real comps: Summit at Renaissance Park (0.4km), Royal Phoenician (0.4km), Serena Heights (0.8km): $17.16/sf/yr.",
       "Construction cost adjusted 1.15x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = ReinforcedConcrete - real per-building adjustment, not the same flat number applied to every building.",
       "Houston has no citywide zoning - CoStar's zoning field isn't a real gate here. The real constraint is private deed restrictions, which aren't in this dataset.",
-      "No column spacing data available."
+      "No column spacing data available.",
+      "Converting office (IBC occupancy Group B) to residential (Group R-2) legally requires a new Certificate of Occupancy and triggers IBC Section 903.2.8 - an automatic sprinkler system throughout is required for R-2 occupancy regardless of building height. This building already has a real fire sprinkler system on record - meets this requirement."
     ],
     "building_name": "CityNorth 1",
     "lat": 29.9435561,
