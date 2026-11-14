@@ -22,7 +22,7 @@ sale comp exists, and a stated construction-cost assumption.
 floors (real lease history, all leases ended, none current) have **$0 real
 office income to give up** by converting - very different economics from an
 occupied floor. A blind portfolio scan of 35 real Houston office buildings
-found 19 with positive implied conversion value, almost entirely buildings
+found 21 with positive implied conversion value, almost entirely buildings
 that are genuinely vacant right now.
 
 Every result also carries a real **value_confidence** score (0-1): how many
@@ -31,7 +31,40 @@ material, real residential rent comp} actually backed that dollar figure,
 vs. a stated default. Buildings are ranked by real value impact x geometry
 confidence x value confidence - not by dollar amount alone, so a number
 built entirely on real data outranks an equally large one resting on
-defaults.
+defaults. (This wasn't always true: the ranking code originally computed
+both confidence scores and then silently sorted by dollar amount alone,
+contradicting this exact claim - fixed once found.)
+
+## Automated anomaly detection
+
+`track_b_value/anomaly_detection.py` is a real, trained unsupervised model,
+not a hand-picked threshold: it computes robust statistics (median +/- 3*IQR)
+from the full real CoStar population - 3,217 real cap rates and 18,680 real
+apartment rent data points citywide, not just the featured buildings - and
+flags any computed cap rate or residential rent that falls outside the real
+population's normal range. It formalizes the exact manual process used to
+catch several of the bugs below (a value "looked wrong," so the raw data got
+checked) into an automatic check that runs on every result.
+
+## Cap rate sensitivity analysis
+
+Every priced result also re-runs the same real value math at 9 other real
+cap rate points (5%-9%) and states the real breakeven cap rate range - the
+rate at which implied value crosses $0, using the real construction-cost
+range's own low/high ends. The cap rate is the most commonly-defaulted real
+input (no real sale comp exists for most buildings), so this shows how much
+a verdict actually depends on that one assumption instead of presenting a
+single, fragile number. Shown in the result's collapsed technical detail and
+in the downloadable report, not the main card.
+
+## Data & Methodology view
+
+A dedicated page in the web demo (button next to Portfolio Scan), backed by
+`/api/data_methodology`, computed live from the actual kit files - nothing
+hardcoded: real record counts across the 4 source datasets (85,000+ total
+real CoStar records), the anomaly detector's real population stats, and a
+specific, honest list of real bugs found by checking raw data against this
+project's own assumptions, each with its real root cause and fix.
 
 ## Structure
 
@@ -111,13 +144,16 @@ deterministic pipeline's notes.
 
 ## Test buildings
 
-14 real Houston buildings are permanently wired up in `demo/render_floor.py`'s
-`BUILDINGS` list (First Community Tower, Williams Tower, TC Energy Center,
-1415 Louisiana, 5555 San Felipe, Belchase Bldg, Houston Technology Center,
-Bridgewood I, Halbouty Center, CityNorth 1, Woodway Center, 7900 Fannin,
-Sage Park Office Building, 1113 Vine St - the last 4 added as the real top-5
-by confidence-weighted rank_score), plus 21 more scanned once in
-`demo/portfolio_scan.json` (35 total, 19 with positive implied value).
+5 real Houston buildings are permanently wired up in `demo/render_floor.py`'s
+`BUILDINGS` list (Williams Tower, TC Energy Center, Woodway Center,
+7900 Fannin, Two Bering Park) - deliberately trimmed down from 14 to this
+smaller set, chosen for real classification variety (not_feasible, feasible
+x3 at different confidence levels, and marginal/escalate), rather than
+breadth. The other 9 originally-tested buildings are no longer in this
+permanent list but remain in `demo/portfolio_scan.json`'s 35-building blind
+batch (see below) along with 26 more never hand-picked - 21 of the 35 show
+positive implied value, ranked by confidence-weighted `rank_score`, not
+dollar amount alone.
 
 ## Downloadable report
 
