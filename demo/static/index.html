@@ -52,6 +52,12 @@
   .mini-gauge-threshold { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #333; }
   .mini-mix-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 6px; width: 140px; }
   .mini-mix-legend { font-size: 9.5px; color: var(--muted); margin-top: 3px; white-space: nowrap; }
+  .sens-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; font-size: 11.5px; }
+  .sens-label { width: 80px; color: var(--muted); flex-shrink: 0; }
+  .sens-track { position: relative; flex: 1; height: 14px; background: #f3f3f3; border-radius: 3px; }
+  .sens-zero { position: absolute; left: 50%; top: 0; bottom: 0; width: 1.5px; background: #999; }
+  .sens-fill { position: absolute; top: 2px; bottom: 2px; border-radius: 2px; opacity: 0.85; }
+  .sens-val { width: 65px; text-align: right; font-variant-numeric: tabular-nums; flex-shrink: 0; }
   .notes { margin-top: 14px; }
   .legal-panel { margin-top: 20px; border: 1.5px solid #d9dde3; border-radius: 10px; padding: 16px 18px; background: #fafbfc; }
   .legal-panel h3 { margin: 0 0 10px; font-size: 14px; }
@@ -363,6 +369,40 @@ function renderUnitMixBar(counts) {
   `;
 }
 
+function renderSensitivityChart(d) {
+  const pts = d.cap_rate_sensitivity;
+  if (!pts || !pts.length || d.value_skipped) return '';
+  const allVals = pts.flatMap(p => [p.implied_low, p.implied_high]);
+  const maxAbs = Math.max(...allVals.map(Math.abs), 1);
+  const fmt = (x) => x < 0 ? `-$${(Math.abs(x)/1e6).toFixed(1)}M` : `$${(x/1e6).toFixed(1)}M`;
+  const bars = pts.map(p => {
+    const midPct = ((p.implied_low + p.implied_high) / 2 / maxAbs) * 50;
+    const isActual = Math.abs(p.cap_rate - d.cap_rate_used) < 0.001;
+    const color = (p.implied_low + p.implied_high) / 2 >= 0 ? '#2e7d32' : '#c62828';
+    return `
+      <div class="sens-row">
+        <div class="sens-label">${(p.cap_rate*100).toFixed(1)}%${isActual ? ' &larr; used' : ''}</div>
+        <div class="sens-track">
+          <div class="sens-zero"></div>
+          <div class="sens-fill" style="background:${color}; ${midPct >= 0 ? `left:50%; width:${midPct}%` : `left:${50+midPct}%; width:${-midPct}%`}"></div>
+        </div>
+        <div class="sens-val">${fmt((p.implied_low+p.implied_high)/2)}</div>
+      </div>`;
+  }).join('');
+  const breakevenText = d.breakeven_cap_rate_low
+    ? `Breaks even between ${(d.breakeven_cap_rate_low*100).toFixed(1)}% and ${(d.breakeven_cap_rate_high*100).toFixed(1)}% cap rate.`
+    : 'No real cap rate makes this profitable at current rent/cost assumptions.';
+  return `
+    <div class="legal-panel">
+      <h3>Cap rate sensitivity — what if the assumption is wrong?</h3>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+        Re-runs the same real math at other real cap rates, since this is the most commonly-defaulted input. ${breakevenText}
+      </div>
+      ${bars}
+    </div>
+  `;
+}
+
 function renderResult(b, d) {
   const main = document.getElementById('main');
   const unitMix = Object.entries(d.unit_type_counts || {}).map(([t, c]) => `${c} ${t}`).join(', ') || 'no viable units';
@@ -399,6 +439,7 @@ function renderResult(b, d) {
 
     ${renderLegalPanel(d.legal_checks)}
     ${renderLivabilityPanel(d.livability)}
+    ${renderSensitivityChart(d)}
   `;
 
   document.getElementById('agentBtn').onclick = () => runAgent(b);

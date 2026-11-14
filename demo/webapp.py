@@ -184,6 +184,10 @@ def api_analyze():
         "classification": result.classification,
         "classification_confidence": result.classification_confidence,
         "classification_path": result.classification_path,
+        "cap_rate_sensitivity": result.cap_rate_sensitivity,
+        "cap_rate_used": result.cap_rate_used,
+        "breakeven_cap_rate_low": result.breakeven_cap_rate_low,
+        "breakeven_cap_rate_high": result.breakeven_cap_rate_high,
         "reasoning_text": result.reasoning_text,
         "notes": result.notes,
         "legal_checks": {

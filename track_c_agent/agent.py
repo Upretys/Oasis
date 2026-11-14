@@ -49,6 +49,10 @@ class PipelineResult:
     classification: str  # "feasible" | "marginal" | "not_feasible" - from FeasibilityClassifier
     classification_confidence: float
     classification_path: list[str]
+    cap_rate_sensitivity: list
+    cap_rate_used: float | None
+    breakeven_cap_rate_low: float | None
+    breakeven_cap_rate_high: float | None
     reasoning_text: str
     notes: list[str]
 
@@ -96,6 +100,7 @@ def run_pipeline(
             implied_value_impact_low=None, implied_value_impact_high=None,
             value_confidence=0.0, classification=classification.label,
             classification_confidence=classification.confidence, classification_path=classification.decision_path,
+            cap_rate_sensitivity=[], cap_rate_used=None, breakeven_cap_rate_low=None, breakeven_cap_rate_high=None,
             reasoning_text=reasoning, notes=notes,
         )
 
@@ -146,6 +151,8 @@ def run_pipeline(
         implied_value_impact_high=round(val.implied_value_impact_high, 0),
         value_confidence=val.value_confidence, classification=classification.label,
         classification_confidence=classification.confidence, classification_path=classification.decision_path,
+        cap_rate_sensitivity=val.cap_rate_sensitivity, cap_rate_used=val.cap_rate,
+        breakeven_cap_rate_low=val.breakeven_cap_rate_low, breakeven_cap_rate_high=val.breakeven_cap_rate_high,
         reasoning_text=reasoning, notes=notes,
     )
 
