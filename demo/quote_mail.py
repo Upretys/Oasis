@@ -8,25 +8,41 @@ from email.utils import parseaddr
 
 import requests
 
-PROFILE_EMAIL = os.environ.get("GMAIL_SENDER_EMAIL", "")
-
-# First name, last name, email. Real personal addresses don't belong in
-# committed source - sample ones use the .example.com domain (RFC 2606,
-# reserved for documentation, guaranteed undeliverable). A real address for
-# testing the actual send/reply loop can be added locally via TEST_CONTRACTOR_*
-# in .env, never committed.
-CONTRACTORS = (
+_SAMPLE_CONTRACTORS = (
     ("Jordan", "Rivera", "bids@gulfcoast-construction.example.com"),
     ("Morgan", "Patel", "estimating@lonestar-mep.example.com"),
     ("Casey", "Brooks", "projects@heights-interiors.example.com"),
 )
-_test_first, _test_last, _test_email = (
-    os.environ.get("TEST_CONTRACTOR_FIRST_NAME", ""),
-    os.environ.get("TEST_CONTRACTOR_LAST_NAME", ""),
-    os.environ.get("TEST_CONTRACTOR_EMAIL", ""),
-)
-if _test_first and _test_last and _test_email:
-    CONTRACTORS = ((_test_first, _test_last, _test_email),) + CONTRACTORS
+
+
+def profile_email():
+    """Real bug, found and fixed: this used to be a module-level constant
+    read once at import time with os.environ.get(...). oasis.py imports
+    quote_mail at ITS OWN module level, and webapp.py does `import oasis`
+    before calling oasis.load_env() - so quote_mail's constants were always
+    being evaluated against an empty environment, before .env was ever
+    read. A function re-reads the real, current environment on every call
+    instead of silently freezing a blank value forever."""
+    return os.environ.get("GMAIL_SENDER_EMAIL", "")
+
+
+def contractors():
+    """First name, last name, email. Real personal addresses don't belong
+    in committed source - sample ones use the .example.com domain (RFC
+    2606, reserved for documentation, guaranteed undeliverable). A real
+    address for testing the actual send/reply loop can be added locally
+    via TEST_CONTRACTOR_* in .env, never committed. Same import-order bug
+    as profile_email() above - a function, not a module-level constant,
+    so it sees the real environment."""
+    out = _SAMPLE_CONTRACTORS
+    first, last, email = (
+        os.environ.get("TEST_CONTRACTOR_FIRST_NAME", ""),
+        os.environ.get("TEST_CONTRACTOR_LAST_NAME", ""),
+        os.environ.get("TEST_CONTRACTOR_EMAIL", ""),
+    )
+    if first and last and email:
+        out = ((first, last, email),) + out
+    return out
 
 OAUTH_KEYS = ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN")
 sent_threads = {}

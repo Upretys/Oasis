@@ -645,7 +645,7 @@ def load_contractors() -> list:
     return [
         {"id": str(i), "contact": f"{first} {last}", "email": email,
          "sample": quote_mail.is_sample(email)}
-        for i, (first, last, email) in enumerate(quote_mail.CONTRACTORS, 1)
+        for i, (first, last, email) in enumerate(quote_mail.contractors(), 1)
     ]
 
 
@@ -705,7 +705,7 @@ def send_quotes(subject: str, body: str, contractor_ids: list, attachments: dict
     if live and not save_draft and any(c["sample"] for c in chosen):
         raise ValueError("Replace the sample addresses with demo inboxes before sending through Gmail.")
     smtp = live and not save_draft and bool(quote_mail.smtp_password())
-    gmail = quote_mail.Gmail(quote_mail.PROFILE_EMAIL) if live and not smtp else None
+    gmail = quote_mail.Gmail(quote_mail.profile_email()) if live and not smtp else None
     if not live:
         os.makedirs(OUTBOX_DIR, exist_ok=True)
     batch = uuid4().hex
@@ -713,7 +713,7 @@ def send_quotes(subject: str, body: str, contractor_ids: list, attachments: dict
     for contractor in chosen:
         msg = EmailMessage()
         msg["Subject"] = subject
-        msg["From"] = quote_mail.PROFILE_EMAIL
+        msg["From"] = quote_mail.profile_email()
         msg["To"] = contractor["email"]
         msg.set_content(body.replace("{contractor}", contractor["contact"]))
         for filename, content in attachments.items():

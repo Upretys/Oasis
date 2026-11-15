@@ -537,7 +537,7 @@ def api_board_turn():
 
 @app.get("/api/quotes/profile")
 def api_quotes_profile():
-    return jsonify(email=quote_mail.PROFILE_EMAIL, gmail_ready=quote_mail.gmail_ready(),
+    return jsonify(email=quote_mail.profile_email(), gmail_ready=quote_mail.gmail_ready(),
                    will_send=os.getenv("OASIS_SEND_EMAIL") == "1")
 
 
@@ -552,7 +552,7 @@ def require_local_mail():
 def api_quote_replies():
     require_local_mail()
     try:
-        replies = quote_mail.Gmail(quote_mail.PROFILE_EMAIL).replies() if quote_mail.sent_threads else []
+        replies = quote_mail.Gmail(quote_mail.profile_email()).replies() if quote_mail.sent_threads else []
     except quote_mail.GmailError as e:
         raise AnalysisError("gmail_error", str(e), 502) from e
     response = jsonify(replies=replies)
