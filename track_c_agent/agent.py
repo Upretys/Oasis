@@ -7,13 +7,6 @@ Ties Track A (geometry) and Track B (value) together with real triage logic:
 - Treats "escalate" as a real third outcome, not a forced pass/fail
 - Produces one combined, reasoned verdict per floor
 
-Two ways to run this:
-1. `run_pipeline(...)` - deterministic orchestration, no LLM needed. This is
-   the actual decision logic and the thing to trust for correctness.
-2. `run_agent_llm(...)` - wraps the same two functions as tools for Claude to
-   call. Requires ANTHROPIC_API_KEY. Use this for the demo to show genuine
-   tool-calling, but `run_pipeline` is what's actually being exercised either
-   way - the LLM is choosing when to call it, not replacing its logic.
 """
 
 from __future__ import annotations
