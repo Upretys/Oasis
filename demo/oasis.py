@@ -205,11 +205,17 @@ def floor_plan(vexcel_response: dict, lat: float, lon: float, floor_sqft: float,
     # one further - just drop the smaller unit entirely. A floor plan
     # that's honestly missing one small unit is a better real result than
     # one showing two colors visibly overlapping.
+    # MIN_GAP_FT matches the erosion margin above: close the gap between
+    # "technically not overlapping" and "visually not touching" by also
+    # dropping a unit that's merely too close to another, not just one
+    # that literally intersects it - the same stroke-width reasoning as
+    # the erosion fix, applied as a hard guarantee instead of relying on
+    # the erosion distance alone to always be enough.
+    MIN_GAP_FT = 0.3
     kept = []
     for u in sorted(rounded_units, key=lambda u: u["area_sqft"], reverse=True):
         poly = Polygon(u["polygon_ft"])
-        if any(poly.intersects(Polygon(k["polygon_ft"])) and
-               poly.intersection(Polygon(k["polygon_ft"])).area > 0.001 for k in kept):
+        if any(poly.distance(Polygon(k["polygon_ft"])) < MIN_GAP_FT for k in kept):
             continue
         kept.append(u)
     rounded_units = sorted(kept, key=lambda u: u["id"] or "")
