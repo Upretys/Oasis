@@ -268,7 +268,7 @@ async function startBoard(force) {
 function scrollPanel() { const p = $('#panel'); if (S.tab === 'boardroom' && S.board.running) p.scrollTop = p.scrollHeight; }
 
 // ---------- quotes ----------
-const PROFILE = { name: 'Sam', email: 'sam@example.com', phone: '(713) 555-0142', location: 'Houston, TX' };
+const PROFILE = { name: 'Sam', phone: '(713) 555-0142', location: 'Houston, TX' };
 
 async function openQuotes() {
   if (S.drafting) return;
@@ -278,7 +278,7 @@ async function openQuotes() {
   try {
     const d = await api('/api/quotes/draft', { property_id: b.property_id, floor: S.an.floor, sender: PROFILE.name });
     if (!current()) return;
-    S.quotes = { stage: 'draft', subject: d.subject, body: d.body, live: d.live, contractors: d.contractors, picked: new Set(d.contractors.map(c => c.id)), willSend: d.will_send, results: null, sending: false };
+    S.quotes = { stage: 'draft', subject: d.subject, body: d.body, live: d.live, contractors: d.contractors, picked: new Set(d.contractors.filter(c => !PROFILE.will_send || !c.sample).map(c => c.id)), willSend: PROFILE.will_send, results: null, sending: false };
     go(bHash('quotes'));
     if (!S.preview) await sendQuotes();
   } catch (e) { if (current()) toast(e.message); }
@@ -289,22 +289,48 @@ function readDraft() {
   if (s) S.quotes.subject = s.value;
   if (t) S.quotes.body = t.value;
 }
-async function sendQuotes() {
+async function sendQuotes(saveDraft = false) {
   const q = S.quotes;
   if (!q || q.sending || q.stage !== 'draft') return;
   readDraft();
   if (!q.picked.size) { toast('Pick at least one contractor.'); return; }
   q.sending = true; render();
   try {
+    const planPng = S.plan ? await quotePlanPng(S.plan) : null;
     const r = await api('/api/quotes/send', {
-      subject: q.subject, body: q.body, contractor_ids: [...q.picked],
-      report_html: buildReport(), plan_svg: S.plan ? planSvg(S.plan, 'after', null, true) : null,
+      subject: q.subject, body: q.body, contractor_ids: [...q.picked], save_draft: saveDraft,
+      report_text: quoteReportText(), plan_png: planPng?.split(',')[1],
     });
     q.results = {}; r.results.forEach(x => { q.results[x.id] = x; });
     q.mode = r.mode; q.stage = 'sent';
-    toast(r.mode === 'smtp' ? 'Quote requests sent.' : 'Quote requests saved to the outbox.');
+    const failed = r.results.find(x => x.status === 'failed');
+    toast(failed ? failed.error
+      : ['gmail', 'smtp'].includes(r.mode) ? 'Quote requests sent through Gmail.'
+      : r.mode === 'gmail-draft' ? 'Quote drafts saved in Gmail.' : 'Quote requests saved to the outbox.');
   } catch (e) { toast(e.message); }
   q.sending = false; render();
+}
+
+
+const seenReplies = new Set();
+async function checkQuoteReplies() {
+  try {
+    const { replies } = await api('/api/quotes/replies');
+    const fresh = replies.filter(reply => !seenReplies.has(reply.id));
+    fresh.forEach(reply => seenReplies.add(reply.id));
+    if (fresh.length) {
+      toast(fresh.length === 1 ? `Contractor reply from ${fresh[0].sender}` : `${fresh.length} new contractor replies`);
+    }
+    const link = $('#quoteReplies');
+    link.hidden = !seenReplies.size;
+    link.textContent = `Contractor replies (${seenReplies.size})`;
+  } catch (error) {
+    const link = $('#quoteReplies');
+    link.hidden = false;
+    link.textContent = 'Check Gmail for replies';
+  } finally {
+    setTimeout(checkQuoteReplies, 12000);
+  }
 }
 
 // ---------- report ----------
@@ -337,6 +363,41 @@ ${S.plan ? `<h2>Tentative floor plan</h2>${planSvg(S.plan, 'after', null, true)}
 ${a.image_base64 ? `<h2>Pipeline render</h2><img alt="Floor plan render from the pipeline" src="data:image/png;base64,${a.image_base64}">` : ''}
 </body></html>`;
 }
+function quoteReportText() {
+  const report = new DOMParser().parseFromString(buildReport(), 'text/html');
+  return [...report.body.querySelectorAll('h1, h2, h3, p, tr, li')].map(element => {
+    if (element.tagName === 'TR') {
+      return [...element.cells].map(cell => cell.textContent.trim()).join(' · ');
+    }
+    const text = element.textContent.trim();
+    if (element.tagName === 'LI') return `• ${text}`;
+    return element.tagName.startsWith('H') ? `\n${text}\n` : text;
+  }).join('\n').trim() + '\n';
+}
+
+async function quotePlanPng(plan) {
+  const markup = planSvg(plan, 'after', null, true).replace(
+    /viewBox="0 0 (\d+) (\d+)"/, 'width="$1" height="$2" $&'
+  );
+  const svg = new Blob([markup], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(svg);
+  try {
+    const image = new Image();
+    image.src = url;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth * 2;
+    canvas.height = image.naturalHeight * 2;
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 function downloadReport() {
   if (!S.an) return;
   download(`oasis-report-${S.an.building.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${S.an.floor != null ? 'floor-' + S.an.floor : 'typical-floor'}.html`, buildReport(), 'text/html');
@@ -586,12 +647,10 @@ function proceedBar() {
 
 function boardPanel() {
   const bd = S.board, fs = finalStances(), c = tally(), total = c.for + c.conditional + c.against;
-  const scripted = bd.turns.length && !bd.turns.some(t => t.live);
   let html = `<div class="row between"><h2 class="h2">Boardroom discussion</h2>${bd.running
     ? `<span class="row small" style="color:var(--red);font-weight:600;gap:6px"><span class="livedot"></span>Live · round ${bd.round || 1} of 2</span>`
     : bd.done ? '<span class="tag neutral">Finished</span>' : ''}</div>
     <div class="seats">${S.ov.agents.map(g => `<div class="seat">${avatar(g.id, 44, bd.speaking === g.id)}<span>${esc(g.name)}</span>${fs[g.id] ? stanceTag(fs[g.id].stance) : '<span class="tag neutral">Listening</span>'}</div>`).join('')}</div>`;
-  if (scripted) html += `<div class="notice info">${ic('alert', 18)}<span>No Anthropic API key is set, so these statements are written by rule from the analysis numbers. Add ANTHROPIC_API_KEY to .env for live AI agents.</span></div>`;
   html += `<div class="col" style="gap:10px" aria-live="polite">${bd.turns.map(t => `<div class="say">${avatar(t.agent, 34)}<div class="bubble ${t.agent}">
       <span class="who">${esc(S.ov.agents.find(g => g.id === t.agent).name)}</span>${stanceTag(t.stance)}<p style="margin-top:4px">${esc(t.text)}</p></div></div>`).join('')}
     ${bd.speaking ? `<div class="row muted small">${avatar(bd.speaking, 34)}${esc(S.ov.agents.find(g => g.id === bd.speaking).name)} is ${bd.turns.length ? 'replying' : 'thinking'}…</div>` : ''}</div>`;
@@ -614,25 +673,28 @@ function quotesPanel() {
   const statusTag = c => {
     if (!sent) return '';
     const r = q.results[c.id];
-    return r ? `<span class="tag ${r.status === 'failed' ? 'fail' : 'pass'}">${r.status === 'sent' ? 'Sent' : r.status === 'failed' ? 'Failed' : 'In outbox'}</span>` : '<span class="tag neutral">Skipped</span>';
+    return r ? `<span class="tag ${r.status === 'failed' ? 'fail' : 'pass'}">${r.status === 'sent' ? 'Sent' : r.status === 'failed' ? 'Check Gmail' : r.status === 'drafted' ? 'Gmail draft' : 'In outbox'}</span>` : '<span class="tag neutral">Skipped</span>';
   };
+  const failed = sent && Object.values(q.results).some(r => r.status === 'failed');
+  const resultTitle = failed ? 'Check Gmail for delivery status' : ['gmail', 'smtp'].includes(q.mode)
+    ? 'Quote requests sent' : q.mode === 'gmail-draft' ? 'Drafts saved in Gmail' : 'Quote requests saved to outbox';
   return `${head(`${flr(S.an, true)} / Quotes`)}
     <div class="verdict ${sent ? 'pass' : 'review'}" style="flex-direction:row;align-items:center;gap:12px">
       <span class="cicon ${sent ? 'pass' : 'review'}" style="width:40px;height:40px;background:#fff">${ic(sent ? 'check' : 'mail', 20, 2.2)}</span>
-      <div><div class="label" style="font-size:18px">${sent ? (q.mode === 'smtp' ? 'Quote requests sent' : 'Quote requests saved') : 'Check the email before it goes'}</div>
-      <div class="small muted">${sent ? (q.mode === 'smtp' ? 'The email agent wrote to your verified contractors.' : 'Demo mode: each email was written to output/outbox, not sent.') : 'Edit anything on the right, then send.'}</div></div></div>
+      <div><div class="label" style="font-size:18px">${sent ? resultTitle : 'Check the email before it goes'}</div>
+      <div class="small muted">${sent ? (q.mode === 'gmail' ? 'Oasis checks Gmail for replies while the app is open.' : q.mode === 'smtp' ? 'Replies arrive in Gmail.' : q.mode === 'gmail-draft' ? 'Open Gmail Drafts to edit or send.' : 'Find the messages in output/outbox.') : 'Edit anything on the right, then send.'}</div></div></div>
     <ol class="steps">
       ${step('done', 'Email drafted', q.live ? 'Written by the email agent from the report' : 'Written from the report and floor plan')}
-      ${step(sent ? 'done' : 'now', sent ? (q.mode === 'smtp' ? 'Sent to contractors' : 'Saved to the outbox') : 'Your review', sent ? `${Object.keys(q.results).length} emails, just now` : 'Nothing has been sent yet')}
-      ${step(sent ? 'now' : 'todo', 'Waiting for replies', sent && q.mode !== 'smtp' ? 'Set up SMTP in .env to send for real' : 'Replies arrive in your inbox')}
+      ${step(sent ? 'done' : 'now', sent ? resultTitle : 'Your review', sent ? `${Object.keys(q.results).length} email requests` : 'Nothing has been sent yet')}
+      ${step(sent ? 'now' : 'todo', 'Waiting for replies', sent && q.mode === 'outbox' ? 'Set up Gmail to send live' : 'Replies arrive in Gmail')}
       ${step('todo', 'Compare quotes', 'Side by side, lowest first')}
     </ol>
-    <div class="row between"><h2 class="h2">${sent ? 'Contractors contacted' : 'Verified contractors'}</h2>${q.contractors.some(c => c.sample) ? '<span class="tag sample">Sample list</span>' : ''}</div>
+    <div class="row between"><h2 class="h2">Contractors</h2>${q.contractors.some(c => c.sample) ? '<span class="tag sample">Sample list</span>' : ''}</div>
     <ul class="contractors">${q.contractors.map(c => `<li>${sent ? `<span class="cbox">${ic('user', 18)}</span>` : `<input type="checkbox" data-act="pick" data-id="${c.id}" id="pick-${c.id}" ${q.picked.has(c.id) ? 'checked' : ''}>`}
-      <label for="pick-${c.id}" style="flex:1;min-width:0"><b class="row" style="gap:6px">${esc(c.company)}<span class="row small" style="gap:3px;color:var(--teal)">${ic('check', 12, 2.8)}Verified</span></b><span class="small muted">${esc(c.trade)}</span></label>${statusTag(c)}</li>`).join('')}</ul>
+      <label for="pick-${c.id}" style="flex:1;min-width:0"><b class="row" style="gap:6px">${esc(c.contact)}</b><span class="small muted">${esc(c.email)}</span></label>${statusTag(c)}</li>`).join('')}</ul>
     <div class="col spacer">
       ${sent ? `<div class="btns"><a class="btn primary" href="${bHash('verdict')}">Back to the building</a><a class="btn" href="#/">${ic('home')}Back to the map</a></div>`
-        : `<div class="btns"><button class="btn primary" data-act="send" ${q.sending ? 'disabled' : ''}>${q.sending ? '<span class="spinner"></span>' : ic('mail')}Send to ${q.picked.size} contractor${q.picked.size === 1 ? '' : 's'}</button></div>
+        : `<div class="btns"><button class="btn primary" data-act="send" ${q.sending ? 'disabled' : ''}>${q.sending ? '<span class="spinner"></span>' : ic('mail')}${q.willSend ? `Send to ${q.picked.size} contractor${q.picked.size === 1 ? '' : 's'}` : 'Save to outbox'}</button></div>
            <div class="btns"><a class="btn" href="${bHash('boardroom')}">Cancel</a></div>`}
     </div>`;
 }
@@ -709,15 +771,16 @@ function mapUi() {
     const q = S.quotes, sent = q.stage === 'sent';
     html += `<div class="shade" style="background:rgba(13,25,32,.45)"></div><div class="sheet narrow">
       <div class="row between"><h2 style="font-size:18px">${sent ? (q.mode === 'outbox' ? 'Email saved to outbox' : 'Quote request email') : 'Quote request email'}</h2>${q.live ? `<span class="tag pass">${ic('spark', 14)}Written by the email agent</span>` : ''}${overlayControls('quotes', 'quote email')}</div>
-      <div class="mail-meta"><span class="muted">To</span><span>${q.picked.size} verified contractor${q.picked.size === 1 ? '' : 's'}, one email each</span>
+      <div class="mail-meta"><span class="muted">From</span><span>${esc(PROFILE.email || "")}</span><span class="muted">To</span><span>${q.picked.size} contractor${q.picked.size === 1 ? '' : 's'}, one email each</span>
         <label class="muted" for="mailSubject">Subject</label>${sent ? `<b>${esc(q.subject)}</b>` : `<input class="field" id="mailSubject" value="${esc(q.subject)}">`}</div>
       ${sent ? `<div class="mail-body">${esc(q.body.replace('{contractor}', '[each contact’s name]'))}</div>` : `<label class="sr" for="mailBody">Email body</label><textarea class="field" id="mailBody">${esc(q.body)}</textarea><p class="small muted">{contractor} is replaced with each contact’s name.</p>`}
       ${!sent && !q.willSend ? '<p class="small muted">Demo mode saves requests to the outbox.</p>' : ''}
       <div class="quote-actions">
-        <button class="attach" data-act="quote-report">${ic('download', 16)}oasis-report.html</button>
-        ${S.plan ? `<button class="attach" data-act="quote-plan">${ic('download', 16)}tentative-floor-plan.svg</button>` : ''}
+        <button class="attach" data-act="quote-report">${ic('download', 16)}oasis-report.txt</button>
+        ${S.plan ? `<button class="attach" data-act="quote-plan">${ic('download', 16)}tentative-floor-plan.png</button>` : ''}
+        ${!sent && PROFILE.gmail_ready ? `<button class="btn" data-act="gmail-draft" ${q.sending || !q.picked.size ? 'disabled' : ''}>Save to Gmail Drafts</button>` : ''}
         ${sent ? '' : `<button class="btn primary" data-act="send" ${q.sending || !q.picked.size ? 'disabled' : ''}>
-          ${q.sending ? 'Working…' : ic('mail') + (q.picked.size === q.contractors.length ? 'Send to all' : 'Send to selected')}
+          ${q.sending ? 'Working…' : ic('mail') + (!q.willSend ? 'Save to outbox' : q.picked.size === q.contractors.length ? 'Send to all' : 'Send to selected')}
         </button>`}
       </div></div>`;
 
@@ -725,8 +788,8 @@ function mapUi() {
   if (S.modal && a && visible('confirm')) {
     html += `<div class="modal-wrap"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
       <div class="row between" style="align-items:flex-start"><h2 id="mt">Proceed with converting ${flr(a)}?</h2>${overlayControls('confirm', 'quote confirmation')}</div>
-      <p class="muted" style="font-size:15px">If you say yes, the email agent asks verified local contractors from your database for quotes. You sign and pay nothing.</p>
-      <div class="card col" style="gap:10px">${['Writes one email to each verified contractor', `Attaches the report${S.plan ? ' and the tentative floor plan' : ''}`, 'You compare the quotes when they come back'].map(t => `<span class="row" style="gap:10px;color:var(--ink)"><span style="color:var(--teal)">${ic('check', 18, 2.4)}</span>${t}</span>`).join('')}</div>
+      <p class="muted" style="font-size:15px">If you say yes, the email agent asks local contractors from your demo list for quotes. You sign and pay nothing.</p>
+      <div class="card col" style="gap:10px">${['Writes one email to each contractor', `Attaches the report${S.plan ? ' and the tentative floor plan' : ''}`, 'You compare the quotes when they come back'].map(t => `<span class="row" style="gap:10px;color:var(--ink)"><span style="color:var(--teal)">${ic('check', 18, 2.4)}</span>${t}</span>`).join('')}</div>
       <label class="row" style="gap:10px;min-height:44px"><input type="checkbox" id="preview" ${S.preview ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--teal)">Let me read the email before it is sent</label>
       <div class="btns" style="flex-wrap:wrap"><button class="btn primary" data-act="proceed-yes">${ic('check')}Yes, request quotes</button><button class="btn" data-act="modal-close">Not now</button></div></div></div>`;
   }
@@ -1168,8 +1231,15 @@ const ACT = {
     dialog.showModal();
   },
   report() { downloadReport(); },
-  'quote-report'() { download('oasis-report.html', buildReport(), 'text/html'); },
-  'quote-plan'() { if (S.plan) download('tentative-floor-plan.svg', planSvg(S.plan, 'after', null, true), 'image/svg+xml'); },
+  'quote-report'() { download('oasis-report.txt', quoteReportText(), 'text/plain;charset=utf-8'); },
+  async 'quote-plan'() {
+    if (!S.plan) return;
+    try {
+      const url = await quotePlanPng(S.plan);
+      const blob = await (await fetch(url)).blob();
+      download('tentative-floor-plan.png', blob, 'image/png');
+    } catch (e) { toast('Could not prepare the floor plan image.'); }
+  },
   floor(el) { S.floor = +el.dataset.floor; S.floorErr = null; render(); },
   'plan-open'() { if (S.plan) { S.minimized.delete('plan'); S.planOpen = true; S.planView = 'after'; render(); } },
   'plan-close'() { S.minimized.delete('plan'); S.planOpen = false; render(); },
@@ -1186,6 +1256,7 @@ const ACT = {
   'proceed-yes'() { S.preview = $('#preview').checked; openQuotes(); },
   pick(el) { readDraft(); if (el.checked) S.quotes.picked.add(el.dataset.id); else S.quotes.picked.delete(el.dataset.id); render(); },
   send() { sendQuotes(); },
+  'gmail-draft'() { sendQuotes(true); },
   profile() { const p = $('#profilePop'), open = p.hidden; p.hidden = !open; $('#profileBtn').setAttribute('aria-expanded', String(open)); },
   'rotate-left'() { if (M.ready) M.map.easeTo({ bearing: M.map.getBearing() - 45, duration: 600 }); },
   rotate() { if (M.ready) M.map.easeTo({ bearing: M.map.getBearing() + 45, duration: 600 }); },
@@ -1227,15 +1298,20 @@ window.addEventListener('hashchange', route);
 (async function start() {
   $('#menuBtn').innerHTML = ic('menu', 22); $('#searchIcon').innerHTML = ic('search'); $('#profileBtn').innerHTML = ic('user', 22);
   $('#panel').innerHTML = '<div class="loading"><span class="spinner"></span>Loading Houston…</div>';
-  try { S.ov = await api('/api/overview'); }
+  try {
+    const [overview, mail] = await Promise.all([api('/api/overview'), api('/api/quotes/profile')]);
+    S.ov = overview;
+    Object.assign(PROFILE, mail);
+  }
   catch (e) { $('#panel').innerHTML = `<div class="notice err">Could not load the building list. ${esc(e.message)}</div>`; return; }
   S.ov.buildings.forEach(b => { S.byId[b.property_id] = b; });
   $('#profilePop').innerHTML = `<b class="profile-name">${PROFILE.name}</b>
     <dl class="profile-details">
-      <dt>Email</dt><dd>${PROFILE.email}</dd>
+      <dt>Email</dt><dd>${esc(PROFILE.email)}</dd>
       <dt>Phone</dt><dd>${PROFILE.phone}</dd>
       <dt>Location</dt><dd>${PROFILE.location}</dd>
-    </dl>`;
+    </dl><a id="quoteReplies" hidden href="https://mail.google.com/" target="_blank" rel="noopener">Contractor replies</a>`;
+  if (PROFILE.gmail_ready && PROFILE.will_send) checkQuoteReplies();
   M.init();
   $('#mapMode').addEventListener('change', e => M.changeMode(e.target.value));
   route();

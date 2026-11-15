@@ -33,6 +33,7 @@ for sub in ("track_a_geometry", "track_b_value", "track_c_agent"):
 sys.path.insert(0, HERE)
 
 import oasis  # noqa: E402
+import quote_mail  # noqa: E402
 
 oasis.load_env()  # before track_b_value is imported - it reads COSTAR_KIT_PATH at import time
 import tempfile
@@ -44,7 +45,6 @@ try:
     from vexcel_live import fetch_vexcel_property, VexcelKeyMissing, VexcelNoPropertyData  # noqa: E402
     from value import list_houston_office_buildings_broad  # noqa: E402
     from render_floor import render, BUILDINGS as CACHED_BUILDINGS  # noqa: E402
-    from agent import run_agent_llm  # noqa: E402
 except Exception as e:  # missing dependency - the saved results still work
     PIPELINE_ERROR = f"{type(e).__name__}: {e}"
     CACHED_BUILDINGS = []
@@ -207,7 +207,7 @@ def api_overview():
         "place_kinds": {k: v["label"] for k, v in oasis.PLACE_KINDS.items()},
         "sources": {
             "costar": oasis.costar_available(), "vexcel": oasis.has_key("VEXCEL_API_KEY"),
-            "agents": oasis.has_key("ANTHROPIC_API_KEY"), "census": oasis.has_key("CENSUS_API_KEY"),
+            "agents": False, "census": oasis.has_key("CENSUS_API_KEY"),
             "places": bool(oasis.places()), "pipeline_error": PIPELINE_ERROR,
         },
     })
@@ -463,6 +463,31 @@ def api_board_turn():
     return jsonify(turn)
 
 
+@app.get("/api/quotes/profile")
+def api_quotes_profile():
+    return jsonify(email=quote_mail.PROFILE_EMAIL, gmail_ready=quote_mail.gmail_ready(),
+                   will_send=os.getenv("OASIS_SEND_EMAIL") == "1")
+
+
+def require_local_mail():
+    if (request.remote_addr not in {"127.0.0.1", "::1"}
+            or request.host.split(":")[0] not in {"127.0.0.1", "localhost"}
+            or request.headers.get("Sec-Fetch-Site") in {"cross-site", "same-site"}):
+        raise AnalysisError("local_mail_only", "Open Oasis on localhost to use Gmail.", 403)
+
+
+@app.get("/api/quotes/replies")
+def api_quote_replies():
+    require_local_mail()
+    try:
+        replies = quote_mail.Gmail(quote_mail.PROFILE_EMAIL).replies() if quote_mail.sent_threads else []
+    except quote_mail.GmailError as e:
+        raise AnalysisError("gmail_error", str(e), 502) from e
+    response = jsonify(replies=replies)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @app.route("/api/quotes/draft", methods=["POST"])
 def api_quotes_draft():
     body = json_body()
@@ -472,47 +497,45 @@ def api_quotes_draft():
         return jsonify({"error": e.code, "message": e.message}), e.status
     draft = oasis.draft_email(facts, body.get("sender") or "")
     draft["contractors"] = oasis.load_contractors()
-    draft["will_send"] = os.environ.get("OASIS_SEND_EMAIL") == "1" and oasis.has_key("SMTP_HOST") and oasis.has_key("SMTP_FROM")
     return jsonify(draft)
 
 
 @app.route("/api/quotes/send", methods=["POST"])
 def api_quotes_send():
     body = json_body()
-    subject, text = (body.get("subject") or "").strip(), (body.get("body") or "").strip()
-    ids = body.get("contractor_ids") or []
-    if not subject or not text or not ids:
+    subject, text = body.get("subject"), body.get("body")
+    ids = body.get("contractor_ids")
+    if (not isinstance(subject, str) or not subject.strip()
+            or not isinstance(text, str) or not text.strip()
+            or not isinstance(ids, list) or not ids or not all(isinstance(i, str) for i in ids)):
         return jsonify({"error": "bad_request", "message": "The email needs a subject, a body and at least one contractor."}), 400
     attachments = {}
-    if body.get("report_html"):
+    if body.get("report_text"):
+        attachments["oasis-report.txt"] = body["report_text"]
+    elif body.get("report_html"):
         attachments["oasis-report.html"] = body["report_html"]
     if body.get("plan_svg"):
         attachments["tentative-floor-plan.svg"] = body["plan_svg"]
-    return jsonify(oasis.send_quotes(subject, text, ids, attachments))
-
-
-@app.route("/api/analyze_agent", methods=["POST"])
-def api_analyze_agent():
-    """Real tool-calling LLM run (kept from the first demo). Needs
-    ANTHROPIC_API_KEY, the CoStar kit and a Vexcel footprint."""
-    body = json_body()
-    b = registry().get(integer(body.get("property_id"), "property_id"))
-    if not oasis.has_key("ANTHROPIC_API_KEY"):
-        return jsonify({"error": "anthropic_key_missing", "message": "ANTHROPIC_API_KEY is not set."}), 400
-    if b is None or PIPELINE_ERROR or not oasis.costar_available():
-        return jsonify({"error": "needs_costar", "message": "The live agent run needs the CoStar data kit."}), 409
-    timeline, t0 = [], time.time()
+    if any(not isinstance(value, str) for value in attachments.values()):
+        raise AnalysisError("bad_request", "Attachments must contain text.")
+    if body.get("plan_png") is not None:
+        try:
+            png = base64.b64decode(body["plan_png"], validate=True)
+        except (TypeError, ValueError) as e:
+            raise AnalysisError("bad_request", "Invalid floor plan image.") from e
+        if not png.startswith(b"\x89PNG\r\n\x1a\n"):
+            raise AnalysisError("bad_request", "Invalid floor plan image.")
+        attachments.pop("tentative-floor-plan.svg", None)
+        attachments["tentative-floor-plan.png"] = png
+    save_draft = body.get("save_draft") is True
+    if save_draft or os.getenv("OASIS_SEND_EMAIL") == "1":
+        require_local_mail()
     try:
-        vexcel = _vexcel(b, timeline, t0, allow_fetch=True)
-        out = run_agent_llm(property_id=b["property_id"], floor_name=int(body.get("floor_name") or b["floor_name"]),
-                            vexcel_response=vexcel, query_lat=b["latitude"], query_lon=b["longitude"],
-                            real_floor_area_sqft=float(b["typical_floor_sqft"]), real_column_depth_ft=b.get("column_depth_ft"))
-    except AnalysisError as e:
-        return jsonify({"error": e.code, "message": e.message}), e.status
-    except Exception as e:
-        return jsonify({"error": "agent_failed", "message": str(e)}), 500
-    return jsonify({"trace": out["trace"], "final_text": out["final_text"], "timeline": timeline,
-                    "total_elapsed_s": round(time.time() - t0, 2)})
+        return jsonify(oasis.send_quotes(subject.strip(), text.strip(), ids, attachments, save_draft=save_draft))
+    except ValueError as e:
+        raise AnalysisError("bad_request", str(e)) from e
+    except quote_mail.GmailError as e:
+        raise AnalysisError("gmail_error", str(e), 502) from e
 
 
 if __name__ == "__main__":

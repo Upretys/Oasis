@@ -12,9 +12,8 @@ invented to fill a gap:
   - floor plan    real Vexcel footprint, sliced by track_a_geometry
   - places        OpenStreetMap (Overpass), cached in demo/places_houston.json
   - demographics  US Census ACS, only when CENSUS_API_KEY is set
-  - boardroom     live Claude agents when ANTHROPIC_API_KEY is set; otherwise
-                  statements written by rule from the same real numbers
-  - quotes        emails are written to output/outbox/ unless SMTP is configured
+  - boardroom     statements written by rule from the analysis
+  - quotes        emails are written to output/outbox/ unless Gmail sending is enabled
 """
 
 from __future__ import annotations
@@ -25,12 +24,14 @@ import os
 import re
 import time
 from email.message import EmailMessage
+from uuid import uuid4
+
+import quote_mail
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
 OUTPUT_DIR = os.path.join(ROOT, "output")
 PLACES_PATH = os.path.join(HERE, "places_houston.json")
-CONTRACTORS_PATH = os.path.join(HERE, "contractors.json")
 OUTBOX_DIR = os.path.join(OUTPUT_DIR, "outbox")
 AREA_CACHE_DIR = os.path.join(OUTPUT_DIR, "area_cache")
 
@@ -630,56 +631,9 @@ def scripted_turn(agent_id: str, facts: dict, rnd: int, transcript: list) -> dic
     return {"agent": agent_id, "stance": stance, "text": text, "summary": summary, "round": rnd, "live": False}
 
 
-def llm_turn(agent_id: str, facts: dict, rnd: int, transcript: list) -> dict:
-    """One real Claude call for one agent's turn."""
-    import anthropic
-
-    agent = AGENT_BY_ID[agent_id]
-    said = "\n".join(f"{AGENT_BY_ID[t['agent']]['name']} ({t['stance']}): {t['text']}" for t in transcript) or "(nobody has spoken yet)"
-    system = (
-        f"You are the {agent['name']} on a three-person board deciding whether one office floor should be converted "
-        f"to apartments. {agent['brief']} The other board members are " +
-        " and ".join(a["name"] for a in AGENTS if a["id"] != agent_id) +
-        ". Speak only from the facts you are given; if something you need is not in them, say it is unknown. "
-        "Argue your own domain, and in round 2 answer the others directly by role. Plain English, no jargon, "
-        "no bullet points, at most 60 words."
-    )
-    user = (
-        f"Facts from the analysis:\n{_facts_text(facts)}\n\nDiscussion so far:\n{said}\n\n"
-        f"This is round {rnd} of 2. Reply in exactly this form:\n"
-        "STANCE: for | conditional | against\n"
-        "SUMMARY: one sentence of at most 14 words stating your position\n"
-        "ARGUMENT: what you say to the board"
-    )
-    client = anthropic.Anthropic()
-    resp = client.messages.create(
-        model=OASIS_MODEL, max_tokens=2000, system=system,
-        output_config={"effort": "low"},
-        messages=[{"role": "user", "content": user}],
-    )
-    if resp.stop_reason == "refusal":
-        raise RuntimeError("model declined")
-    raw = "".join(b.text for b in resp.content if b.type == "text")
-    stance = re.search(r"STANCE:\s*(for|conditional|against)", raw, re.I)
-    summary = re.search(r"SUMMARY:\s*(.+)", raw)
-    argument = re.search(r"ARGUMENT:\s*(.+)", raw, re.S)
-    if not (stance and argument):
-        raise RuntimeError("unparseable agent reply")
-    return {"agent": agent_id, "stance": stance.group(1).lower(), "text": argument.group(1).strip(),
-            "summary": (summary.group(1).strip() if summary else argument.group(1).strip().split(". ")[0]),
-            "round": rnd, "live": True}
-
-
 def board_turn(agent_id: str, facts: dict, rnd: int, transcript: list) -> dict:
     if agent_id not in AGENT_BY_ID:
         raise ValueError("unknown agent")
-    if has_key("ANTHROPIC_API_KEY"):
-        try:
-            return llm_turn(agent_id, facts, rnd, transcript)
-        except Exception as e:  # fall back to the rule-written statement, and say so
-            out = scripted_turn(agent_id, facts, rnd, transcript)
-            out["fallback_reason"] = str(e)[:200]
-            return out
     return scripted_turn(agent_id, facts, rnd, transcript)
 
 
@@ -688,8 +642,11 @@ def board_turn(agent_id: str, facts: dict, rnd: int, transcript: list) -> dict:
 # ---------------------------------------------------------------------------
 
 def load_contractors() -> list:
-    with open(CONTRACTORS_PATH) as f:
-        return [c for c in json.load(f) if c.get("verified")]
+    return [
+        {"id": str(i), "contact": f"{first} {last}", "email": email,
+         "sample": quote_mail.is_sample(email)}
+        for i, (first, last, email) in enumerate(quote_mail.CONTRACTORS, 1)
+    ]
 
 
 def draft_email(facts: dict, sender: str) -> dict:
@@ -711,7 +668,7 @@ def draft_email(facts: dict, sender: str) -> dict:
                      + ("The floor is vacant today." if n.get("vacant") else ""))
         lines.append("")
     lines += [
-        "The feasibility report and the tentative floor plan are attached. Could you send a price range and a rough timeline within two weeks?",
+        "The feasibility report is attached. Could you send a price range and a rough timeline within two weeks?",
         "",
         "Thank you,",
         sender or "[Your name]",
@@ -736,42 +693,56 @@ def draft_email(facts: dict, sender: str) -> dict:
     return {"subject": subject, "body": body, "live": live}
 
 
-def send_quotes(subject: str, body: str, contractor_ids: list, attachments: dict | None = None) -> dict:
-    """Writes one .eml per contractor into output/outbox/. Only sends for real
-    when OASIS_SEND_EMAIL=1 and SMTP_HOST / SMTP_FROM are configured."""
-    chosen = [c for c in load_contractors() if c["id"] in set(contractor_ids)]
-    really_send = os.environ.get("OASIS_SEND_EMAIL") == "1" and has_key("SMTP_HOST") and has_key("SMTP_FROM")
-    os.makedirs(OUTBOX_DIR, exist_ok=True)
-    stamp = time.strftime("%Y%m%d-%H%M%S")
+def send_quotes(subject: str, body: str, contractor_ids: list, attachments: dict,
+                *, save_draft: bool = False) -> dict:
+    chosen = [c for c in load_contractors() if c["id"] in contractor_ids]
+    if not chosen or set(contractor_ids) != {c["id"] for c in chosen}:
+        raise ValueError("Select contractors from the demo list.")
+    if "\n" in subject or "\r" in subject:
+        raise ValueError("The subject must be a single line.")
+
+    live = save_draft or os.getenv("OASIS_SEND_EMAIL") == "1"
+    if live and not save_draft and any(c["sample"] for c in chosen):
+        raise ValueError("Replace the sample addresses with demo inboxes before sending through Gmail.")
+    smtp = live and not save_draft and bool(quote_mail.smtp_password())
+    gmail = quote_mail.Gmail(quote_mail.PROFILE_EMAIL) if live and not smtp else None
+    if not live:
+        os.makedirs(OUTBOX_DIR, exist_ok=True)
+    batch = uuid4().hex
     results = []
-    smtp = None
-    if really_send:
-        import smtplib
-        smtp = smtplib.SMTP(os.environ["SMTP_HOST"], int(os.environ.get("SMTP_PORT", "587")), timeout=20)
-        smtp.starttls()
-        if has_key("SMTP_USER"):
-            smtp.login(os.environ["SMTP_USER"], os.environ.get("SMTP_PASSWORD", ""))
-    try:
-        for c in chosen:
-            msg = EmailMessage()
-            msg["Subject"] = subject
-            msg["From"] = os.environ.get("SMTP_FROM", "oasis@localhost")
-            msg["To"] = c["email"]
-            msg.set_content(body.replace("{contractor}", c["contact"]))
-            for fname, text in (attachments or {}).items():
-                msg.add_attachment(text.encode("utf-8"), maintype="text", subtype="html" if fname.endswith(".html") else "plain", filename=fname)
-            path = os.path.join(OUTBOX_DIR, f"{stamp}_{c['id']}.eml")
+    for contractor in chosen:
+        msg = EmailMessage()
+        msg["Subject"] = subject
+        msg["From"] = quote_mail.PROFILE_EMAIL
+        msg["To"] = contractor["email"]
+        msg.set_content(body.replace("{contractor}", contractor["contact"]))
+        for filename, content in attachments.items():
+            maintype, subtype = {
+                "html": ("text", "html"),
+                "txt": ("text", "plain"),
+                "svg": ("image", "svg+xml"),
+                "png": ("image", "png"),
+            }[filename.rsplit(".", 1)[-1]]
+            if maintype == "text":
+                msg.add_attachment(content, subtype=subtype, filename=filename)
+            else:
+                data = content.encode("utf-8") if isinstance(content, str) else content
+                msg.add_attachment(data, maintype=maintype, subtype=subtype, filename=filename)
+        result = {"id": contractor["id"]}
+        if live:
+            try:
+                if smtp:
+                    quote_mail.send_smtp(msg)
+                else:
+                    gmail.deliver(msg, save_draft)
+                result["status"] = "drafted" if save_draft else "sent"
+            except quote_mail.GmailError as exc:
+                result.update(status="failed", error=str(exc))
+        else:
+            path = os.path.join(OUTBOX_DIR, f"{batch}_{contractor['id']}.eml")
             with open(path, "wb") as f:
-                f.write(bytes(msg))
-            status = "saved"
-            if smtp is not None:
-                try:
-                    smtp.send_message(msg)
-                    status = "sent"
-                except Exception:
-                    status = "failed"
-            results.append({"id": c["id"], "status": status, "file": os.path.relpath(path, ROOT)})
-    finally:
-        if smtp is not None:
-            smtp.quit()
-    return {"mode": "smtp" if really_send else "outbox", "results": results}
+                f.write(msg.as_bytes())
+            result.update(status="saved", file=os.path.relpath(path, ROOT))
+        results.append(result)
+    return {"mode": "gmail-draft" if save_draft else "smtp" if smtp else "gmail" if gmail else "outbox",
+            "results": results}
