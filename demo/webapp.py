@@ -76,14 +76,26 @@ def registry() -> dict:
             "typical_floor_sqft": b["real_floor_area_sqft"], "column_depth_ft": b["real_column_depth_ft"],
             "vexcel_file": b["vexcel_file"], "saved": saved.get(b["name"]),
         }
-    # Deliberately restricted to just the 5 real featured buildings
-    # (CACHED_BUILDINGS) on the main map/building list - the broader
-    # "live, click any building" lookup and the 35-building blind scan
-    # are real features, but only in the separate Portfolio Scan view
-    # (/api/portfolio_scan, which calls oasis.load_portfolio_scan()
-    # directly and never touches this registry). Keeping them out of the
-    # main interactive list here is a deliberate scope choice for the main
-    # demo, not a removed capability.
+    # The broader "live, click any untested building" lookup
+    # (list_houston_office_buildings_broad) is deliberately left out of
+    # the main map - a scope choice, not a removed capability, since any
+    # real Houston building can still be reached by address search.
+    #
+    # The 35-building blind portfolio scan is different: real, precomputed
+    # work, and - in this frontend (unlike an earlier one, which had its
+    # own separate "Portfolio Scan" view) - the only way it's ever shown is
+    # by folding its real results into this same registry, colored
+    # distinctly ("scan" source, the "Screened only" legend entry the UI
+    # already has styling for). Leaving it out here was a real regression,
+    # found by the user asking "didn't we scan 35 buildings?" after it
+    # silently disappeared from the main overview.
+    for s in oasis.load_portfolio_scan():
+        entry = reg.setdefault(s["property_id"], {
+            "property_id": s["property_id"], "name": s["name"], "source": "scan",
+            "latitude": s["latitude"], "longitude": s["longitude"],
+        })
+        entry["scan"] = {"verdict": s["verdict"], "value_skipped": s["value_skipped"],
+                         "impact_low": s["value_impact_low"], "impact_high": s["value_impact_high"]}
     for entry in reg.values():
         path = oasis.find_vexcel_file(entry["latitude"], entry["longitude"], entry.get("vexcel_file"))
         if path and not PIPELINE_ERROR:
