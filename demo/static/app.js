@@ -769,10 +769,14 @@ function mapUi() {
         <div><h2 style="font-size:20px">Floor ${S.floor}, tentative plan</h2><div class="muted" style="font-size:13.5px">${p.units.length} apartments · ${num(p.viable_sqft)} usable sq ft of ${num(p.floor_sqft)}</div></div>
         <div class="row"><div class="seg" role="group" aria-label="View"><button data-act="plan-view" data-view="after" aria-pressed="${S.planView === 'after'}">After</button><button data-act="plan-view" data-view="before" aria-pressed="${S.planView === 'before'}">Office today</button></div>
         ${overlayControls('plan', 'floor plan')}</div></div>
-        <div class="plan">${S.planLoading ? '<div class="loading"><span class="spinner"></span>Drawing the plan…</div>' : planSvg(p, S.planView, S.planUnit)}</div>
+        <div class="plan">${S.planLoading ? '<div class="loading"><span class="spinner"></span>Drawing the plan…</div>'
+          : (S.planView === 'after' && a.image_base64)
+            ? `<img alt="Real floor plan render, sliced into apartments" style="width:100%;height:auto;display:block" src="data:image/png;base64,${a.image_base64}">`
+            : planSvg(p, S.planView, S.planUnit)}</div>
         <div class="row" style="flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)">${Object.keys(UNIT).filter(t => p.unit_counts[t]).map(t => `<span class="row" style="gap:7px"><span class="swatch" style="width:14px;height:14px;background:${UNIT[t].color};border:1px solid var(--ink)"></span>${UNIT[t].long}</span>`).join('')}
           <span class="row" style="gap:7px"><span class="swatch" style="width:14px;height:14px;background:#D5DDDF;border:1px solid var(--ink)"></span>Core</span>
-          <b style="color:var(--ink)" aria-live="polite">${u ? `${(UNIT[u.type] || {}).long || u.type}: ${num(u.area_sqft)} sq ft${rent ? `, about $${num(u.area_sqft * rent / 12)} a month` : ''}` : 'Click an apartment to see its size and rent.'}</b></div></div>`;
+          <b style="color:var(--ink)" aria-live="polite">${S.planView === 'after' && a.image_base64 ? 'Rendered directly from the real pipeline output - click a unit on the interactive view below to see its size and rent.' : (u ? `${(UNIT[u.type] || {}).long || u.type}: ${num(u.area_sqft)} sq ft${rent ? `, about $${num(u.area_sqft * rent / 12)} a month` : ''}` : 'Click an apartment to see its size and rent.')}</b></div>
+        ${S.planView === 'after' && a.image_base64 ? `<details style="margin-top:10px"><summary style="cursor:pointer;color:var(--muted);font-size:12.5px">Interactive view (click units for size/rent)</summary><div class="plan" style="margin-top:8px">${planSvg(p, S.planView, S.planUnit)}</div></details>` : ''}</div>`;
     }
   }
   if (a && S.tab === 'area' && S.view === 'building' && S.area && S.area.places.available && visible('nearby')) {
