@@ -135,9 +135,6 @@ def floor_plan(vexcel_response: dict, lat: float, lon: float, floor_sqft: float,
     fp = fp.simplify(SIMPLIFY_TOLERANCE_M, preserve_topology=True)
     zone, fraction, depth_ft = buffer_based_check(fp)
     units = generate_unit_layout(fp, zone, unit_width_ft=MIX_WIDTH_FT.get(mix, 20.0))
-    counts: dict[str, int] = {}
-    for u in units:
-        counts[u["unit_type"]] = counts.get(u["unit_type"], 0) + 1
     core = fp.difference(zone)
     core_rings = []
     for g in getattr(core, "geoms", [core]):
@@ -202,13 +199,34 @@ def floor_plan(vexcel_response: dict, lat: float, lon: float, floor_sqft: float,
                               "area_sqft": round(u.get("area_sqft", 0)),
                               "polygon_ft": [[round(x, 1), round(y, 1)] for x, y in poly.exterior.coords]})
 
+    # Final defensive safety net, on top of the erosion above, not instead
+    # of it: if any two units still technically overlap (an edge case the
+    # erosion math above doesn't anticipate), don't try to reshape either
+    # one further - just drop the smaller unit entirely. A floor plan
+    # that's honestly missing one small unit is a better real result than
+    # one showing two colors visibly overlapping.
+    kept = []
+    for u in sorted(rounded_units, key=lambda u: u["area_sqft"], reverse=True):
+        poly = Polygon(u["polygon_ft"])
+        if any(poly.intersects(Polygon(k["polygon_ft"])) and
+               poly.intersection(Polygon(k["polygon_ft"])).area > 0.001 for k in kept):
+            continue
+        kept.append(u)
+    rounded_units = sorted(kept, key=lambda u: u["id"] or "")
+    # Recount from what's actually kept, not the pre-safety-net list - if
+    # the safety net above ever does drop a unit, the displayed counts and
+    # total sqft must match what's actually drawn, not silently overstate it.
+    counts = {}
+    for u in rounded_units:
+        counts[u["type"]] = counts.get(u["type"], 0) + 1
+
     return {
         "mix": mix if mix in MIX_WIDTH_FT else "balanced",
         "outline_ft": [[round(x * METERS_TO_FEET, 1), round(y * METERS_TO_FEET, 1)] for x, y in fp.exterior.coords],
         "core_ft": core_rings,
         "units": rounded_units,
         "unit_counts": counts,
-        "viable_sqft": round(sum(u["area_sqft"] for u in units)),
+        "viable_sqft": round(sum(u["area_sqft"] for u in rounded_units)),
         "floor_sqft": round(fp.area * METERS_TO_FEET ** 2),
         "depth_ft": round(depth_ft, 1),
     }
