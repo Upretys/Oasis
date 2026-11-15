@@ -127,6 +127,7 @@ def floor_plan(vexcel_response: dict, lat: float, lon: float, floor_sqft: float,
     apartments. `mix` only changes the strip width the slicer uses."""
     from geometry import (METERS_TO_FEET, SIMPLIFY_TOLERANCE_M, buffer_based_check,
                           generate_unit_layout, load_scaled_footprint)
+    from shapely.geometry import Polygon
 
     fp = load_scaled_footprint(vexcel_response, lat, lon, floor_sqft)
     if fp is None:
@@ -142,12 +143,43 @@ def floor_plan(vexcel_response: dict, lat: float, lon: float, floor_sqft: float,
     for g in getattr(core, "geoms", [core]):
         if not g.is_empty and g.geom_type == "Polygon":
             core_rings.append([[round(x * METERS_TO_FEET, 1), round(y * METERS_TO_FEET, 1)] for x, y in g.exterior.coords])
+
+    # Real bug, caught visually (two unit colors overlapping at a shared
+    # corner): generate_unit_layout() guarantees zero overlap at full
+    # precision, but rounding each polygon's coordinates independently to
+    # 1 decimal place for the JSON response can reintroduce a tiny overlap
+    # when two originally-adjacent units' shared boundary straddles a
+    # rounding threshold (e.g. one vertex at -55.6499 rounds to -55.6, the
+    # "same" vertex on the neighboring unit at -55.6501 rounds to -55.7).
+    #
+    # A first attempt clipped each rounded unit against the union of
+    # already-processed ones - but .difference() introduces new precise
+    # intersection vertices that then need rounding too, and THAT rounding
+    # can push the boundary back outward past the clip, reintroducing the
+    # same overlap one step later (confirmed: it moved the bug to other
+    # buildings/mixes instead of fixing it). Fixed properly instead: erode
+    # (shrink) each unit by half the maximum possible rounding error
+    # (0.05ft, since rounding to 1 decimal moves any coordinate by at most
+    # 0.05ft) BEFORE rounding. Two originally-adjacent units each shrink
+    # away from their shared boundary by 0.05ft, leaving a real 0.1ft gap
+    # that's still there no matter which direction each one's rounding
+    # happens to go - the rounding can never close a gap that's already
+    # bigger than the rounding error that caused the problem.
+    ERODE_FT = 0.05
+    rounded_units = []
+    for u in units:
+        poly = Polygon(u["polygon_ft"]).buffer(-ERODE_FT)
+        if poly.is_empty or not hasattr(poly, "exterior"):
+            continue
+        rounded_units.append({"id": u.get("unit_id"), "type": u.get("unit_type"),
+                              "area_sqft": round(u.get("area_sqft", 0)),
+                              "polygon_ft": [[round(x, 1), round(y, 1)] for x, y in poly.exterior.coords]})
+
     return {
         "mix": mix if mix in MIX_WIDTH_FT else "balanced",
         "outline_ft": [[round(x * METERS_TO_FEET, 1), round(y * METERS_TO_FEET, 1)] for x, y in fp.exterior.coords],
         "core_ft": core_rings,
-        "units": [{"id": u.get("unit_id"), "type": u.get("unit_type"), "area_sqft": round(u.get("area_sqft", 0)),
-                   "polygon_ft": [[round(x, 1), round(y, 1)] for x, y in u["polygon_ft"]]} for u in units],
+        "units": rounded_units,
         "unit_counts": counts,
         "viable_sqft": round(sum(u["area_sqft"] for u in units)),
         "floor_sqft": round(fp.area * METERS_TO_FEET ** 2),
