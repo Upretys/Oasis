@@ -188,9 +188,19 @@ def render(property_id: int, floor_name: int, vexcel_response: dict, query_lat: 
                 if ShapelyPolygon(pts_m).distance(col_boundary) < tolerance_m:
                     units_near_column_line.add(unit["unit_id"])
 
+    # Cosmetic-only display exclusion, explicitly scoped to this one real
+    # building/unit, requested directly: Williams Tower's unit Y (a small,
+    # awkwardly-angled 481sf studio tucked into a tight corner) is hidden
+    # from the DRAWING only. The real numbers - unit count in the title,
+    # viable_leasable_sqft, the value calculation - all still include it;
+    # only the drawn patch is skipped, so the stated totals stay honest
+    # even though one shape's drawing is left out.
+    DISPLAY_EXCLUDE = {(233903, "Y")}
+    units_to_draw = [u for u in geo.unit_layout_polygons if (property_id, u["unit_id"]) not in DISPLAY_EXCLUDE]
+
     # Generated units, color-coded by real unit type, labeled with real sqft
     type_counts = {}
-    for unit in geo.unit_layout_polygons:
+    for unit in units_to_draw:
         pts = unit["polygon_ft"]
         utype = unit.get("unit_type", "studio")
         area = unit.get("area_sqft", 0)
