@@ -103,7 +103,7 @@ def run_pipeline(
     # figure trustworthy rather than optimistic.
     convertible_sqft = geo.viable_leasable_sqft
     val = run_value(property_id=property_id, floor_name=floor_name, convertible_sqft=convertible_sqft,
-                     query_lat=query_lat, query_lon=query_lon)
+                     query_lat=query_lat, query_lon=query_lon, floor_sqft=real_floor_area_sqft)
     notes.extend(val.notes)
 
     unit_mix = ", ".join(f"{count} {t}" for t, count in geo.unit_type_counts.items()) or "no viable units"
@@ -225,7 +225,8 @@ def run_agent_llm(property_id: int, floor_name: int, vexcel_response: dict, quer
     def call_run_value(args):
         try:
             val = run_value(property_id=property_id, floor_name=args["floor_name"],
-                             convertible_sqft=args["convertible_sqft"], query_lat=query_lat, query_lon=query_lon)
+                             convertible_sqft=args["convertible_sqft"], query_lat=query_lat, query_lon=query_lon,
+                             floor_sqft=real_floor_area_sqft)
             result = asdict(val)
             # Bundle the real zoning/parking/occupancy-change checks into the
             # same tool result, rather than leaving them in a separate tool

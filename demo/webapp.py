@@ -206,7 +206,8 @@ def api_overview():
         "buildings": buildings,
         "stats": {"scanned": len(scanned), "positive": len(positive),
                   "pretested": sum(1 for b in buildings if b["source"] == "cached")},
-        "top": sorted(positive, key=lambda b: -b["impact_low"])[:20],
+        # Best case first, so the list shows the closest to profitable even when none clears $0.
+        "top": sorted((b for b in buildings if b["impact_high"] is not None), key=lambda b: -b["impact_high"])[:20],
         "agents": [{k: a[k] for k in ("id", "name", "initials")} for a in oasis.AGENTS],
         "place_kinds": {k: v["label"] for k, v in oasis.PLACE_KINDS.items()},
         "sources": {

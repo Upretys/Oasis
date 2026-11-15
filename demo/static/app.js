@@ -1,6 +1,6 @@
 /* Oasis front end. One page, driven by the URL hash:
    #/                      home (search, filters, fast facts)
-   #/b/<id>/<tab>          a building: verdict | floors | area | boardroom
+   #/b/<id>/<tab>          a building: verdict | floors | area | returns | boardroom
    #/b/<id>/quotes         the email agent's quote requests            */
 'use strict';
 
@@ -104,7 +104,7 @@ function route() {
     const b = S.byId[parts[1]], tab = parts[2] || 'verdict';
     if (!S.sel || S.sel.property_id !== b.property_id) selectBuilding(b, true);
     if (tab === 'quotes') { S.view = S.quotes ? 'quotes' : 'building'; if (!S.quotes) S.tab = 'boardroom'; }
-    else { S.view = 'building'; S.tab = ['verdict', 'floors', 'area', 'boardroom'].includes(tab) ? tab : 'verdict'; }
+    else { S.view = 'building'; S.tab = ['verdict', 'floors', 'area', 'returns', 'boardroom'].includes(tab) ? tab : 'verdict'; }
     if (S.tab !== 'floors') S.planOpen = false;
     if (S.view === 'building' && !S.armed) {
       if (S.tab === 'area') loadArea();
@@ -351,9 +351,12 @@ table{border-collapse:collapse;width:100%}td,th{border-top:1px solid #DCE3E2;pad
 <h2>The numbers</h2><table>
 <tr><td>Usable apartment area</td><td>${n.viable_sqft ? num(n.viable_sqft) + ' sq ft' : 'n/a'}</td></tr>
 <tr><td>Apartments</td><td>${n.total_units || 'n/a'}</td></tr>
-<tr><td>Cost of renovation (at $150 to $220 a sq ft, an assumption)</td><td>${range(n.reno_low, n.reno_high)}</td></tr>
-<tr><td>Extra rent a year</td><td>${range(n.uplift_low, n.uplift_high)}</td></tr>
-<tr><td>Value added after construction</td><td>${range(n.impact_low, n.impact_high)}</td></tr>
+<tr><td>Construction and compliance (${n.floor_sqft ? num(n.floor_sqft) + ' floor sq ft at $' + n.cost_psf_low + ' to $' + n.cost_psf_high + ' a sq ft, plus ' + range(n.compliance_low, n.compliance_high) + ' compliance fees' : 'n/a'})</td><td>${range(n.reno_low, n.reno_high)}</td></tr>
+<tr><td>Apartment net income a year (after occupancy and operating costs)</td><td>${n.uplift_low != null ? money(n.uplift_low) : 'n/a'}</td></tr>
+<tr><td>Apartment value (net income over the cap rate)</td><td>${n.apartment_value ? money(n.apartment_value) : 'n/a'}</td></tr>
+<tr><td>Long-term profit after construction</td><td>${range(n.impact_low, n.impact_high)}</td></tr>
+<tr><td>Payback from net income, in today's dollars (${n.inflation_pct ?? '?'}% inflation, ${n.discount_pct ?? '?'}% discount, no sale)</td><td>${paybackText(n)}</td></tr>
+${Object.entries(n.cash_by_year || {}).map(([y, [lo, hi]]) => `<tr><td>Cash after ${y} years, in today's dollars (no sale)</td><td>${range(lo, hi)}</td></tr>`).join('')}
 <tr><td>Apartment rent nearby</td><td>${n.residential_rent ? '$' + n.residential_rent.toFixed(2) + ' a sq ft a year' : 'n/a'}</td></tr>
 <tr><td>Office rent given up</td><td>${n.vacant ? '$0, the floor is vacant' : n.office_rent ? '$' + n.office_rent.toFixed(2) + ' a sq ft a year' : 'n/a'}</td></tr></table>
 ${a.reasoning_text ? `<h2>Reasoning</h2><p>${esc(a.reasoning_text)}</p>` : ''}
@@ -457,7 +460,7 @@ function render() {
 
 function buildingRow(b) {
   const near = Object.keys(S.near).filter(k => S.near[k]).map(k => `<span class="row" style="gap:5px"><span class="glyph" style="width:18px;height:18px;font-size:10px;background:${KIND[k].color}">${KIND[k].letter}</span>${b.near[k].toFixed(1)} mi</span>`).join('');
-  const state = b.impact_low == null ? (b.verdict ? 'Screened' : 'Not analyzed yet') : b.impact_low > 0 ? 'Adds value' : 'Loses value';
+  const state = b.impact_low == null ? (b.verdict ? 'Screened' : 'Not analyzed yet') : b.impact_low > 0 ? 'Adds value' : b.impact_high < 0 ? 'Loses value' : 'Close to break-even';
   const val = b.impact_low == null ? '' : `<span class="val ${b.impact_low > 0 ? 'pos' : 'neg'}">${range(b.impact_low, b.impact_high)}</span>`;
   return `<button class="item" data-act="open" data-id="${b.property_id}"><span class="dot" style="background:${SRC_COLOR[b.source]}"></span>
     <span class="grow"><span class="name">${esc(b.name)}</span><span class="sub"><span>${state}</span>${near}</span></span>${val}${ic('chev', 16)}</button>`;
@@ -493,7 +496,7 @@ function homePanel() {
       <div class="card"><div class="stat-num">${st.pretested}</div><div class="stat-label">analyzed in full, open instantly</div></div>
       <div class="card"><div class="stat-num">$0</div><div class="stat-label">office income lost on a vacant floor</div></div>
     </div>
-    <div class="col"><div class="row between"><h2 class="h2">Top candidates</h2>${S.ov.top.length > 4 ? `<button class="linkbtn" data-act="show-all">${S.showAll ? 'Show fewer' : `View all ${S.ov.top.length}`}</button>` : ''}</div>
+    <div class="col"><div class="row between"><h2 class="h2">Top candidates <span class="small muted" style="font-weight:400">best case first</span></h2>${S.ov.top.length > 4 ? `<button class="linkbtn" data-act="show-all">${S.showAll ? 'Show fewer' : `View all ${S.ov.top.length}`}</button>` : ''}</div>
       <div class="list">${top.map(buildingRow).join('')}</div></div>
     <p class="small muted spacer">Aerial footprints from Vexcel. Leases and rents from a CoStar snapshot. Places from OpenStreetMap.</p>`;
   return html;
@@ -503,7 +506,7 @@ function head(crumb) {
   return `<div><div class="crumb"><a href="#/">Houston</a><span class="muted"> / ${esc(crumb)}</span></div><h1 class="bname">${esc(S.sel.name)}</h1></div>`;
 }
 function tabs() {
-  return `<nav class="tabs" aria-label="Building analysis">${[['verdict', 'Verdict'], ['floors', 'Floors'], ['area', 'Area'], ['boardroom', 'Boardroom']].map(([id, label]) =>
+  return `<nav class="tabs" aria-label="Building analysis">${[['verdict', 'Verdict'], ['floors', 'Floors'], ['area', 'Area'], ['returns', 'Returns'], ['boardroom', 'Boardroom']].map(([id, label]) =>
     `<a class="tab" href="${bHash(id)}" ${S.tab === id ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</nav>`;
 }
 function verdictCard(a, compact) {
@@ -550,6 +553,7 @@ function buildingPanel() {
   const crumb = flr(a, true);
   if (S.tab === 'floors') return S.planOpen ? planPanel() : floorsPanel();
   if (S.tab === 'area') return head('Area') + tabs() + areaPanel();
+  if (S.tab === 'returns') return head(`${crumb} / Returns`) + tabs() + returnsPanel(a);
   if (S.tab === 'boardroom') return head(`${crumb} / Boardroom`) + tabs() + boardPanel();
   return `${head(crumb)}${tabs()}${verdictCard(a)}
     <ul class="checks">${a.checks.map(c => `<li><span class="cicon ${c.state}">${ic(STATE_ICON[c.state], 15, 2.4)}</span>
@@ -601,6 +605,45 @@ function planPanel() {
       <div class="btns"><button class="btn primary" data-act="plan-download">${ic('download')}Download floor plan</button></div>
       <div class="btns"><button class="btn" data-act="plan-regen" ${S.planLoading ? 'disabled' : ''}>${S.planLoading ? '<span class="spinner"></span>' : ic('spark')}Regenerate</button><button class="btn" data-act="plan-close">${ic('back')}Back to floors</button></div>
     </div>`;
+}
+
+// ---------- returns: the value formula, step by step, and payback over time ----------
+function paybackText(n) {
+  if (!n.payback_known) return 'n/a';
+  const y = v => v == null ? 'never' : `${v.toFixed(1)} years`;
+  return n.payback_low == null ? 'Never, even at the lowest cost' : `${y(n.payback_low)} to ${y(n.payback_high)}`;
+}
+
+function returnsPanel(a) {
+  const n = a.numbers;
+  if (n.uplift_low == null || !n.floor_sqft) {
+    return `<div class="notice info">${ic('alert', 18)}<span>${a.source === 'scan' ? 'This building was only screened by the portfolio scan, so its returns are not broken down yet.' : 'This floor was not priced, so there are no returns to show.'}</span></div>`;
+  }
+  const rentMo = n.residential_rent ? n.residential_rent / 12 : null;
+  const step = (label, value, note) => `<li><span style="flex:1;min-width:0"><span class="t">${label}</span><span class="n">${note}</span></span><b>${value}</b></li>`;
+  const comps = (n.comps || []).length;
+  let html = `<div><h2 class="h2">How the long-term profit adds up</h2>
+      <p class="muted small" style="margin-top:6px">${flr(a, true)}. Every average below is taken from real CoStar rows near the building.</p></div>
+    <ul class="checks">
+      ${step('Apartment area', `${num(n.viable_sqft)} sq ft`, `Units Oasis lays out on this floor (${n.total_units || 0} apartments)`)}
+      ${step('Rent', rentMo ? `$${rentMo.toFixed(2)} a sq ft a month` : 'n/a', `Mean of every unit in the ${comps || 10} nearest apartment communities within 2 miles`)}
+      ${step('Occupancy', n.occupancy != null ? `${n.occupancy}%` : 'n/a', 'Units leased out of all units, in the same communities')}
+      ${step('Share of rent kept after operating costs', n.noi_share != null ? `${n.noi_share}%` : 'n/a', 'Cap rate × gross income multiplier, 10 nearest apartment sales')}
+      ${step('Net income a year', money(n.uplift_low), 'Area × rent × 12 × occupancy × share kept')}
+      ${step('Cap rate', n.cap_rate ? `${n.cap_rate}%` : 'n/a', 'Mean of the 10 nearest apartment sales since 2018')}
+      ${step('Apartment value', money(n.apartment_value), 'Net income ÷ cap rate')}
+      ${step('Construction', range(n.reno_low - n.compliance_low, n.reno_high - n.compliance_high), `${num(n.floor_sqft)} floor sq ft × $${n.cost_psf_low} to $${n.cost_psf_high}`)}
+      ${step('Compliance fees', range(n.compliance_low, n.compliance_high), 'Per building')}
+      ${step('Long-term profit', range(n.impact_low, n.impact_high), 'Apartment value − construction − compliance')}
+    </ul>`;
+  if (n.payback_known) {
+    html += `<div><h2 class="h2">Payback over time</h2>
+        <p class="muted small" style="margin-top:6px">Net income only, no sale, in today's dollars: income rises with ${n.inflation_pct}% inflation a year (the US CPI-U average, December 2020 to December 2025) and each year is discounted at ${n.discount_pct}%. Construction and compliance are paid up front.</p></div>
+      <div class="money"><div class="l">Pays back its cost in</div><div class="v">${paybackText(n)}</div>
+        <div class="s">${n.payback_high == null ? 'Discounted faster than it grows, the income never adds up to the highest cost' : 'Cheapest to most expensive cost'}</div></div>
+      <div class="payback">${Object.entries(n.cash_by_year || {}).map(([y, [lo, hi]]) => `<div class="pb ${lo > 0 ? 'pos' : hi < 0 ? 'neg' : 'mix'}"><span class="l">After ${y} years</span><b>${range(lo, hi)}</b></div>`).join('')}</div>`;
+  }
+  return html;
 }
 
 function spark(vals, color) {
@@ -756,10 +799,11 @@ function mapUi() {
     const n = a.numbers;
     html += `<div class="m-tr"><div class="row between"><span class="eyebrow">The numbers</span>${overlayControls('numbers', 'the numbers')}</div>
       ${S.ov.sources.vexcel ? '<button class="btn" data-act="photos">Additional photos</button>' : ''}
-      <div class="money"><div class="l">Total cost of renovation</div><div class="v">${n.reno_low ? range(n.reno_low, n.reno_high) : 'Not available'}</div><div class="s">${n.viable_sqft ? `${num(n.viable_sqft)} sq ft at $150 to $220 a sq ft` : 'Needs the full analysis'}</div></div>
+      <div class="money"><div class="l">Total cost of renovation</div><div class="v">${n.reno_low ? range(n.reno_low, n.reno_high) : 'Not available'}</div><div class="s">${n.floor_sqft ? `${num(n.floor_sqft)} sq ft at $${n.cost_psf_low} to $${n.cost_psf_high} a sq ft, plus ${range(n.compliance_low, n.compliance_high)} compliance fees` : 'Needs the full analysis'}</div></div>
       <div class="hr"></div>
-      <div class="money"><div class="l">Expected return</div><div class="v">${n.uplift_low != null ? `${money((n.uplift_low + n.uplift_high) / 2)} a year` : 'Not available'}</div><div class="s">${n.uplift_low != null ? `Extra rent, ${range(n.uplift_low, n.uplift_high)}` : 'Needs the full analysis'}</div></div>
-      <div class="card" style="padding:10px 12px;background:${n.impact_low > 0 ? 'var(--teal-soft)' : n.impact_high < 0 ? 'var(--red-soft)' : 'var(--amber-soft)'}"><div class="small muted">Value added after construction</div><div class="stat-num sm">${range(n.impact_low, n.impact_high)}</div></div></div>`;
+      <div class="money"><div class="l">Apartment net income</div><div class="v">${n.uplift_low != null ? `${money(n.uplift_low)} a year` : 'Not available'}</div><div class="s">${n.apartment_value ? `Worth ${money(n.apartment_value)} at the nearby cap rate of ${n.cap_rate}%` : 'Needs the full analysis'}</div></div>
+      <div class="card" style="padding:10px 12px;background:${n.impact_low > 0 ? 'var(--teal-soft)' : n.impact_high < 0 ? 'var(--red-soft)' : 'var(--amber-soft)'}"><div class="small muted">Long-term profit after construction</div><div class="stat-num sm">${range(n.impact_low, n.impact_high)}</div></div>
+      ${n.payback_known ? `<a class="linkbtn small" href="${bHash('returns')}">How it adds up, and payback over time</a>` : ''}</div>`;
   }
   if (a && a.source !== 'scan' && S.tab === 'floors' && S.view === 'building') {
     html += `<div class="glass m-tc"><span style="color:#5FE0CB">${ic('layers', 16)}</span>${M.mode === 'google' ? 'Select a floor in the sidebar' : 'Click a floor · Drag to pan · Right-drag to orbit'}</div>`;

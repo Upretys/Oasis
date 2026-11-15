@@ -6,75 +6,74 @@
     "window_to_core_max_ft": 47.0,
     "convertible_fraction": 1.0,
     "value_skipped": false,
-    "value_uplift_low": 36995.0,
-    "value_uplift_high": 65060.0,
-    "implied_value_impact_low": -2095954.0,
-    "implied_value_impact_high": -1179276.0,
-    "value_confidence": 0.5,
+    "value_uplift_low": 147400.0,
+    "value_uplift_high": 147400.0,
+    "implied_value_impact_low": -3284963.0,
+    "implied_value_impact_high": -347463.0,
+    "value_confidence": 1.0,
     "classification": "not_feasible",
-    "classification_confidence": 0.35,
+    "classification_confidence": 0.7,
     "classification_path": [
       "geometry_verdict = PASS (real viable_fraction 58% of total floor area)",
-      "implied value impact midpoint = $-1,637,615 (real uplift/cap-rate/cost math)",
-      "combined confidence = geometry_confidence (70%) x value_confidence (50%) = 35%",
+      "implied value impact midpoint = $-1,816,213 (real uplift/cap-rate/cost math)",
+      "combined confidence = geometry_confidence (70%) x value_confidence (100%) = 70%",
       "value impact is zero or negative on current real/assumed inputs -> not feasible"
     ],
     "cap_rate_sensitivity": [
       {
         "cap_rate": 0.05,
-        "implied_low": -1860444.0,
-        "implied_high": -943766.0
+        "implied_low": -3103999,
+        "implied_high": -166499
       },
       {
         "cap_rate": 0.055,
-        "implied_low": -1953220.0,
-        "implied_high": -1036542.0
+        "implied_low": -3371999,
+        "implied_high": -434499
       },
       {
         "cap_rate": 0.06,
-        "implied_low": -2030534.0,
-        "implied_high": -1113856.0
+        "implied_low": -3595332,
+        "implied_high": -657832
       },
       {
         "cap_rate": 0.065,
-        "implied_low": -2095954.0,
-        "implied_high": -1179276.0
+        "implied_low": -3784307,
+        "implied_high": -846807
       },
       {
         "cap_rate": 0.07,
-        "implied_low": -2152028.0,
-        "implied_high": -1235350.0
+        "implied_low": -3946285,
+        "implied_high": -1008785
       },
       {
         "cap_rate": 0.075,
-        "implied_low": -2200625.0,
-        "implied_high": -1283947.0
+        "implied_low": -4086666,
+        "implied_high": -1149166
       },
       {
         "cap_rate": 0.08,
-        "implied_low": -2243148.0,
-        "implied_high": -1326470.0
+        "implied_low": -4209499,
+        "implied_high": -1271999
       },
       {
         "cap_rate": 0.085,
-        "implied_low": -2280668.0,
-        "implied_high": -1363990.0
+        "implied_low": -4317882,
+        "implied_high": -1380382
       },
       {
         "cap_rate": 0.09,
-        "implied_low": -2314019.0,
-        "implied_high": -1397341.0
+        "implied_low": -4414222,
+        "implied_high": -1476722
       }
     ],
-    "cap_rate_used": 0.065,
-    "breakeven_cap_rate_low": 0.01771171021354218,
-    "breakeven_cap_rate_high": 0.025977174979861864,
-    "reasoning_text": "Geometry pass (47.0ft depth, confidence 70%). Real unit mix: 14 studio, 7 1br (13,095 sqft of actual apartment-sized space, not the raw convertible zone). Floor 18: office rent $24.00/sf/yr (assumed Houston office market rate (real current tenant found, but no rate on the lease deal)) vs. residential $27.90/sf/yr (sf-weighted avg of 3 real comps: WaterWall Place (0.2km), MAA Afton Oaks (0.4km), Alexan 5151 (0.5km)) -> $51,027/yr uplift on 13,095 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is -$2,095,954 to -$1,179,276 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
+    "cap_rate_used": 0.053270000000000005,
+    "breakeven_cap_rate_low": 0.024355593736640882,
+    "breakeven_cap_rate_high": 0.047327035894734505,
+    "reasoning_text": "Geometry pass (47.0ft depth, confidence 70%). Real unit mix: 14 studio, 7 1br (13,095 sqft of actual apartment-sized space, not the raw convertible zone). Floor 18: office rent $24.00/sf/yr (assumed Houston office market rate (real current tenant found, but no rate on the lease deal)) vs. residential $27.86/sf/yr (mean of 2,185 units in the 10 nearest apartment communities within 2 miles, real comps: WaterWall Place (0.2km), MAA Afton Oaks (0.4km), Alexan 5151 (0.5km), 3000 Sage Apartments (0.6km), Caroline Post Oak (0.7km), Galleria Court Apartments (0.7km), Merwin Square Apartments (0.7km), Dominion Post Oak (0.8km), M5250 (0.8km), Marquee Uptown & Carriage Square (0.8km)). Occupancy 91.7% (2,570 units in the same communities). Share of rent kept after operating costs 44.0% (mean cap rate x gross income multiplier of the 10 nearest apartment sales that report both, up to 2.1 miles away). Net income $147,400/yr on 13,095 apartment sf. At a 5.3% cap rate (mean of the 10 nearest apartment sales since 2018 with a recorded cap rate, up to 2.1 miles away), apartment value $2,767,037. Construction 22,700 floor sf x $135-260/sf = $3,064,500-$5,902,000, plus $50,000-$150,000 compliance fees. Long-term profit -$3,284,963 to -$347,463. In today's dollars (income rising with 4.46% inflation, the CPI-U average of Dec 2020-Dec 2025, discounted at 8% a year, no sale): payback from net income alone 37.7 years to never. Cash after 10 years: -$4,818,931 to -$1,881,431. Cash after 15 years: -$4,340,237 to -$1,402,737. Cash after 20 years: -$3,934,923 to -$997,423. No confirmed lease end date - verify occupancy before assuming vacancy.",
     "notes": [
       "Max depth exceeds threshold by 2.0ft in at least one spot, but 60% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
-      "Local apartment vacancy near this building (real, from 3 nearby comps): 7.0% - healthy local demand. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
-      "Residential rent from sf-weighted avg of 3 real comps: WaterWall Place (0.2km), MAA Afton Oaks (0.4km), Alexan 5151 (0.5km): $27.90/sf/yr."
+      "Office rent given up by converting is not part of this formula: the profit is the apartment value minus construction and compliance costs."
     ],
     "building_name": "Williams Tower",
     "lat": 29.7375702,
@@ -88,77 +87,76 @@
     "window_to_core_max_ft": 75.8,
     "convertible_fraction": 0.83,
     "value_skipped": false,
-    "value_uplift_low": 299132.0,
-    "value_uplift_high": 460568.0,
-    "implied_value_impact_low": 3264303.0,
-    "implied_value_impact_high": 4085067.0,
-    "value_confidence": 0.75,
-    "classification": "feasible",
-    "classification_confidence": 0.5249999999999999,
+    "value_uplift_low": 188952.0,
+    "value_uplift_high": 188952.0,
+    "implied_value_impact_low": -2686203.0,
+    "implied_value_impact_high": 273172.0,
+    "value_confidence": 1.0,
+    "classification": "not_feasible",
+    "classification_confidence": 0.7,
     "classification_path": [
       "geometry_verdict = PASS (real viable_fraction 51% of total floor area)",
-      "implied value impact midpoint = $3,674,685 (real uplift/cap-rate/cost math)",
-      "combined confidence = geometry_confidence (70%) x value_confidence (75%) = 52%",
-      "positive value + geometry pass + confidence above threshold -> feasible"
+      "implied value impact midpoint = $-1,206,515 (real uplift/cap-rate/cost math)",
+      "combined confidence = geometry_confidence (70%) x value_confidence (100%) = 70%",
+      "value impact is zero or negative on current real/assumed inputs -> not feasible"
     ],
     "cap_rate_sensitivity": [
       {
         "cap_rate": 0.05,
-        "implied_low": 5017457.0,
-        "implied_high": 5838221.0
+        "implied_low": -2318465,
+        "implied_high": 640910
       },
       {
         "cap_rate": 0.055,
-        "implied_low": 4326821.0,
-        "implied_high": 5147585.0
+        "implied_low": -2662014,
+        "implied_high": 297361
       },
       {
         "cap_rate": 0.06,
-        "implied_low": 3751290.0,
-        "implied_high": 4572054.0
+        "implied_low": -2948304,
+        "implied_high": 11071
       },
       {
         "cap_rate": 0.065,
-        "implied_low": 3264303.0,
-        "implied_high": 4085067.0
+        "implied_low": -3190550,
+        "implied_high": -231175
       },
       {
         "cap_rate": 0.07,
-        "implied_low": 2846885.0,
-        "implied_high": 3667649.0
+        "implied_low": -3398189,
+        "implied_high": -438814
       },
       {
         "cap_rate": 0.075,
-        "implied_low": 2485124.0,
-        "implied_high": 3305888.0
+        "implied_low": -3578143,
+        "implied_high": -618768
       },
       {
         "cap_rate": 0.08,
-        "implied_low": 2168582.0,
-        "implied_high": 2989346.0
+        "implied_low": -3735603,
+        "implied_high": -776228
       },
       {
         "cap_rate": 0.085,
-        "implied_low": 1889280.0,
-        "implied_high": 2710044.0
+        "implied_low": -3874538,
+        "implied_high": -915163
       },
       {
         "cap_rate": 0.09,
-        "implied_low": 1641012.0,
-        "implied_high": 2461776.0
+        "implied_low": -3998036,
+        "implied_high": -1038661
       }
     ],
-    "cap_rate_used": 0.065,
-    "breakeven_cap_rate_low": 0.14725473303030429,
-    "breakeven_cap_rate_high": 0.2159736084444463,
-    "reasoning_text": "Geometry pass (75.8ft depth, confidence 70%). Real unit mix: 16 1br, 1 studio (11,725 sqft of actual apartment-sized space, not the raw convertible zone). Floor 24: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $32.40/sf/yr (sf-weighted avg of 3 real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km)) -> $379,850/yr uplift on 11,725 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $3,264,303 to $4,085,067 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
+    "cap_rate_used": 0.05539000000000001,
+    "breakeven_cap_rate_low": 0.03098839640650526,
+    "breakeven_cap_rate_high": 0.060211670054145655,
+    "reasoning_text": "Geometry pass (75.8ft depth, confidence 70%). Real unit mix: 16 1br, 1 studio (11,725 sqft of actual apartment-sized space, not the raw convertible zone). Floor 24: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $30.51/sf/yr (mean of 2,475 units in the 10 nearest apartment communities within 2 miles, real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km), Aris Market Square (0.4km), The Star (0.5km), 1414 Texas Downtown (0.8km), Sabine Street Lofts (0.8km), Block 334 Apartments (0.9km), 500 Crawford (0.9km), Parkside Residences (0.9km)). Occupancy 91.7% (3,104 units in the same communities). Share of rent kept after operating costs 57.6% (mean cap rate x gross income multiplier of the 10 nearest apartment sales that report both, up to 4.6 miles away). Net income $188,952/yr on 11,725 apartment sf. At a 5.5% cap rate (mean of the 10 nearest apartment sales since 2018 with a recorded cap rate, up to 3.9 miles away), apartment value $3,411,297. Construction 22,875 floor sf x $135-260/sf = $3,088,125-$5,947,500, plus $50,000-$150,000 compliance fees. Long-term profit -$2,686,203 to $273,172. In today's dollars (income rising with 4.46% inflation, the CPI-U average of Dec 2020-Dec 2025, discounted at 8% a year, no sale): payback from net income alone 24.8 years to never. Cash after 10 years: -$4,516,831 to -$1,557,456. Cash after 15 years: -$3,903,195 to -$943,820. Cash after 20 years: -$3,383,624 to -$424,249.",
     "notes": [
       "Max depth exceeds threshold by 30.8ft in at least one spot, but 52% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Real cross-check: 20% of 15 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 15 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
       "Not modeled (no real per-building operating-expense data exists in this kit): a vacant floor still carries real utilities, maintenance, insurance and tax cost even at $0 rent - it is not actually free to leave empty. Converting it would also eliminate that real carrying cost, so this estimate is conservative, not inflated, by leaving it out.",
-      "Local apartment vacancy near this building (real, from 3 nearby comps): 7.0% - healthy local demand. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
-      "Residential rent from sf-weighted avg of 3 real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km): $32.40/sf/yr."
+      "Office rent given up by converting is not part of this formula: the profit is the apartment value minus construction and compliance costs."
     ],
     "building_name": "TC Energy Center",
     "lat": 29.7607687,
@@ -172,77 +170,76 @@
     "window_to_core_max_ft": 67.2,
     "convertible_fraction": 0.79,
     "value_skipped": false,
-    "value_uplift_low": 545565.0,
-    "value_uplift_high": 738117.0,
-    "implied_value_impact_low": 2665630.0,
-    "implied_value_impact_high": 4734935.0,
+    "value_uplift_low": 384061.0,
+    "value_uplift_high": 384061.0,
+    "implied_value_impact_low": -7382295.0,
+    "implied_value_impact_high": -389045.0,
     "value_confidence": 1.0,
-    "classification": "feasible",
+    "classification": "not_feasible",
     "classification_confidence": 0.7,
     "classification_path": [
       "geometry_verdict = PASS (real viable_fraction 54% of total floor area)",
-      "implied value impact midpoint = $3,700,282 (real uplift/cap-rate/cost math)",
+      "implied value impact midpoint = $-3,885,670 (real uplift/cap-rate/cost math)",
       "combined confidence = geometry_confidence (70%) x value_confidence (100%) = 70%",
-      "positive value + geometry pass + confidence above threshold -> feasible"
+      "value impact is zero or negative on current real/assumed inputs -> not feasible"
     ],
     "cap_rate_sensitivity": [
       {
         "cap_rate": 0.05,
-        "implied_low": 6333294.0,
-        "implied_high": 8402599.0
+        "implied_low": -6806736,
+        "implied_high": 186514
       },
       {
         "cap_rate": 0.055,
-        "implied_low": 5166310.0,
-        "implied_high": 7235615.0
+        "implied_low": -7505029,
+        "implied_high": -511779
       },
       {
         "cap_rate": 0.06,
-        "implied_low": 4193823.0,
-        "implied_high": 6263128.0
+        "implied_low": -8086940,
+        "implied_high": -1093690
       },
       {
         "cap_rate": 0.065,
-        "implied_low": 3370950.0,
-        "implied_high": 5440255.0
+        "implied_low": -8579326,
+        "implied_high": -1586076
       },
       {
         "cap_rate": 0.07,
-        "implied_low": 2665630.0,
-        "implied_high": 4734935.0
+        "implied_low": -9001371,
+        "implied_high": -2008121
       },
       {
         "cap_rate": 0.075,
-        "implied_low": 2054353.0,
-        "implied_high": 4123658.0
+        "implied_low": -9367144,
+        "implied_high": -2373894
       },
       {
         "cap_rate": 0.08,
-        "implied_low": 1519485.0,
-        "implied_high": 3588790.0
+        "implied_low": -9687195,
+        "implied_high": -2693945
       },
       {
         "cap_rate": 0.085,
-        "implied_low": 1047543.0,
-        "implied_high": 3116848.0
+        "implied_low": -9969593,
+        "implied_high": -2976343
       },
       {
         "cap_rate": 0.09,
-        "implied_low": 628039.0,
-        "implied_high": 2697344.0
+        "implied_low": -10220613,
+        "implied_high": -3227363
       }
     ],
-    "cap_rate_used": 0.07,
-    "breakeven_cap_rate_low": 0.09869120284347656,
-    "breakeven_cap_rate_high": 0.14474709750376563,
-    "reasoning_text": "Geometry pass (67.2ft depth, confidence 70%). Real unit mix: 25 1br, 21 studio (29,562 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $21.71/sf/yr (sf-weighted avg of 3 real comps: The Bordeaux (0.3km), Astor Tanglewood (0.4km), High Point Uptown (0.5km)) -> $641,841/yr uplift on 29,562 convertible sf. At a 7.0% cap rate (real pro-forma (projected, not in-place actual) cap rate, sale comp 3154125), implied value impact is $2,665,630 to $4,734,935 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
+    "cap_rate_used": 0.05405,
+    "breakeven_cap_rate_low": 0.02650899081591068,
+    "breakeven_cap_rate_high": 0.051244304126681524,
+    "reasoning_text": "Geometry pass (67.2ft depth, confidence 70%). Real unit mix: 25 1br, 21 studio (29,562 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $31.30/sf/yr (mean of 2,468 units in the 10 nearest apartment communities within 2 miles, real comps: The Bordeaux (0.3km), Astor Tanglewood (0.4km), High Point Uptown (0.5km), Post Oak at Woodway (0.5km), Reverie at River Hollow (1.1km), Aston Post Oak (1.3km), Hollings Post Oak (1.7km), Post Oak Park (2.0km), Montecito (2.1km), Harlow River Oaks (2.1km)). Occupancy 90.3% (2,826 units in the same communities). Share of rent kept after operating costs 46.0% (mean cap rate x gross income multiplier of the 10 nearest apartment sales that report both, up to 2.9 miles away). Net income $384,061/yr on 29,562 apartment sf. At a 5.4% cap rate (mean of the 10 nearest apartment sales since 2018 with a recorded cap rate, up to 2.9 miles away), apartment value $7,105,665. Construction 55,146 floor sf x $135-260/sf = $7,444,710-$14,337,960, plus $50,000-$150,000 compliance fees. Long-term profit -$7,382,295 to -$389,045. In today's dollars (income rising with 4.46% inflation, the CPI-U average of Dec 2020-Dec 2025, discounted at 8% a year, no sale): payback from net income alone 32.5 years to never. Cash after 10 years: -$11,275,111 to -$4,281,861. Cash after 15 years: -$10,027,841 to -$3,034,591. Cash after 20 years: -$8,971,767 to -$1,978,517.",
     "notes": [
       "Max depth exceeds threshold by 22.2ft in at least one spot, but 54% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "This simplification ignores the option value of eventually re-leasing the floor as office at market rate - a real consideration a landlord would weigh, not modeled here (no other real office buildings found in this submarket, so no real submarket cross-check was available either).",
       "Not modeled (no real per-building operating-expense data exists in this kit): a vacant floor still carries real utilities, maintenance, insurance and tax cost even at $0 rent - it is not actually free to leave empty. Converting it would also eliminate that real carrying cost, so this estimate is conservative, not inflated, by leaving it out.",
-      "Local apartment vacancy near this building (real, from 3 nearby comps): 11.2% - elevated leasing risk. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
-      "Residential rent from sf-weighted avg of 3 real comps: The Bordeaux (0.3km), Astor Tanglewood (0.4km), High Point Uptown (0.5km): $21.71/sf/yr."
+      "Office rent given up by converting is not part of this formula: the profit is the apartment value minus construction and compliance costs."
     ],
     "building_name": "Woodway Center",
     "lat": 29.7635027,
@@ -256,78 +253,76 @@
     "window_to_core_max_ft": 58.9,
     "convertible_fraction": 0.83,
     "value_skipped": false,
-    "value_uplift_low": 551932.0,
-    "value_uplift_high": 746731.0,
-    "implied_value_impact_low": 2068566.0,
-    "implied_value_impact_high": 3914695.0,
+    "value_uplift_low": 263876.0,
+    "value_uplift_high": 263876.0,
+    "implied_value_impact_low": -6773925.0,
+    "implied_value_impact_high": -1176425.0,
     "value_confidence": 1.0,
-    "classification": "feasible",
+    "classification": "not_feasible",
     "classification_confidence": 0.7,
     "classification_path": [
       "geometry_verdict = PASS (real viable_fraction 55% of total floor area)",
-      "implied value impact midpoint = $2,991,631 (real uplift/cap-rate/cost math)",
+      "implied value impact midpoint = $-3,975,175 (real uplift/cap-rate/cost math)",
       "combined confidence = geometry_confidence (70%) x value_confidence (100%) = 70%",
-      "positive value + geometry pass + confidence above threshold -> feasible"
+      "value impact is zero or negative on current real/assumed inputs -> not feasible"
     ],
     "cap_rate_sensitivity": [
       {
         "cap_rate": 0.05,
-        "implied_low": 7184512.0,
-        "implied_high": 9030641.0
+        "implied_low": -6307270,
+        "implied_high": -709770
       },
       {
         "cap_rate": 0.055,
-        "implied_low": 6003909.0,
-        "implied_high": 7850038.0
+        "implied_low": -6787046,
+        "implied_high": -1189546
       },
       {
         "cap_rate": 0.06,
-        "implied_low": 5020074.0,
-        "implied_high": 6866203.0
+        "implied_low": -7186859,
+        "implied_high": -1589359
       },
       {
         "cap_rate": 0.065,
-        "implied_low": 4187597.0,
-        "implied_high": 6033726.0
+        "implied_low": -7525162,
+        "implied_high": -1927662
       },
       {
         "cap_rate": 0.07,
-        "implied_low": 3474046.0,
-        "implied_high": 5320175.0
+        "implied_low": -7815136,
+        "implied_high": -2217636
       },
       {
         "cap_rate": 0.075,
-        "implied_low": 2855635.0,
-        "implied_high": 4701764.0
+        "implied_low": -8066447,
+        "implied_high": -2468947
       },
       {
         "cap_rate": 0.08,
-        "implied_low": 2314525.0,
-        "implied_high": 4160654.0
+        "implied_low": -8286344,
+        "implied_high": -2688844
       },
       {
         "cap_rate": 0.085,
-        "implied_low": 1837076.0,
-        "implied_high": 3683205.0
+        "implied_low": -8480371,
+        "implied_high": -2882871
       },
       {
         "cap_rate": 0.09,
-        "implied_low": 1412676.0,
-        "implied_high": 3258805.0
+        "implied_low": -8652839,
+        "implied_high": -3055339
       }
     ],
-    "cap_rate_used": 0.0825,
-    "breakeven_cap_rate_low": 0.11191282679766097,
-    "breakeven_cap_rate_high": 0.16413881263656946,
-    "reasoning_text": "Geometry pass (58.9ft depth, confidence 70%). Real unit mix: 15 1br, 22 studio (23,976 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $27.08/sf/yr (sf-weighted avg of 3 real comps: Revl Med Center (0.3km), 8181 Med Center Apartments (0.5km), Lanesborough Apartments (0.8km)) -> $649,332/yr uplift on 23,976 convertible sf. At a 8.2% cap rate (real actual (in-place) cap rate, sale comp 1943739), implied value impact is $2,068,566 to $3,914,695 after construction cost (real buildingConstructionMaterial = Masonry, 1.10x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
+    "cap_rate_used": 0.054849999999999996,
+    "breakeven_cap_rate_low": 0.022777819966913315,
+    "breakeven_cap_rate_high": 0.044072702011373636,
+    "reasoning_text": "Geometry pass (58.9ft depth, confidence 70%). Real unit mix: 15 1br, 22 studio (23,976 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $23.83/sf/yr (mean of 3,980 units in the 10 nearest apartment communities within 2 miles, real comps: Revl Med Center (0.3km), 8181 Med Center Apartments (0.5km), Lanesborough Apartments (0.8km), Harvest Hill Apartments (0.8km), Residences at the Med (0.8km), Scotland Yard (1.0km), South Main Building (1.0km), Greenbriar Park (1.0km), CoOp at the Med Center (1.2km), Mezzo Kirby Med Center (1.3km)). Occupancy 90.3% (4,196 units in the same communities). Share of rent kept after operating costs 51.2% (mean cap rate x gross income multiplier of the 10 nearest apartment sales that report both, up to 3.5 miles away). Net income $263,876/yr on 23,976 apartment sf. At a 5.5% cap rate (mean of the 10 nearest apartment sales since 2018 with a recorded cap rate, up to 3.6 miles away), apartment value $4,810,875. Construction 43,980 floor sf x $135-260/sf = $5,937,300-$11,434,800, plus $50,000-$150,000 compliance fees. Long-term profit -$6,773,925 to -$1,176,425. In today's dollars (income rising with 4.46% inflation, the CPI-U average of Dec 2020-Dec 2025, discounted at 8% a year, no sale): payback from net income alone 43.9 years to never. Cash after 10 years: -$9,377,351 to -$3,779,851. Cash after 15 years: -$8,520,391 to -$2,922,891. Cash after 20 years: -$7,794,795 to -$2,197,295.",
     "notes": [
       "Max depth exceeds threshold by 13.9ft in at least one spot, but 56% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Real cross-check: 0% of 4 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 4 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
       "Not modeled (no real per-building operating-expense data exists in this kit): a vacant floor still carries real utilities, maintenance, insurance and tax cost even at $0 rent - it is not actually free to leave empty. Converting it would also eliminate that real carrying cost, so this estimate is conservative, not inflated, by leaving it out.",
-      "Local apartment vacancy near this building (real, from 3 nearby comps): 7.2% - healthy local demand. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
-      "Residential rent from sf-weighted avg of 3 real comps: Revl Med Center (0.3km), 8181 Med Center Apartments (0.5km), Lanesborough Apartments (0.8km): $27.08/sf/yr.",
-      "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building."
+      "Office rent given up by converting is not part of this formula: the profit is the apartment value minus construction and compliance costs."
     ],
     "building_name": "7900 Fannin",
     "lat": 29.6915081,
@@ -341,78 +336,76 @@
     "window_to_core_max_ft": 81.7,
     "convertible_fraction": 0.74,
     "value_skipped": false,
-    "value_uplift_low": 284094.0,
-    "value_uplift_high": 437414.0,
-    "implied_value_impact_low": 486767.0,
-    "implied_value_impact_high": 2097815.0,
-    "value_confidence": 0.75,
-    "classification": "marginal",
-    "classification_confidence": 0.5249999999999999,
+    "value_uplift_low": 167020.0,
+    "value_uplift_high": 167020.0,
+    "implied_value_impact_low": -8536993.0,
+    "implied_value_impact_high": -2844993.0,
+    "value_confidence": 1.0,
+    "classification": "not_feasible",
+    "classification_confidence": 0.7,
     "classification_path": [
       "geometry_verdict = ESCALATE (real viable_fraction 47% of total floor area)",
-      "implied value impact midpoint = $1,292,291 (real uplift/cap-rate/cost math)",
-      "combined confidence = geometry_confidence (70%) x value_confidence (75%) = 52%",
-      "positive value but geometry escalated or combined confidence below 40% -> marginal, needs human review before relying on this"
+      "implied value impact midpoint = $-5,690,993 (real uplift/cap-rate/cost math)",
+      "combined confidence = geometry_confidence (70%) x value_confidence (100%) = 70%",
+      "value impact is zero or negative on current real/assumed inputs -> not feasible"
     ],
     "cap_rate_sensitivity": [
       {
         "cap_rate": 0.05,
-        "implied_low": 2151785.0,
-        "implied_high": 3762833.0
+        "implied_low": -8440960,
+        "implied_high": -2748960
       },
       {
         "cap_rate": 0.055,
-        "implied_low": 1495869.0,
-        "implied_high": 3106917.0
+        "implied_low": -8744633,
+        "implied_high": -3052633
       },
       {
         "cap_rate": 0.06,
-        "implied_low": 949272.0,
-        "implied_high": 2560320.0
+        "implied_low": -8997693,
+        "implied_high": -3305693
       },
       {
         "cap_rate": 0.065,
-        "implied_low": 486767.0,
-        "implied_high": 2097815.0
+        "implied_low": -9211822,
+        "implied_high": -3519822
       },
       {
         "cap_rate": 0.07,
-        "implied_low": 90334.0,
-        "implied_high": 1701382.0
+        "implied_low": -9395360,
+        "implied_high": -3703360
       },
       {
         "cap_rate": 0.075,
-        "implied_low": -253241.0,
-        "implied_high": 1357807.0
+        "implied_low": -9554427,
+        "implied_high": -3862427
       },
       {
         "cap_rate": 0.08,
-        "implied_low": -553870.0,
-        "implied_high": 1057178.0
+        "implied_low": -9693610,
+        "implied_high": -4001610
       },
       {
         "cap_rate": 0.085,
-        "implied_low": -819130.0,
-        "implied_high": 791918.0
+        "implied_low": -9816419,
+        "implied_high": -4124419
       },
       {
         "cap_rate": 0.09,
-        "implied_low": -1054917.0,
-        "implied_high": 556131.0
+        "implied_low": -9925582,
+        "implied_high": -4233582
       }
     ],
-    "cap_rate_used": 0.065,
-    "breakeven_cap_rate_low": 0.07124886545426568,
-    "breakeven_cap_rate_high": 0.10449833599958967,
-    "reasoning_text": "Geometry escalate (81.7ft depth, confidence 70%). Real unit mix: 7 1br, 26 studio (20,923 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $17.24/sf/yr (sf-weighted avg of 3 real comps: Tuscany Apartments (0.3km), San Felipe Square Townhomes (0.6km), Tanglebrook Apartments (0.8km)) -> $360,754/yr uplift on 20,923 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $486,767 to $2,097,815 after construction cost (real buildingConstructionMaterial = Masonry, 1.10x baseline). No confirmed lease end date - verify occupancy before assuming vacancy. Flagging for human review rather than forcing a pass/fail.",
+    "cap_rate_used": 0.051480000000000005,
+    "breakeven_cap_rate_low": 0.014176631312338513,
+    "breakeven_cap_rate_high": 0.027428169311377953,
+    "reasoning_text": "Geometry escalate (81.7ft depth, confidence 70%). Real unit mix: 7 1br, 26 studio (20,923 sqft of actual apartment-sized space, not the raw convertible zone). Floor 1: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $20.28/sf/yr (mean of 1,677 units in the 10 nearest apartment communities within 2 miles, real comps: Tuscany Apartments (0.3km), San Felipe Square Townhomes (0.6km), Tanglebrook Apartments (0.8km), The William (0.8km), Tuscany Court Apartments (1.3km), Tate Tanglewood (1.3km), 1900 Yorktown (1.6km), The Phoenician (1.7km), 10X Woodway Square (1.7km), Astor Tanglewood (1.7km)). Occupancy 91.5% (2,578 units in the same communities). Share of rent kept after operating costs 43.0% (mean cap rate x gross income multiplier of the 10 nearest apartment sales that report both, up to 2.6 miles away). Net income $167,020/yr on 20,923 apartment sf. At a 5.1% cap rate (mean of the 10 nearest apartment sales since 2018 with a recorded cap rate, up to 2.8 miles away), apartment value $3,244,367. Construction 44,736 floor sf x $135-260/sf = $6,039,360-$11,631,360, plus $50,000-$150,000 compliance fees. Long-term profit -$8,536,993 to -$2,844,993. In today's dollars (income rising with 4.46% inflation, the CPI-U average of Dec 2020-Dec 2025, discounted at 8% a year, no sale): payback from net income alone never to never. Cash after 10 years: -$10,384,161 to -$4,692,161. Cash after 15 years: -$9,841,750 to -$4,149,750. Cash after 20 years: -$9,382,486 to -$3,690,486. Flagging for human review rather than forcing a pass/fail.",
     "notes": [
       "Only 47% of the floor's area fits real units - partial conversion may be viable, flagging for human review rather than a flat pass/fail.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Real cross-check: 0% of 4 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 4 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
       "Not modeled (no real per-building operating-expense data exists in this kit): a vacant floor still carries real utilities, maintenance, insurance and tax cost even at $0 rent - it is not actually free to leave empty. Converting it would also eliminate that real carrying cost, so this estimate is conservative, not inflated, by leaving it out.",
-      "Local apartment vacancy near this building (real, from 3 nearby comps): 10.0% - elevated leasing risk. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
-      "Residential rent from sf-weighted avg of 3 real comps: Tuscany Apartments (0.3km), San Felipe Square Townhomes (0.6km), Tanglebrook Apartments (0.8km): $17.24/sf/yr.",
-      "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building."
+      "Office rent given up by converting is not part of this formula: the profit is the apartment value minus construction and compliance costs."
     ],
     "building_name": "Two Bering Park",
     "lat": 29.7578818,

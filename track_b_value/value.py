@@ -400,6 +400,18 @@ class FloorValueResult:
     breakeven_cap_rate_high: float | None = None  # most optimistic (best-case cost) breakeven
     reasoning_text: str = ""
     notes: list[str] = field(default_factory=list)
+    # the simple formula's pieces, so the UI can show them without re-deriving
+    floor_sqft: float | None = None
+    occupancy: float | None = None
+    noi_share: float | None = None
+    apartment_value: float | None = None
+    construction_cost_low: float | None = None
+    construction_cost_high: float | None = None
+    compliance_fees_low: float | None = None
+    compliance_fees_high: float | None = None
+    payback_years_low: float | None = None      # cheapest case: years of net income to cover the cost
+    payback_years_high: float | None = None     # most expensive case
+    cash_profit_by_year: dict = field(default_factory=dict)   # {years: [low, high]}, rent earned minus cost
 
 
 _JSONL_CACHE: dict[str, list[dict]] = {}
@@ -414,7 +426,7 @@ def _iter_jsonl(filename: str):
     fine for a one-shot script, not for a server answering repeated clicks."""
     if filename not in _JSONL_CACHE:
         path = os.path.join(KIT_PATH, "data", filename)
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             _JSONL_CACHE[filename] = [json.loads(line) for line in f]
     yield from _JSONL_CACHE[filename]
 
@@ -553,8 +565,135 @@ def real_cap_rate_for_property(property_id: int) -> tuple[float | None, str]:
     return None, "no comp found - using default assumption"
 
 
+# ---------------------------------------------------------------------------
+# Nearby benchmarks: plain averages of real CoStar rows near the building.
+# ---------------------------------------------------------------------------
+
+COMP_RADIUS_MILES = 2.0          # "a couple of miles"
+NEAREST_COMMUNITIES = 10         # rent and occupancy: the 10 nearest apartment communities inside that radius
+NEAREST_SALES = 10               # cap rate and operating share: the 10 nearest apartment sales that report them
+SALES_SINCE = 2018               # cap rates from before then reflect a different interest-rate era
+MULTIFAMILY = 11
+CONVERSION_COST_PER_SQFT_LOW = 135.0     # all-in, per gross sf of the office floor converted
+CONVERSION_COST_PER_SQFT_HIGH = 260.0
+COMPLIANCE_FEES_LOW = 50_000.0           # per building: permits, code compliance, change-of-occupancy filings
+COMPLIANCE_FEES_HIGH = 150_000.0
+PAYBACK_HORIZONS = (10, 15, 20)          # years shown for cash profit
+
+# Inflation: the average yearly change in the US CPI-U (all items, city average) over the last five years,
+# December 2020 (260.474) to December 2025 (324.054), from BLS's historical CPI-U table.
+CPI_U_DEC_2020, CPI_U_DEC_2025 = 260.474, 324.054
+INFLATION_RATE = (CPI_U_DEC_2025 / CPI_U_DEC_2020) ** (1 / 5) - 1      # about 4.47% a year
+DISCOUNT_RATE = 0.08                     # a commonly used required return for apartment investments
+MAX_PAYBACK_YEARS = 100                  # past this, report "never"
+
+
+def _discounted_income(noi: float, years: int) -> float:
+    """Today's value of `years` years of net income, paid at each year's end, rising with inflation."""
+    growth = (1 + INFLATION_RATE) / (1 + DISCOUNT_RATE)
+    return sum(noi * growth ** t for t in range(1, years + 1))
+
+
+def _discounted_payback(noi: float, cost: float) -> float | None:
+    """Years until discounted net income covers an up-front cost (fractional), or None if it never does.
+    Discounting faster than inflation caps the total: all future income is worth at most
+    noi * (1 + inflation) / (discount - inflation) today."""
+    if noi <= 0:
+        return None
+    growth, total = (1 + INFLATION_RATE) / (1 + DISCOUNT_RATE), 0.0
+    for t in range(1, MAX_PAYBACK_YEARS + 1):
+        pv = noi * growth ** t
+        if total + pv >= cost:
+            return t - 1 + (cost - total) / pv
+        total += pv
+    return None
+
+
+def _miles(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    import math
+    dx = (lon2 - lon1) * 69.17 * math.cos(math.radians(lat1))
+    return math.hypot(dx, (lat2 - lat1) * 69.17)
+
+
+def nearby_apartment_benchmark(lat: float, lon: float) -> dict:
+    """Rent per sf a month = the mean over every apartment unit in the NEAREST_COMMUNITIES nearest
+    communities within COMP_RADIUS_MILES (each floor plan counts once per unit it has).
+    Occupancy = 1 - units available now / all units, in the same communities."""
+    near = []
+    for rec in _iter_jsonl("apartment-listing.jsonl"):
+        a = rec.get("address") or {}
+        if a.get("latitude") is None:
+            continue
+        d = _miles(lat, lon, a["latitude"], a["longitude"])
+        if d <= COMP_RADIUS_MILES:
+            near.append((d, rec))
+    near.sort(key=lambda t: t[0])
+    near = near[:NEAREST_COMMUNITIES]
+    rent_sum, units, avail, total = 0.0, 0, 0, 0
+    for _, rec in near:
+        for m in rec.get("apartmentModels") or []:
+            sf = ((m.get("minSquareFeet") or 0) + (m.get("maxSquareFeet") or 0)) / 2
+            rent = ((m.get("minRent") or 0) + (m.get("maxRent") or 0)) / 2
+            n = m.get("numUnits") or 0
+            if sf > 0 and rent > 0 and n > 0:
+                rent_sum += rent / sf * n
+                units += n
+        if rec.get("numUnitsAvailable") is not None and rec.get("totalNumUnits"):
+            avail += rec["numUnitsAvailable"]
+            total += rec["totalNumUnits"]
+    if not units or not total:
+        raise LookupError(f"no apartment units with rents within {COMP_RADIUS_MILES:g} miles")
+    return {"rent_psf_mo": rent_sum / units, "n_units": units, "occupancy": 1 - avail / total,
+            "occupancy_units": total,
+            "communities": [(rec.get("buildingName") or "unnamed", d * 1.60934) for d, rec in near]}
+
+
+def nearby_sales_benchmark(lat: float, lon: float) -> dict:
+    """Cap rate = mean of the NEAREST_SALES nearest Houston apartment sales since SALES_SINCE with a
+    recorded (actual, in-place) cap rate. Share of rent kept after operating costs = mean of
+    cap rate x gross income multiplier over the NEAREST_SALES nearest sales that report both
+    (cap = NOI / price and GIM = price / gross income, so their product is NOI / gross income)."""
+    caps, shares = [], []
+    for c in _iter_jsonl("commercial-sale-comp.jsonl"):
+        year = int((c.get("soldDate") or "0")[:4] or 0)
+        for e in c.get("entities") or []:
+            p = _props_by_id().get(e.get("propertyId"))
+            if not p or p.get("propertyType") != MULTIFAMILY:
+                continue
+            a = p.get("primaryAddress") or {}
+            if a.get("researchMarketId") != HOUSTON_MARKET_ID or a.get("latitude") is None:
+                continue
+            cap = e.get("capitalizationRateActual") or c.get("capitalizationRateActual")
+            if not cap or not 1 < cap < 20:
+                continue
+            d = _miles(lat, lon, a["latitude"], a["longitude"])
+            if year >= SALES_SINCE:
+                caps.append((d, cap / 100))
+            gim = c.get("grossIncomeMultiplier") or c.get("grossRentMultiplier")
+            if gim and 0.1 < cap / 100 * gim < 0.9:
+                shares.append((d, cap / 100 * gim))
+    caps, shares = sorted(caps)[:NEAREST_SALES], sorted(shares)[:NEAREST_SALES]
+    if not caps or not shares:
+        raise LookupError("no Houston apartment sales with a recorded cap rate")
+    return {"cap_rate": sum(x for _, x in caps) / len(caps), "n_cap": len(caps), "cap_miles": caps[-1][0],
+            "cap_source": f"mean of the {len(caps)} nearest Houston apartment sales since {SALES_SINCE} with a "
+                          f"recorded cap rate, up to {caps[-1][0]:.1f} miles away",
+            "noi_share": sum(x for _, x in shares) / len(shares), "n_share": len(shares),
+            "share_miles": shares[-1][0]}
+
+
+_PROPS_BY_ID: dict = {}
+
+
+def _props_by_id() -> dict:
+    if not _PROPS_BY_ID:
+        _PROPS_BY_ID.update({r["id"]: r for r in _iter_jsonl("commercial-property.jsonl")})
+    return _PROPS_BY_ID
+
+
 def run_value(property_id: int, floor_name: int, convertible_sqft: float,
-              query_lat: float | None = None, query_lon: float | None = None) -> FloorValueResult:
+              query_lat: float | None = None, query_lon: float | None = None,
+              floor_sqft: float | None = None) -> FloorValueResult:
     prop = load_property(property_id)
     notes = []
 
@@ -640,139 +779,99 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
         office_rent = 24.0
         rent_source = "assumed Houston office market rate (no occupancy record at all for this floor)"
 
-    cap_rate, cap_rate_source = real_cap_rate_for_property(property_id)
-    if cap_rate is None:
-        cap_rate = DEFAULT_CAP_RATE
+    # ------------------------------------------------------------------
+    # The money: one simple formula, every input averaged from real nearby data.
+    #   net income/yr = apartment sf x rent/sf/mo x 12 x occupancy x share kept after operating costs
+    #   value         = net income / cap rate
+    #   profit        = value - floor sf x conversion cost/sf - compliance fees
+    # ------------------------------------------------------------------
+    lat = query_lat if query_lat is not None else (prop.get("primaryAddress") or {}).get("latitude")
+    lon = query_lon if query_lon is not None else (prop.get("primaryAddress") or {}).get("longitude")
+    apts = nearby_apartment_benchmark(lat, lon)
+    sales = nearby_sales_benchmark(lat, lon)
+    if floor_sqft is None:
+        fid = floor_name_to_id(prop, floor_name)
+        floor_sqft = next(((fl.get("floorSize") or {}).get("squareFeet") for fl in prop.get("floors") or []
+                           if fl.get("propertyFloorId") == fid), None) or convertible_sqft
+        notes.append(f"Floor area from CoStar's floor record: {floor_sqft:,.0f} sf.")
 
-    # Automated anomaly check - a real model trained on the full real
-    # population of cap rates citywide (3,217 real comps), not a hand-picked
-    # threshold. Catches the exact class of bug found manually earlier
-    # tonight (a 52.5% cap rate from an unconverted percentage) before it
-    # ever reaches a verdict, instead of relying on a human to notice.
-    cap_rate_anomaly = check_anomaly("cap_rate", cap_rate)
-    if cap_rate_anomaly.is_anomaly:
-        notes.append(cap_rate_anomaly.message)
+    rent_psf_mo, occupancy = apts["rent_psf_mo"], apts["occupancy"]
+    cap_rate, noi_share = sales["cap_rate"], sales["noi_share"]
+    for kind, value_, label in (("residential_rent_psf_yr", rent_psf_mo * 12, "residential rent"),
+                                ("cap_rate", cap_rate, "cap rate")):
+        anomaly = check_anomaly(kind, value_)
+        if anomaly.is_anomaly:
+            notes.append(anomaly.message)
 
-    residential_rent, rent_comp_source, vacancy_rate = None, "no location given", None
-    if query_lat is not None and query_lon is not None:
-        market = nearest_apartment_market_comp(query_lat, query_lon, n_comps=3)
-        residential_rent, rent_comp_source = market.rent_per_sqft_year, market.rent_source
-        vacancy_rate = market.vacancy_rate
-        if vacancy_rate is not None:
-            risk = "elevated leasing risk" if vacancy_rate > 0.08 else "healthy local demand"
-            notes.append(
-                f"Local apartment vacancy near this building (real, from {market.n_comps_used} nearby "
-                f"comps): {vacancy_rate:.1%} - {risk}. This is independent of whether the conversion "
-                f"pencils financially - a cross-check CoStar's office and apartment data don't currently "
-                f"combine, but could."
-            )
-        else:
-            notes.append(f"Local apartment vacancy rate unavailable - {market.vacancy_source}.")
-    if residential_rent is None:
-        residential_rent = ASSUMED_RESIDENTIAL_RENT_PER_SQFT_YEAR
-        rent_comp_source = f"assumed Houston-wide rate ({rent_comp_source})"
-        notes.append(f"No real nearby apartment comp used for residential rent - {rent_comp_source}.")
-    else:
-        notes.append(f"Residential rent from {rent_comp_source}: ${residential_rent:.2f}/sf/yr.")
+    noi = convertible_sqft * rent_psf_mo * 12 * occupancy * noi_share
+    value = noi / cap_rate
+    cost_low = floor_sqft * CONVERSION_COST_PER_SQFT_LOW
+    cost_high = floor_sqft * CONVERSION_COST_PER_SQFT_HIGH
+    implied_low = value - cost_high - COMPLIANCE_FEES_HIGH      # most expensive case
+    implied_high = value - cost_low - COMPLIANCE_FEES_LOW       # cheapest case
 
-    rent_anomaly = check_anomaly("residential_rent_psf_yr", residential_rent)
-    if rent_anomaly.is_anomaly:
-        notes.append(rent_anomaly.message)
-
-    uplift_per_sqft = residential_rent - office_rent
-    value_uplift = uplift_per_sqft * convertible_sqft
-
-    cost_multiplier, cost_multiplier_source = construction_cost_multiplier_for_property(property_id)
-    cost_low = ASSUMED_CONSTRUCTION_COST_PER_SQFT_LOW * cost_multiplier * convertible_sqft
-    cost_high = ASSUMED_CONSTRUCTION_COST_PER_SQFT_HIGH * cost_multiplier * convertible_sqft
-    if cost_multiplier != 1.0:
-        notes.append(
-            f"Construction cost adjusted {cost_multiplier:.2f}x from the flat $150-220/sf baseline "
-            f"based on {cost_multiplier_source} - real per-building adjustment, not the same flat "
-            f"number applied to every building."
-        )
-
-    implied_low = value_uplift / cap_rate - cost_high
-    implied_high = value_uplift / cap_rate - cost_low
-
-    # Sensitivity analysis: the cap rate is the most commonly-defaulted real
-    # input here (no real sale comp exists for most buildings), so judges
-    # reasonably ask "what if it's higher/lower." This re-runs the SAME real
-    # value_uplift/cost_low/cost_high already computed above at other real
-    # cap rate points - no new assumptions, just showing the existing math
-    # isn't a single fragile number.
     cap_rate_grid = [0.05, 0.055, 0.06, 0.065, 0.07, 0.075, 0.08, 0.085, 0.09]
-    cap_rate_sensitivity = [
-        {"cap_rate": round(cr, 4),
-         "implied_low": round(value_uplift / cr - cost_high, 0),
-         "implied_high": round(value_uplift / cr - cost_low, 0)}
-        for cr in cap_rate_grid
-    ]
-    # Breakeven cap rate = the rate at which implied value crosses $0, as a
-    # real range (not one point) using the real cost range's own low/high
-    # ends. If value_uplift itself is <= 0, no cap rate makes this
-    # profitable - dividing a non-positive uplift by any positive rate
-    # never turns positive, so breakeven doesn't exist, not "very high."
-    if value_uplift > 0:
-        breakeven_cap_rate_low = value_uplift / cost_high if cost_high else None
-        breakeven_cap_rate_high = value_uplift / cost_low if cost_low else None
-    else:
-        breakeven_cap_rate_low = breakeven_cap_rate_high = None
-
-    # Real signal, not a one-off manual check: how much of THIS dollar figure
-    # rests on real data vs. stated defaults. Column depth is deliberately
-    # left out here - that's already penalized in geometry_confidence, and
-    # double-counting it would bias rank_score toward buildings that happen
-    # to have it for a reason unrelated to the VALUE math's own confidence.
-    # Reuses the source strings already computed above - no new lookups.
-    value_confidence = sum([
-        cap_rate_source.startswith("real"),
-        rent_source.startswith("real") or rent_source.startswith("floor confirmed vacant"),
-        cost_multiplier_source.startswith("real"),
-        not rent_comp_source.startswith("assumed") and not rent_comp_source.startswith("no location"),
-    ]) / 4.0
-
-    # Real, not arbitrary: the uncertainty band around value_uplift widens as
-    # less of the dollar figure rests on real data. At value_confidence=1.0
-    # (all 4 real inputs backed it), the band is +/-15% - ordinary real estate
-    # appraisal practice of quoting a range, not a point estimate. At
-    # value_confidence=0.0 (every input defaulted), it widens to +/-40%,
-    # honestly reflecting that a number built entirely on stated assumptions
-    # deserves a wider range than one backed by real comps and a real cap
-    # rate. Previously a flat +/-15% regardless of value_confidence - with no
-    # documented justification for that specific number, and no honest
-    # reason a 0%-real-data estimate should carry the same tight band as a
-    # 100%-real-data one.
-    uplift_band = 0.15 + (1.0 - value_confidence) * 0.25
+    cap_rate_sensitivity = [{"cap_rate": cr, "implied_low": round(noi / cr - cost_high - COMPLIANCE_FEES_HIGH),
+                             "implied_high": round(noi / cr - cost_low - COMPLIANCE_FEES_LOW)} for cr in cap_rate_grid]
+    breakeven_cap_rate_low = noi / (cost_high + COMPLIANCE_FEES_HIGH) if noi > 0 else None
+    breakeven_cap_rate_high = noi / (cost_low + COMPLIANCE_FEES_LOW) if noi > 0 else None
+    value_confidence = sum([apts["n_units"] > 0, apts["occupancy_units"] > 0,
+                            sales["n_cap"] >= NEAREST_SALES, sales["n_share"] >= NEAREST_SALES]) / 4.0
 
     def _fmt_money(x: float) -> str:
-        # "-$1,958,403", not "$-1,958,403" - a real screenshot caught the
-        # latter reading as a malformed double-negative in the UI.
         return f"-${abs(x):,.0f}" if x < 0 else f"${x:,.0f}"
 
+    comps = ", ".join(f"{n} ({km:.1f}km)" for n, km in apts["communities"])
     reasoning = (
-        f"Floor {floor_name}: office rent ${office_rent:.2f}/sf/yr ({rent_source}) vs. "
-        f"residential ${residential_rent:.2f}/sf/yr ({rent_comp_source}) -> ${value_uplift:,.0f}/yr uplift on "
-        f"{convertible_sqft:,.0f} convertible sf. At a {cap_rate:.1%} cap rate ({cap_rate_source}), "
-        f"implied value impact is {_fmt_money(implied_low)} to {_fmt_money(implied_high)} after construction cost "
-        f"({cost_multiplier_source}, {cost_multiplier:.2f}x baseline)."
+        f"Floor {floor_name}: office rent ${office_rent:.2f}/sf/yr ({rent_source}) vs. residential "
+        f"${rent_psf_mo * 12:.2f}/sf/yr (mean of {apts['n_units']:,} units in the {len(apts['communities'])} nearest "
+        f"apartment communities within {COMP_RADIUS_MILES:g} miles, real comps: {comps}). "
+        f"Occupancy {occupancy:.1%} ({apts['occupancy_units']:,} units in the same communities). "
+        f"Share of rent kept after operating costs {noi_share:.1%} (mean cap rate x gross income multiplier of the "
+        f"{sales['n_share']} nearest apartment sales that report both, up to {sales['share_miles']:.1f} miles away). "
+        f"Net income {_fmt_money(noi)}/yr on {convertible_sqft:,.0f} apartment sf. "
+        f"At a {cap_rate:.1%} cap rate (mean of the {sales['n_cap']} nearest apartment sales since {SALES_SINCE} "
+        f"with a recorded cap rate, up to {sales['cap_miles']:.1f} miles away), apartment value {_fmt_money(value)}. "
+        f"Construction {floor_sqft:,.0f} floor sf x ${CONVERSION_COST_PER_SQFT_LOW:.0f}-{CONVERSION_COST_PER_SQFT_HIGH:.0f}/sf "
+        f"= {_fmt_money(cost_low)}-{_fmt_money(cost_high)}, plus {_fmt_money(COMPLIANCE_FEES_LOW)}-"
+        f"{_fmt_money(COMPLIANCE_FEES_HIGH)} compliance fees. Long-term profit {_fmt_money(implied_low)} to "
+        f"{_fmt_money(implied_high)}."
     )
+    # Time view, no sale, in today's dollars: net income rises with inflation each year (no growth
+    # beyond it) and each year's income is discounted back to today. Construction and compliance are
+    # paid up front, so inflation does not touch them.
+    total_low, total_high = cost_low + COMPLIANCE_FEES_LOW, cost_high + COMPLIANCE_FEES_HIGH
+    payback_low, payback_high = _discounted_payback(noi, total_low), _discounted_payback(noi, total_high)
+    cash_by_year = {y: [round(_discounted_income(noi, y) - total_high), round(_discounted_income(noi, y) - total_low)]
+                    for y in PAYBACK_HORIZONS}
+    if noi > 0:
+        years = lambda p: f"{p:.1f} years" if p is not None else "never"
+        reasoning += (f" In today's dollars (income rising with {INFLATION_RATE:.2%} inflation, the CPI-U average of "
+                      f"Dec 2020-Dec 2025, discounted at {DISCOUNT_RATE:.0%} a year, no sale): payback from net income "
+                      f"alone {years(payback_low)} to {years(payback_high)}. "
+                      + " ".join(f"Cash after {y} years: {_fmt_money(lo)} to {_fmt_money(hi)}."
+                                 for y, (lo, hi) in cash_by_year.items()))
     if lease_expiration:
         reasoning += f" Current lease runs through {lease_expiration[:10]}."
-    else:
+    elif not rent_source.startswith("floor confirmed vacant"):
         reasoning += " No confirmed lease end date - verify occupancy before assuming vacancy."
+    notes.append("Office rent given up by converting is not part of this formula: the profit is the apartment "
+                 "value minus construction and compliance costs.")
 
     return FloorValueResult(
         property_id=property_id, floor_name=floor_name, current_tenant_id=current_tenant_id,
         lease_expiration_date=lease_expiration, office_rent_per_sqft_year=office_rent,
-        rent_source=rent_source, cap_rate=cap_rate, cap_rate_source=cap_rate_source,
-        convertible_sqft=convertible_sqft, value_uplift_low=value_uplift * (1.0 - uplift_band),
-        value_uplift_high=value_uplift * (1.0 + uplift_band), implied_value_impact_low=implied_low,
-        implied_value_impact_high=implied_high, residential_rent_per_sqft_year=residential_rent,
-        local_apartment_vacancy_rate=vacancy_rate,
+        rent_source=rent_source, cap_rate=cap_rate, cap_rate_source=sales["cap_source"],
+        convertible_sqft=convertible_sqft, value_uplift_low=noi, value_uplift_high=noi,
+        implied_value_impact_low=implied_low, implied_value_impact_high=implied_high,
+        residential_rent_per_sqft_year=rent_psf_mo * 12, local_apartment_vacancy_rate=1 - occupancy,
         value_confidence=value_confidence, cap_rate_sensitivity=cap_rate_sensitivity,
         breakeven_cap_rate_low=breakeven_cap_rate_low, breakeven_cap_rate_high=breakeven_cap_rate_high,
         reasoning_text=reasoning, notes=notes,
+        floor_sqft=floor_sqft, occupancy=occupancy, noi_share=noi_share, apartment_value=value,
+        construction_cost_low=cost_low, construction_cost_high=cost_high,
+        compliance_fees_low=COMPLIANCE_FEES_LOW, compliance_fees_high=COMPLIANCE_FEES_HIGH,
+        payback_years_low=payback_low, payback_years_high=payback_high, cash_profit_by_year=cash_by_year,
     )
 
 

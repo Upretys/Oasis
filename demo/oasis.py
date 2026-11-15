@@ -36,7 +36,6 @@ OUTBOX_DIR = os.path.join(OUTPUT_DIR, "outbox")
 AREA_CACHE_DIR = os.path.join(OUTPUT_DIR, "area_cache")
 
 OASIS_MODEL = os.environ.get("OASIS_MODEL", "claude-opus-5-5")
-COST_LOW, COST_HIGH = 150.0, 220.0  # $/sf, same stated assumption as track_b_value
 DEPTH_LIMIT_FT = 45.0
 FLOOR_HEIGHT_M = 3.9
 
@@ -282,6 +281,35 @@ def parse_reasoning(text: str) -> dict:
     if m:
         out["cap_rate"] = float(m.group(1))
         out["cap_rate_source"] = m.group(2)
+    m = re.search(r"Construction ([\d,]+) floor sf x \$([\d,]+)-([\d,]+)/sf = \$([\d,]+)-\$([\d,]+), "
+                  r"plus \$([\d,]+)-\$([\d,]+) compliance fees", text or "")
+    if m:
+        n = [float(x.replace(",", "")) for x in m.groups()]
+        out.update(floor_sqft=n[0], cost_psf_low=n[1], cost_psf_high=n[2], construction_low=n[3],
+                   construction_high=n[4], compliance_low=n[5], compliance_high=n[6])
+    m = re.search(r"apartment value \$([\d,]+)", text or "")
+    if m:
+        out["apartment_value"] = float(m.group(1).replace(",", ""))
+    m = re.search(r"Occupancy ([\d.]+)%", text or "")
+    if m:
+        out["occupancy"] = float(m.group(1))
+    m = re.search(r"Share of rent kept after operating costs ([\d.]+)%", text or "")
+    if m:
+        out["noi_share"] = float(m.group(1))
+    m = re.search(r"\(income rising with ([\d.]+)% inflation.*?discounted at ([\d.]+)% a year", text or "")
+    if m:
+        out["inflation_pct"], out["discount_pct"] = float(m.group(1)), float(m.group(2))
+    m = re.search(r"payback from net income alone ([\d.]+ years|never) to ([\d.]+ years|never)", text or "")
+    if m:   # None with payback_never True means discounted income never covers that cost
+        years = lambda g: None if g == "never" else float(g.split()[0])
+        out["payback_low"], out["payback_high"] = years(m.group(1)), years(m.group(2))
+        out["payback_known"] = True
+    cash = {}
+    for y, lo, hi in re.findall(r"Cash after (\d+) years: (-?\$[\d,]+) to (-?\$[\d,]+)", text or ""):
+        num = lambda t: float(t.replace("$", "").replace(",", ""))
+        cash[int(y)] = [num(lo), num(hi)]
+    if cash:
+        out["cash_by_year"] = cash
     out["vacant"] = "confirmed vacant" in (text or "")
     m = re.search(r"real comps?: (.+?km\))\)", text or "")
     if m:
@@ -355,17 +383,17 @@ def summarize(r: dict) -> dict:
     # 5 value
     lo, hi = r.get("impact_low"), r.get("impact_high")
     if r.get("value_skipped") or lo is None:
-        checks.append({"id": "value", "title": "Value after construction", "state": "fail" if r.get("value_skipped") else "review",
+        checks.append({"id": "value", "title": "Long-term profit after construction", "state": "fail" if r.get("value_skipped") else "review",
                        "note": "Not priced, the shape check failed" if r.get("value_skipped") else "Not priced yet"})
         value_state = "fail" if r.get("value_skipped") else "review"
     elif lo > 0:
-        checks.append({"id": "value", "title": "Value after construction", "state": "pass", "note": f"Adds {_money(lo)} to {_money(hi)}"})
+        checks.append({"id": "value", "title": "Long-term profit after construction", "state": "pass", "note": f"Profit of {_money(lo)} to {_money(hi)}"})
         value_state = "pass"
     elif hi < 0:
-        checks.append({"id": "value", "title": "Value after construction", "state": "fail", "note": f"Loses {_money(-hi)} to {_money(-lo)}"})
+        checks.append({"id": "value", "title": "Long-term profit after construction", "state": "fail", "note": f"Loss of {_money(-hi)} to {_money(-lo)}"})
         value_state = "fail"
     else:
-        checks.append({"id": "value", "title": "Value after construction", "state": "review", "note": f"Between {_money(lo)} and {_money(hi)}, close to break-even"})
+        checks.append({"id": "value", "title": "Long-term profit after construction", "state": "review", "note": f"Between {_money(lo)} and {_money(hi)}, close to break-even"})
         value_state = "review"
 
     if verdict == "fail" or value_state == "fail":
@@ -379,7 +407,16 @@ def summarize(r: dict) -> dict:
 
     numbers = {
         "viable_sqft": viable, "unit_counts": counts, "total_units": total_units,
-        "reno_low": viable * COST_LOW if viable else None, "reno_high": viable * COST_HIGH if viable else None,
+        "reno_low": parsed["construction_low"] + parsed["compliance_low"] if "construction_low" in parsed else None,
+        "reno_high": parsed["construction_high"] + parsed["compliance_high"] if "construction_high" in parsed else None,
+        "floor_sqft": parsed.get("floor_sqft"), "cost_psf_low": parsed.get("cost_psf_low"),
+        "cost_psf_high": parsed.get("cost_psf_high"), "compliance_low": parsed.get("compliance_low"),
+        "compliance_high": parsed.get("compliance_high"), "apartment_value": parsed.get("apartment_value"),
+        "occupancy": parsed.get("occupancy"), "noi_share": parsed.get("noi_share"),
+        "payback_low": parsed.get("payback_low"), "payback_high": parsed.get("payback_high"),
+        "payback_known": parsed.get("payback_known", False), "inflation_pct": parsed.get("inflation_pct"),
+        "discount_pct": parsed.get("discount_pct"),
+        "cash_by_year": parsed.get("cash_by_year"),
         "uplift_low": r.get("uplift_low"), "uplift_high": r.get("uplift_high"),
         "impact_low": lo, "impact_high": hi,
         "office_rent": parsed.get("office_rent"), "residential_rent": parsed.get("residential_rent"),
