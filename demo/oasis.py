@@ -175,7 +175,24 @@ def floor_plan(vexcel_response: dict, lat: float, lon: float, floor_sqft: float,
     # visually overlapped its neighbor despite the erosion "succeeding" by
     # shapely's own validity check. join_style=2 (mitre) produces a single
     # sharp corner instead of an arc, avoiding this whole class of artifact.
-    ERODE_FT = 0.05
+    #
+    # Second real bug, also caught visually (the SAME overlap, a third
+    # time): even with clean, genuinely non-overlapping FILLS, the
+    # frontend draws each unit with stroke-width="1.2" (app.js), and SVG
+    # strokes are centered ON the polygon edge - extending ~0.6px outward
+    # on EACH side of the fill boundary. At this plan's rendering scale
+    # (a fixed 760px-wide viewBox divided by the real building's width in
+    # feet, roughly 3-9 px/ft across the 5 featured buildings), the old
+    # 0.05ft erosion produced a fill gap of only ~0.15-0.5px - smaller
+    # than the combined ~1.2px of stroke the two neighboring units draw
+    # into that same gap. The FILLS never overlapped; the STROKES (the
+    # colored outlines) visually did. 0.4ft comfortably exceeds the
+    # stroke width even at the largest real featured building's smallest
+    # px/ft ratio, while costing only a few sqft of display-only area on
+    # each unit's drawn shape (the real area_sqft/unit_type numbers shown
+    # to the user come from the pre-erosion calculation and are
+    # unaffected).
+    ERODE_FT = 0.4
     rounded_units = []
     for u in units:
         poly = Polygon(u["polygon_ft"]).buffer(-ERODE_FT, join_style=2)
