@@ -71,7 +71,7 @@ def send_smtp(message):
         connection = smtplib.SMTP_SSL(
             "smtp.gmail.com", 465, timeout=15, context=ssl.create_default_context()
         )
-        connection.login(PROFILE_EMAIL, smtp_password())
+        connection.login(profile_email(), smtp_password())
         connection.send_message(message)
     except smtplib.SMTPAuthenticationError as exc:
         raise GmailError("Gmail rejected the app password. Check GMAIL_APP_PASSWORD.") from exc
