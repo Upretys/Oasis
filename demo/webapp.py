@@ -43,7 +43,8 @@ from flask import Flask, jsonify, request, send_from_directory  # noqa: E402
 PIPELINE_ERROR = None
 try:
     from vexcel_live import fetch_vexcel_property, VexcelKeyMissing, VexcelNoPropertyData  # noqa: E402
-    from value import check_building_constraints, _iter_jsonl  # noqa: E402
+    from value import (check_building_constraints, _iter_jsonl,  # noqa: E402
+                       CONVERSION_COST_PER_SQFT_LOW, CONVERSION_COST_PER_SQFT_HIGH)
     from render_floor import render, BUILDINGS as CACHED_BUILDINGS  # noqa: E402
     from agent import run_agent_llm  # noqa: E402
     from anomaly_detection import _build_populations, _populations  # noqa: E402
@@ -531,7 +532,7 @@ def _facts(property_id: int, floor) -> dict:
         "numbers": a["numbers"], "checks": [{"check": c["title"], "result": c["state"], "detail": c["note"]} for c in a["checks"]],
         "column_note": (col.split(" - ")[0] if col else None),
         "parking_note": next((n for n in notes if n.startswith("Parking ratio")), None),
-        "notes": notes, "construction_cost_assumption_per_sqft": [oasis.COST_LOW, oasis.COST_HIGH],
+        "notes": notes, "construction_cost_assumption_per_sqft": [CONVERSION_COST_PER_SQFT_LOW, CONVERSION_COST_PER_SQFT_HIGH],
     }
 
 
