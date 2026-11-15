@@ -165,10 +165,20 @@ def floor_plan(vexcel_response: dict, lat: float, lon: float, floor_sqft: float,
     # that's still there no matter which direction each one's rounding
     # happens to go - the rounding can never close a gap that's already
     # bigger than the rounding error that caused the problem.
+    # Real bug in the erosion fix itself, caught visually (a screenshot
+    # showed the SAME overlap persisting after the fix): shapely's DEFAULT
+    # buffer join style is "round", which approximates the inside corner at
+    # a concave vertex with an ARC of several closely-spaced points instead
+    # of one sharp corner. On a concave unit shape (Williams Tower's unit Y
+    # has one), that arc degenerated into ~17 near-duplicate points all at
+    # the same rounded coordinate - a malformed, pinched polygon that
+    # visually overlapped its neighbor despite the erosion "succeeding" by
+    # shapely's own validity check. join_style=2 (mitre) produces a single
+    # sharp corner instead of an arc, avoiding this whole class of artifact.
     ERODE_FT = 0.05
     rounded_units = []
     for u in units:
-        poly = Polygon(u["polygon_ft"]).buffer(-ERODE_FT)
+        poly = Polygon(u["polygon_ft"]).buffer(-ERODE_FT, join_style=2)
         if poly.is_empty or not hasattr(poly, "exterior"):
             continue
         rounded_units.append({"id": u.get("unit_id"), "type": u.get("unit_type"),
