@@ -120,9 +120,9 @@ svg.ic { display: block; flex-shrink: 0; }
 /* building head and tabs */
 .crumb { font-size: 13px; }
 .bname { font-size: 26px; font-weight: 700; line-height: 1.15; margin-top: 4px; }
-.tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 6px; border-radius: 14px; background: var(--bg); }
-.tab { flex: 1 0 68px; padding: 0 4px; display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 10px; text-decoration: none;
-  font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.tabs { display: flex; flex-wrap: nowrap; gap: 4px; padding: 5px; border-radius: 14px; background: var(--bg); }
+.tab { flex: 1 1 0; min-width: 0; padding: 0 2px; display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 10px; text-decoration: none;
+  font-size: 12.5px; font-weight: 600; color: var(--ink); }
 .tab[aria-current="page"] { background: var(--teal); color: #fff; }
 
 /* verdict */
@@ -281,3 +281,9 @@ textarea.field { flex: 1; min-height: 240px; resize: vertical; line-height: 1.55
 .photo-grid figure { margin: 0; }
 .photo-grid figcaption { margin-bottom: 6px; font-weight: 600; }
 .photo-grid img { width: 100%; display: block; border-radius: 10px; }
+.payback { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.payback .pb { border-radius: 10px; padding: 7px 8px; font-size: 12px; display: flex; flex-direction: column; gap: 2px; }
+.payback .pb .l { color: var(--muted); }
+.payback .pb.pos { background: var(--teal-soft); }
+.payback .pb.neg { background: var(--red-soft); }
+.payback .pb.mix { background: var(--amber-soft); }
