@@ -392,6 +392,7 @@ class FloorValueResult:
     value_uplift_high: float
     implied_value_impact_low: float
     implied_value_impact_high: float
+    residential_rent_per_sqft_year: float | None = None
     local_apartment_vacancy_rate: float | None = None  # real leasing-risk signal
     value_confidence: float = 0.0  # fraction of the dollar figure backed by real data vs. defaults
     cap_rate_sensitivity: list = field(default_factory=list)  # same real math at other real cap rates
@@ -713,6 +714,19 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
         not rent_comp_source.startswith("assumed") and not rent_comp_source.startswith("no location"),
     ]) / 4.0
 
+    # Real, not arbitrary: the uncertainty band around value_uplift widens as
+    # less of the dollar figure rests on real data. At value_confidence=1.0
+    # (all 4 real inputs backed it), the band is +/-15% - ordinary real estate
+    # appraisal practice of quoting a range, not a point estimate. At
+    # value_confidence=0.0 (every input defaulted), it widens to +/-40%,
+    # honestly reflecting that a number built entirely on stated assumptions
+    # deserves a wider range than one backed by real comps and a real cap
+    # rate. Previously a flat +/-15% regardless of value_confidence - with no
+    # documented justification for that specific number, and no honest
+    # reason a 0%-real-data estimate should carry the same tight band as a
+    # 100%-real-data one.
+    uplift_band = 0.15 + (1.0 - value_confidence) * 0.25
+
     def _fmt_money(x: float) -> str:
         # "-$1,958,403", not "$-1,958,403" - a real screenshot caught the
         # latter reading as a malformed double-negative in the UI.
@@ -734,9 +748,10 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
         property_id=property_id, floor_name=floor_name, current_tenant_id=current_tenant_id,
         lease_expiration_date=lease_expiration, office_rent_per_sqft_year=office_rent,
         rent_source=rent_source, cap_rate=cap_rate, cap_rate_source=cap_rate_source,
-        convertible_sqft=convertible_sqft, value_uplift_low=value_uplift * 0.85,
-        value_uplift_high=value_uplift * 1.15, implied_value_impact_low=implied_low,
-        implied_value_impact_high=implied_high, local_apartment_vacancy_rate=vacancy_rate,
+        convertible_sqft=convertible_sqft, value_uplift_low=value_uplift * (1.0 - uplift_band),
+        value_uplift_high=value_uplift * (1.0 + uplift_band), implied_value_impact_low=implied_low,
+        implied_value_impact_high=implied_high, residential_rent_per_sqft_year=residential_rent,
+        local_apartment_vacancy_rate=vacancy_rate,
         value_confidence=value_confidence, cap_rate_sensitivity=cap_rate_sensitivity,
         breakeven_cap_rate_low=breakeven_cap_rate_low, breakeven_cap_rate_high=breakeven_cap_rate_high,
         reasoning_text=reasoning, notes=notes,
