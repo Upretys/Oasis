@@ -42,7 +42,7 @@ from flask import Flask, jsonify, request, send_from_directory  # noqa: E402
 PIPELINE_ERROR = None
 try:
     from vexcel_live import fetch_vexcel_property, VexcelKeyMissing, VexcelNoPropertyData  # noqa: E402
-    from value import list_houston_office_buildings_broad, check_building_constraints, _iter_jsonl  # noqa: E402
+    from value import check_building_constraints, _iter_jsonl  # noqa: E402
     from render_floor import render, BUILDINGS as CACHED_BUILDINGS  # noqa: E402
     from agent import run_agent_llm  # noqa: E402
     from anomaly_detection import _build_populations, _populations  # noqa: E402
@@ -75,24 +75,14 @@ def registry() -> dict:
             "typical_floor_sqft": b["real_floor_area_sqft"], "column_depth_ft": b["real_column_depth_ft"],
             "vexcel_file": b["vexcel_file"], "saved": saved.get(b["name"]),
         }
-    if oasis.costar_available() and not PIPELINE_ERROR:
-        try:
-            for c in list_houston_office_buildings_broad():
-                entry = reg.setdefault(c["property_id"], {
-                    "property_id": c["property_id"], "name": c["name"], "source": "live",
-                    "floor_name": c["floor_names_available"][0], "latitude": c["latitude"], "longitude": c["longitude"],
-                    "typical_floor_sqft": c["typical_floor_sqft"], "column_depth_ft": c["column_depth_ft"],
-                })
-                entry["address"], entry["stories"] = c["address"], c["stories"]
-        except Exception:
-            pass
-    for s in oasis.load_portfolio_scan():
-        entry = reg.setdefault(s["property_id"], {
-            "property_id": s["property_id"], "name": s["name"], "source": "scan",
-            "latitude": s["latitude"], "longitude": s["longitude"],
-        })
-        entry["scan"] = {"verdict": s["verdict"], "value_skipped": s["value_skipped"],
-                         "impact_low": s["value_impact_low"], "impact_high": s["value_impact_high"]}
+    # Deliberately restricted to just the 5 real featured buildings
+    # (CACHED_BUILDINGS) on the main map/building list - the broader
+    # "live, click any building" lookup and the 35-building blind scan
+    # are real features, but only in the separate Portfolio Scan view
+    # (/api/portfolio_scan, which calls oasis.load_portfolio_scan()
+    # directly and never touches this registry). Keeping them out of the
+    # main interactive list here is a deliberate scope choice for the main
+    # demo, not a removed capability.
     for entry in reg.values():
         path = oasis.find_vexcel_file(entry["latitude"], entry["longitude"], entry.get("vexcel_file"))
         if path and not PIPELINE_ERROR:
