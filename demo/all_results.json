@@ -88,72 +88,72 @@
     "window_to_core_max_ft": 75.8,
     "convertible_fraction": 0.83,
     "value_skipped": false,
-    "value_uplift_low": 317169.0,
-    "value_uplift_high": 488339.0,
-    "implied_value_impact_low": 3461132.0,
-    "implied_value_impact_high": 4331386.0,
+    "value_uplift_low": 299132.0,
+    "value_uplift_high": 460568.0,
+    "implied_value_impact_low": 3264303.0,
+    "implied_value_impact_high": 4085067.0,
     "value_confidence": 0.75,
     "classification": "feasible",
     "classification_confidence": 0.5249999999999999,
     "classification_path": [
-      "geometry_verdict = PASS (real viable_fraction 54% of total floor area)",
-      "implied value impact midpoint = $3,896,259 (real uplift/cap-rate/cost math)",
+      "geometry_verdict = PASS (real viable_fraction 51% of total floor area)",
+      "implied value impact midpoint = $3,674,685 (real uplift/cap-rate/cost math)",
       "combined confidence = geometry_confidence (70%) x value_confidence (75%) = 52%",
       "positive value + geometry pass + confidence above threshold -> feasible"
     ],
     "cap_rate_sensitivity": [
       {
         "cap_rate": 0.05,
-        "implied_low": 5319997.0,
-        "implied_high": 6190251.0
+        "implied_low": 5017457.0,
+        "implied_high": 5838221.0
       },
       {
         "cap_rate": 0.055,
-        "implied_low": 4587717.0,
-        "implied_high": 5457971.0
+        "implied_low": 4326821.0,
+        "implied_high": 5147585.0
       },
       {
         "cap_rate": 0.06,
-        "implied_low": 3977484.0,
-        "implied_high": 4847738.0
+        "implied_low": 3751290.0,
+        "implied_high": 4572054.0
       },
       {
         "cap_rate": 0.065,
-        "implied_low": 3461132.0,
-        "implied_high": 4331386.0
+        "implied_low": 3264303.0,
+        "implied_high": 4085067.0
       },
       {
         "cap_rate": 0.07,
-        "implied_low": 3018545.0,
-        "implied_high": 3888799.0
+        "implied_low": 2846885.0,
+        "implied_high": 3667649.0
       },
       {
         "cap_rate": 0.075,
-        "implied_low": 2634970.0,
-        "implied_high": 3505224.0
+        "implied_low": 2485124.0,
+        "implied_high": 3305888.0
       },
       {
         "cap_rate": 0.08,
-        "implied_low": 2299342.0,
-        "implied_high": 3169596.0
+        "implied_low": 2168582.0,
+        "implied_high": 2989346.0
       },
       {
         "cap_rate": 0.085,
-        "implied_low": 2003199.0,
-        "implied_high": 2873453.0
+        "implied_low": 1889280.0,
+        "implied_high": 2710044.0
       },
       {
         "cap_rate": 0.09,
-        "implied_low": 1739961.0,
-        "implied_high": 2610215.0
+        "implied_low": 1641012.0,
+        "implied_high": 2461776.0
       }
     ],
     "cap_rate_used": 0.065,
     "breakeven_cap_rate_low": 0.14725473303030429,
-    "breakeven_cap_rate_high": 0.21597360844444627,
-    "reasoning_text": "Geometry pass (75.8ft depth, confidence 70%). Real unit mix: 17 1br, 1 studio (12,432 sqft of actual apartment-sized space, not the raw convertible zone). Floor 24: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $32.40/sf/yr (sf-weighted avg of 3 real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km)) -> $402,754/yr uplift on 12,432 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $3,461,132 to $4,331,386 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
+    "breakeven_cap_rate_high": 0.2159736084444463,
+    "reasoning_text": "Geometry pass (75.8ft depth, confidence 70%). Real unit mix: 16 1br, 1 studio (11,725 sqft of actual apartment-sized space, not the raw convertible zone). Floor 24: office rent $0.00/sf/yr (floor confirmed vacant (real lease history exists, all ended, none current) - no real office income currently being foregone by converting) vs. residential $32.40/sf/yr (sf-weighted avg of 3 real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km)) -> $379,850/yr uplift on 11,725 convertible sf. At a 6.5% cap rate (no comp found - using default assumption), implied value impact is $3,264,303 to $4,085,067 after construction cost (real buildingConstructionMaterial = Steel, 1.00x baseline). No confirmed lease end date - verify occupancy before assuming vacancy.",
     "notes": [
-      "Max depth exceeds threshold by 30.8ft in at least one spot, but 55% of the floor's area still fits real units - passing on that basis.",
+      "Max depth exceeds threshold by 30.8ft in at least one spot, but 52% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Real cross-check: 20% of 15 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 15 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
       "Not modeled (no real per-building operating-expense data exists in this kit): a vacant floor still carries real utilities, maintenance, insurance and tax cost even at $0 rent - it is not actually free to leave empty. Converting it would also eliminate that real carrying cost, so this estimate is conservative, not inflated, by leaving it out.",
