@@ -258,14 +258,16 @@ def summarize(r: dict) -> dict:
         checks.append({"id": "columns", "title": "Column spacing", "state": "review",
                        "note": "No column data for this building, needs a site check"})
 
-    # 4 office vacancy
+    # 4 office income (title must fit all 3 real outcomes, not just vacancy -
+    # "Office vacancy" read as mislabeled when the actual finding was an
+    # active lease, not a vacancy, caught from a real screenshot)
     if parsed.get("vacant"):
-        checks.append({"id": "vacancy", "title": "Office vacancy", "state": "pass", "note": "Floor is vacant, so no office rent is given up"})
+        checks.append({"id": "vacancy", "title": "Office income", "state": "pass", "note": "Floor is vacant, so no office rent is given up"})
     elif parsed.get("office_rent"):
-        checks.append({"id": "vacancy", "title": "Office vacancy", "state": "review",
+        checks.append({"id": "vacancy", "title": "Office income", "state": "review",
                        "note": f"Leased at ${parsed['office_rent']:.2f} a sq ft, converting gives that up"})
     else:
-        checks.append({"id": "vacancy", "title": "Office vacancy", "state": "review", "note": "Lease status not confirmed"})
+        checks.append({"id": "vacancy", "title": "Office income", "state": "review", "note": "Lease status not confirmed"})
 
     # 5 value
     lo, hi = r.get("impact_low"), r.get("impact_high")
