@@ -299,6 +299,16 @@ def generate_unit_layout(footprint: Polygon, convertible_zone, unit_width_ft: fl
     units = []
     min_unit_width_m = unit_width_m * 0.4  # drop slivers smaller than this
     remaining = convertible_zone  # shrinks as units claim territory - prevents double-counting the same sqft
+    # Real, confirmed bug (caught visually: two adjacent units' colors
+    # overlapping at a shared corner, e.g. Williams Tower units W/Y): GEOS
+    # floating-point drift in `remaining.difference(quad)` can leave a tiny
+    # (~0.2 sqft) residual sliver of a previous unit's territory still
+    # claimable by the next one, even though `remaining` is mathematically
+    # supposed to already exclude it. `remaining` tracks this at the QUAD
+    # level; this tracks it at the actual accepted UNIT level and is
+    # subtracted from every new candidate directly, so no unit can ever
+    # overlap a previously accepted one, regardless of any upstream drift.
+    claimed_union = None
 
     for i in range(len(coords) - 1):
         p_start, p_end = coords[i], coords[i + 1]
@@ -344,6 +354,8 @@ def generate_unit_layout(footprint: Polygon, convertible_zone, unit_width_ft: fl
             # has already claimed - prevents two opposing walls both counting
             # the same central sqft when the building is narrower than 2x reach.
             unit_poly = quad.intersection(remaining)
+            if claimed_union is not None:
+                unit_poly = unit_poly.difference(claimed_union)
             if unit_poly.is_empty or not hasattr(unit_poly, "exterior"):
                 continue
 
@@ -386,6 +398,7 @@ def generate_unit_layout(footprint: Polygon, convertible_zone, unit_width_ft: fl
                 continue
 
             remaining = remaining.difference(quad)
+            claimed_union = unit_poly if claimed_union is None else claimed_union.union(unit_poly)
 
             width_ft = _to_ft(a.distance(b))
             area_sqft = unit_poly.area * (METERS_TO_FEET ** 2)
