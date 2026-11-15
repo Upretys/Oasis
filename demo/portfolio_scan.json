@@ -6,8 +6,8 @@
     "longitude": -95.579652,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 2336308.0,
-    "value_impact_high": 3404473.0,
+    "value_impact_low": 2272723.0,
+    "value_impact_high": 3311817.0,
     "already_tested": true
   },
   {
@@ -17,8 +17,11 @@
     "longitude": -95.461339,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -2030620.0,
-    "value_impact_high": -1080139.0,
+    "value_impact_low": -2095954.0,
+    "value_impact_high": -1179276.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.5,
+    "rank_score": -573165.0,
     "already_tested": true
   },
   {
@@ -28,8 +31,11 @@
     "longitude": -95.366467,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 3750801.0,
-    "value_impact_high": 4687149.0,
+    "value_impact_low": 3461132.0,
+    "value_impact_high": 4331386.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 2045536.0,
     "already_tested": true
   },
   {
@@ -39,8 +45,11 @@
     "longitude": -95.3698082,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -1350049.0,
-    "value_impact_high": -720119.0,
+    "value_impact_low": 2018825.0,
+    "value_impact_high": 2648755.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 1225240.0,
     "already_tested": true
   },
   {
@@ -48,10 +57,13 @@
     "name": "5555 San Felipe",
     "latitude": 29.7498236,
     "longitude": -95.4720879,
-    "verdict": "pass",
+    "verdict": "escalate",
     "value_skipped": false,
-    "value_impact_low": -4496130.0,
-    "value_impact_high": -3501318.0,
+    "value_impact_low": 1593416.0,
+    "value_impact_high": 2685270.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 1497540.0,
     "already_tested": true
   },
   {
@@ -59,10 +71,13 @@
     "name": "Belchase Bldg",
     "latitude": 29.9416795,
     "longitude": -95.4018971,
-    "verdict": "pass",
+    "verdict": "escalate",
     "value_skipped": false,
-    "value_impact_low": 713482.0,
-    "value_impact_high": 1847293.0,
+    "value_impact_low": 251104.0,
+    "value_impact_high": 2793311.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 799159.0,
     "already_tested": true
   },
   {
@@ -72,8 +87,11 @@
     "longitude": -95.5505272,
     "verdict": "escalate",
     "value_skipped": false,
-    "value_impact_low": -12990210.0,
-    "value_impact_high": -10012774.0,
+    "value_impact_low": 1149098.0,
+    "value_impact_high": 4573149.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 1502090.0,
     "already_tested": true
   },
   {
@@ -83,8 +101,11 @@
     "longitude": -95.387156,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 782984.0,
-    "value_impact_high": 2061268.0,
+    "value_impact_low": 607464.0,
+    "value_impact_high": 2013577.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 917364.0,
     "already_tested": true
   },
   {
@@ -94,8 +115,11 @@
     "longitude": -95.4648038,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 2040169.0,
-    "value_impact_high": 3069645.0,
+    "value_impact_low": 1818360.0,
+    "value_impact_high": 2951238.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 1252019.0,
     "already_tested": true
   },
   {
@@ -105,8 +129,11 @@
     "longitude": -95.4058157,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 648103.0,
-    "value_impact_high": 1678020.0,
+    "value_impact_low": 117088.0,
+    "value_impact_high": 1302499.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 372642.0,
     "already_tested": true
   },
   {
@@ -116,8 +143,11 @@
     "longitude": -95.5828212,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -9217262.0,
-    "value_impact_high": -6231923.0,
+    "value_impact_low": -9634230.0,
+    "value_impact_high": -6648891.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.5,
+    "rank_score": -2849546.0,
     "already_tested": false
   },
   {
@@ -127,8 +157,11 @@
     "longitude": -95.6414534,
     "verdict": "escalate",
     "value_skipped": false,
-    "value_impact_low": -604922.0,
-    "value_impact_high": 1488547.0,
+    "value_impact_low": -680295.0,
+    "value_impact_high": 1413174.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 256508.0,
     "already_tested": false
   },
   {
@@ -138,8 +171,11 @@
     "longitude": -95.4602233,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 3430953.0,
-    "value_impact_high": 5500258.0,
+    "value_impact_low": 2665630.0,
+    "value_impact_high": 4734935.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 2590198.0,
     "already_tested": false
   },
   {
@@ -149,8 +185,11 @@
     "longitude": -95.5544989,
     "verdict": "escalate",
     "value_skipped": false,
-    "value_impact_low": -86020.0,
-    "value_impact_high": 1604102.0,
+    "value_impact_low": -180594.0,
+    "value_impact_high": 1509528.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 465127.0,
     "already_tested": false
   },
   {
@@ -160,8 +199,11 @@
     "longitude": -95.5604318,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -611998.0,
-    "value_impact_high": 1629409.0,
+    "value_impact_low": 155167.0,
+    "value_impact_high": 2396574.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 893109.0,
     "already_tested": false
   },
   {
@@ -171,8 +213,11 @@
     "longitude": -95.3822238,
     "verdict": "escalate",
     "value_skipped": false,
-    "value_impact_low": -2651467.0,
-    "value_impact_high": -1129576.0,
+    "value_impact_low": -3855041.0,
+    "value_impact_high": -2333150.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.25,
+    "rank_score": -541467.0,
     "already_tested": false
   },
   {
@@ -182,8 +227,11 @@
     "longitude": -95.5646285,
     "verdict": "escalate",
     "value_skipped": false,
-    "value_impact_low": 932249.0,
-    "value_impact_high": 2539589.0,
+    "value_impact_low": 868507.0,
+    "value_impact_high": 2475847.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 877893.0,
     "already_tested": false
   },
   {
@@ -193,8 +241,11 @@
     "longitude": -95.4806279,
     "verdict": "escalate",
     "value_skipped": false,
-    "value_impact_low": 1113564.0,
-    "value_impact_high": 2578153.0,
+    "value_impact_low": 486767.0,
+    "value_impact_high": 2097815.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 678453.0,
     "already_tested": false
   },
   {
@@ -204,8 +255,11 @@
     "longitude": -95.4034524,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 2926673.0,
-    "value_impact_high": 4604972.0,
+    "value_impact_low": 2068566.0,
+    "value_impact_high": 3914695.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 2094141.0,
     "already_tested": false
   },
   {
@@ -215,8 +269,11 @@
     "longitude": -95.5664949,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -587026.0,
-    "value_impact_high": 950860.0,
+    "value_impact_low": -720561.0,
+    "value_impact_high": 817325.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 33867.0,
     "already_tested": false
   },
   {
@@ -226,8 +283,11 @@
     "longitude": -95.5722404,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 1906828.0,
-    "value_impact_high": 3588410.0,
+    "value_impact_low": 1736578.0,
+    "value_impact_high": 3419980.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 1353596.0,
     "already_tested": false
   },
   {
@@ -237,8 +297,11 @@
     "longitude": -95.4665119,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 3515282.0,
-    "value_impact_high": 4964506.0,
+    "value_impact_low": 2972202.0,
+    "value_impact_high": 4566348.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 1978869.0,
     "already_tested": false
   },
   {
@@ -248,8 +311,11 @@
     "longitude": -95.388258,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 1312514.0,
-    "value_impact_high": 2596930.0,
+    "value_impact_low": 1192353.0,
+    "value_impact_high": 2605210.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 1329147.0,
     "already_tested": false
   },
   {
@@ -259,8 +325,11 @@
     "longitude": -95.5148383,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 394260.0,
-    "value_impact_high": 1655954.0,
+    "value_impact_low": -140304.0,
+    "value_impact_high": 1247560.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 290655.0,
     "already_tested": false
   },
   {
@@ -270,8 +339,11 @@
     "longitude": -95.3963889,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -2983454.0,
-    "value_impact_high": -1584063.0,
+    "value_impact_low": -3568779.0,
+    "value_impact_high": -2132477.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.5,
+    "rank_score": -997720.0,
     "already_tested": false
   },
   {
@@ -281,8 +353,11 @@
     "longitude": -95.606777,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 468905.0,
-    "value_impact_high": 1753265.0,
+    "value_impact_low": -18481.0,
+    "value_impact_high": 1394315.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 361156.0,
     "already_tested": false
   },
   {
@@ -292,8 +367,11 @@
     "longitude": -95.357148,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 3574225.0,
-    "value_impact_high": 4727195.0,
+    "value_impact_low": 3284384.0,
+    "value_impact_high": 4552651.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 2057222.0,
     "already_tested": false
   },
   {
@@ -303,8 +381,11 @@
     "longitude": -95.4272633,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 703414.0,
-    "value_impact_high": 1880968.0,
+    "value_impact_low": 619105.0,
+    "value_impact_high": 1796659.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 634138.0,
     "already_tested": false
   },
   {
@@ -314,8 +395,11 @@
     "longitude": -95.4833002,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -365823.0,
-    "value_impact_high": 881444.0,
+    "value_impact_low": -869172.0,
+    "value_impact_high": 502822.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": -128222.0,
     "already_tested": false
   },
   {
@@ -325,8 +409,11 @@
     "longitude": -95.5279597,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -770970.0,
-    "value_impact_high": 440667.0,
+    "value_impact_low": -832816.0,
+    "value_impact_high": 378821.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": -158898.0,
     "already_tested": false
   },
   {
@@ -336,8 +423,11 @@
     "longitude": -95.4909402,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 593804.0,
-    "value_impact_high": 2078399.0,
+    "value_impact_low": 58520.0,
+    "value_impact_high": 1691575.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 459400.0,
     "already_tested": false
   },
   {
@@ -347,8 +437,11 @@
     "longitude": -95.5511049,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 145034.0,
-    "value_impact_high": 1459445.0,
+    "value_impact_low": -404858.0,
+    "value_impact_high": 1040994.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 222648.0,
     "already_tested": false
   },
   {
@@ -358,8 +451,11 @@
     "longitude": -95.403447,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -1170039.0,
-    "value_impact_high": 110275.0,
+    "value_impact_low": -1605907.0,
+    "value_impact_high": -197561.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": -631214.0,
     "already_tested": false
   },
   {
@@ -369,8 +465,11 @@
     "longitude": -95.5859031,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": 1384635.0,
-    "value_impact_high": 2520840.0,
+    "value_impact_low": 1367620.0,
+    "value_impact_high": 2503825.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 0.75,
+    "rank_score": 1016254.0,
     "already_tested": false
   },
   {
@@ -380,8 +479,11 @@
     "longitude": -95.5219659,
     "verdict": "pass",
     "value_skipped": false,
-    "value_impact_low": -125407.0,
-    "value_impact_high": 1083815.0,
+    "value_impact_low": -220381.0,
+    "value_impact_high": 988841.0,
+    "geometry_confidence": 0.7,
+    "value_confidence": 1.0,
+    "rank_score": 268961.0,
     "already_tested": false
   }
 ]

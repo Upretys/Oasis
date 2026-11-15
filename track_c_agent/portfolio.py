@@ -36,7 +36,13 @@ def rank_buildings(candidates: list[dict]) -> list[dict]:
             row["rank_score"] = float("-inf")
         else:
             midpoint = (row["implied_value_impact_low"] + row["implied_value_impact_high"]) / 2
-            row["rank_score"] = midpoint * row["geometry_confidence"]
+            # Weighted by BOTH confidences, not just geometry's - a dollar
+            # figure built on a default cap rate and an unknown construction
+            # material deserves to rank below an equally-sized figure backed
+            # by real comps, even if the geometry itself is equally certain.
+            # value_confidence defaults to 0.0 (never silently 1.0) so a
+            # pipeline run that didn't populate it doesn't look falsely solid.
+            row["rank_score"] = midpoint * row["geometry_confidence"] * max(row.get("value_confidence", 0.0), 0.01)
         results.append(row)
 
     results.sort(key=lambda r: r["rank_score"], reverse=True)

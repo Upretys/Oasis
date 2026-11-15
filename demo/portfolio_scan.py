@@ -33,6 +33,19 @@ SCAN_PATH = os.path.join(os.path.dirname(__file__), "portfolio_scan.json")
 ALREADY_TESTED_IDS = {b["property_id"] for b in ALREADY_TESTED}
 
 
+def _rank_score(r) -> float | None:
+    """value_impact_midpoint x geometry_confidence x value_confidence - the
+    README's stated ranking methodology, which this script previously
+    computed via run_pipeline() and then silently discarded, sorting the
+    final list and the UI by raw value_impact_low instead. A number built
+    entirely on real data should outrank an equally large one resting on
+    defaults; sorting by dollar amount alone doesn't do that."""
+    if r.value_skipped or r.implied_value_impact_low is None:
+        return None
+    midpoint = (r.implied_value_impact_low + r.implied_value_impact_high) / 2
+    return round(midpoint * r.geometry_confidence * max(r.value_confidence, 0.01), 0)
+
+
 def run_scan(max_new: int = 25):
     candidates = list_houston_office_buildings_broad(min_stories=3, limit=300)
     blind = [c for c in candidates if c["property_id"] not in ALREADY_TESTED_IDS][:max_new]
@@ -56,7 +69,8 @@ def run_scan(max_new: int = 25):
             "property_id": b["property_id"], "name": b["name"], "latitude": b["query_lat"], "longitude": b["query_lon"],
             "verdict": r.geometry_verdict, "value_skipped": r.value_skipped,
             "value_impact_low": r.implied_value_impact_low, "value_impact_high": r.implied_value_impact_high,
-            "already_tested": True,
+            "geometry_confidence": round(r.geometry_confidence, 3), "value_confidence": round(r.value_confidence, 3),
+            "rank_score": _rank_score(r), "already_tested": True,
         })
 
     for i, c in enumerate(blind):
@@ -97,7 +111,8 @@ def run_scan(max_new: int = 25):
             "property_id": pid, "name": name, "latitude": lat, "longitude": lon,
             "verdict": r.geometry_verdict, "value_skipped": r.value_skipped,
             "value_impact_low": r.implied_value_impact_low, "value_impact_high": r.implied_value_impact_high,
-            "already_tested": False,
+            "geometry_confidence": round(r.geometry_confidence, 3), "value_confidence": round(r.value_confidence, 3),
+            "rank_score": _rank_score(r), "already_tested": False,
         })
         time.sleep(0.3)  # be polite to the real API
 
@@ -106,9 +121,11 @@ def run_scan(max_new: int = 25):
     print(f"\nSaved {len(results)} results to {SCAN_PATH}")
 
     positive = [r for r in results if not r["value_skipped"] and r["value_impact_low"] is not None and r["value_impact_low"] > 0]
-    print(f"\n{len(positive)} real hidden opportunities found (positive value impact):")
-    for r in sorted(positive, key=lambda x: x["value_impact_low"], reverse=True):
-        print(f"  {r['name']:<30} +${r['value_impact_low']:,.0f} to +${r['value_impact_high']:,.0f}")
+    print(f"\n{len(positive)} real hidden opportunities found, ranked by confidence-weighted rank_score "
+          f"(not dollar amount alone):")
+    for r in sorted(positive, key=lambda x: x.get("rank_score") or 0, reverse=True):
+        print(f"  {r['name']:<30} +${r['value_impact_low']:,.0f} to +${r['value_impact_high']:,.0f}  "
+              f"(rank_score={r.get('rank_score'):,.0f})")
 
 
 if __name__ == "__main__":

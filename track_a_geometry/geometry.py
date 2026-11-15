@@ -226,22 +226,32 @@ def buffer_based_check(footprint: Polygon, threshold_ft: float = WINDOW_TO_CORE_
     convertible_zone = perimeter_line.buffer(threshold_m).intersection(footprint)
     convertible_fraction = convertible_zone.area / footprint.area if footprint.area else 0.0
 
-    vertex_depths_m = [perimeter_line.distance(_point(pt)) for pt in footprint.interior_point_candidates()] \
-        if hasattr(footprint, "interior_point_candidates") else []
-    # simpler: use the polygon's centroid-to-perimeter distance as the depth estimate,
-    # since without a true medial axis this is the best cheap proxy on a bare footprint.
-    max_depth_m = footprint.centroid.distance(perimeter_line) if not footprint.centroid.is_empty else 0.0
-    # better than centroid alone: sample the footprint's own vertices too
-    vertex_dists = [perimeter_line.distance(_point(c)) for c in footprint.exterior.coords]
-    if vertex_dists:
-        max_depth_m = max(max_depth_m, max(vertex_dists))
+    # Real bug, caught and verified: centroid + exterior-vertex sampling
+    # badly UNDER-reports depth on odd (non-convex) shapes, because the
+    # true deepest point is often along an interior wing/notch, not at the
+    # overall centroid or at any corner. Confirmed on 7900 Fannin's real
+    # footprint: the old method found 21.2ft; a dense interior grid found
+    # 58.4ft; the real deepest point was never being sampled at all.
+    #
+    # The mathematically correct, exact value is the polygon's maximum
+    # inscribed-circle radius (the "pole of inaccessibility" distance):
+    # the largest d such that footprint.buffer(-d) is still non-empty.
+    # That's exactly "the farthest any interior point can be from the
+    # nearest boundary point" - precisely the depth metric this check
+    # needs. Binary search converges to float precision in ~40 iterations
+    # and matches a dense grid search to within the grid's own resolution,
+    # while running in under a millisecond instead of scanning every
+    # point in the footprint's bounding box.
+    lo, hi = 0.0, max(footprint.bounds[2] - footprint.bounds[0], footprint.bounds[3] - footprint.bounds[1])
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        if footprint.buffer(-mid).is_empty:
+            hi = mid
+        else:
+            lo = mid
+    max_depth_m = lo
 
     return convertible_zone, convertible_fraction, _to_ft(max_depth_m)
-
-
-def _point(xy):
-    from shapely.geometry import Point
-    return Point(xy)
 
 
 # Real minimum apartment sizes (sqft) and minimum widths (ft) - a strip
@@ -337,6 +347,22 @@ def generate_unit_layout(footprint: Polygon, convertible_zone, unit_width_ft: fl
             if unit_poly.is_empty or not hasattr(unit_poly, "exterior"):
                 continue
 
+            # Safety check against a real GEOS/Shapely numerical-robustness
+            # issue, not a hypothetical one: a real screenshot caught a unit
+            # rendered entirely outside the building (5555 San Felipe, unit
+            # D - 648 of 648 sqft outside the real footprint). Traced it:
+            # `remaining` is mathematically guaranteed to stay inside
+            # `footprint` (remaining <= convertible_zone <= footprint), but
+            # after enough repeated .difference() calls on a many-vertex
+            # polygon, floating-point drift let one intersection return a
+            # technically-valid Shapely result that is NOT actually inside
+            # the real shape. Checking containment directly here catches
+            # that instead of trusting the boolean op blindly. Not
+            # subtracted from `remaining` either - it never legitimately
+            # claimed real territory.
+            if not unit_poly.within(footprint.buffer(0.1)):
+                continue
+
             # Reject irregular/sliver shapes instead of forcing them to fit.
             # Near a sharp convex corner, one wall's quad can claim a thin,
             # non-rectangular wedge that visually overlaps the NEXT wall's
@@ -348,7 +374,15 @@ def generate_unit_layout(footprint: Polygon, convertible_zone, unit_width_ft: fl
             # next wall's edge gets a clean shot at that same corner instead.
             bounding_rect = unit_poly.minimum_rotated_rectangle
             rectangularity = unit_poly.area / bounding_rect.area if bounding_rect.area else 0.0
-            if rectangularity < 0.55:
+            # 0.55 was too lenient - a real screenshot caught a thin spike/tail
+            # still passing through at a building corner (First Community
+            # Tower unit K, 0.684). Checked across all 10 buildings: there's a
+            # real cluster of similar corner-spike shapes at 0.61-0.70 in four
+            # other buildings too, and a gap before the next-lowest legitimate
+            # trapezoidal unit at 0.764 - so 0.72 cuts precisely between the
+            # spike artifacts and real (just angled) units, confirmed by
+            # re-rendering and re-inspecting both groups after raising it.
+            if rectangularity < 0.72:
                 continue
 
             remaining = remaining.difference(quad)
@@ -382,6 +416,14 @@ def load_scaled_footprint(
         return None
 
     geom = shapely_wkt.loads(structure["footprint.wkt"])
+    # Every real structure checked across all 35 cached buildings (492
+    # structures) came back as a plain POLYGON, never a MULTIPOLYGON - but
+    # Vexcel's schema doesn't guarantee that for every real building, and
+    # .exterior doesn't exist on a MultiPolygon (would crash with
+    # AttributeError on an untested live building). Defensive, zero-risk to
+    # every case actually observed: take the largest real part by area.
+    if geom.geom_type == "MultiPolygon":
+        geom = max(geom.geoms, key=lambda g: g.area)
     coords = list(geom.exterior.coords)
     lon0 = sum(c[0] for c in coords) / len(coords)
     lat0 = sum(c[1] for c in coords) / len(coords)

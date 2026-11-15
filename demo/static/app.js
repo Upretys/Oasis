@@ -346,7 +346,7 @@ table{border-collapse:collapse;width:100%}td,th{border-top:1px solid #DCE3E2;pad
 .muted{color:#4A5B63}img,svg{max-width:100%}ul{padding-left:20px}</style></head><body>
 <p class="muted">Oasis conversion feasibility report · ${new Date().toLocaleDateString()} · ${a.source === 'live' ? 'live pipeline run' : a.source === 'saved' ? 'saved result of the last pipeline run' : 'portfolio scan result only'}</p>
 <h1>${esc(a.building.name)}, ${flr(a)}</h1>
-<p class="${a.headline.state}" style="font-size:20px">${esc(a.headline.label)}${a.confidence != null ? ` · ${Math.round(a.confidence * 100)}% confidence in the shape check` : ''}</p>
+<p class="${a.headline.state}" style="font-size:20px">${esc(a.headline.label)}${(a.classification_confidence ?? a.confidence) != null ? ` · ${Math.round((a.classification_confidence ?? a.confidence) * 100)}% confidence in the ${a.classification_confidence != null ? 'overall feasibility call' : 'shape check'}` : ''}</p>
 <h2>Checks</h2><table>${rows}</table>
 <h2>The numbers</h2><table>
 <tr><td>Usable apartment area</td><td>${n.viable_sqft ? num(n.viable_sqft) + ' sq ft' : 'n/a'}</td></tr>
@@ -507,11 +507,24 @@ function tabs() {
     `<a class="tab" href="${bHash(id)}" ${S.tab === id ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</nav>`;
 }
 function verdictCard(a, compact) {
-  const pct = a.confidence != null ? Math.round(a.confidence * 100) : null;
+  // Headline number is the classifier's combined confidence (geometry_confidence
+  // x value_confidence - how much of the WHOLE verdict, not just the floor
+  // shape, rests on real data vs. defaults), not raw geometry confidence
+  // alone. Raw geometry confidence is nearly constant across every real
+  // building in this kit (CoStar's columnDepthFeet cross-check field exists
+  // on 0.12% of real properties), so showing it as THE headline number made
+  // every building look identically "70% confident" regardless of how much
+  // of the actual feasibility call was backed by real data. classification_confidence
+  // varies meaningfully (0.35-0.70 across the 5 featured buildings) because
+  // it's weighted by value_confidence, which genuinely differs per building.
+  const usingClassification = a.classification_confidence != null;
+  const confidenceValue = usingClassification ? a.classification_confidence : a.confidence;
+  const pct = confidenceValue != null ? Math.round(confidenceValue * 100) : null;
+  const label = usingClassification ? 'Confidence in the overall feasibility call' : 'Confidence in the shape check';
   return `<div class="verdict ${a.headline.state}">
     <div class="row between"><span class="label">${ic(STATE_ICON[a.headline.state], 24, 2.6)}${esc(a.headline.label)}</span>${pct != null ? `<span class="pct">${pct}%</span>` : ''}</div>
     ${pct != null ? `<div class="bar" role="img" aria-label="Confidence ${pct} percent"><span style="width:${pct}%"></span></div>` : ''}
-    <div class="small muted">${pct != null ? 'Confidence in the shape check' : 'No confidence score for this building'} · ${a.checks_passed} of ${a.checks_total} checks passed</div>
+    <div class="small muted">${pct != null ? label : 'No confidence score for this building'} · ${a.checks_passed} of ${a.checks_total} checks passed</div>
     ${compact ? `<div class="grid2 small">${a.checks.map(c => `<span class="row" style="gap:6px"><span class="cicon ${c.state}" style="width:20px;height:20px">${ic(STATE_ICON[c.state], 12, 2.6)}</span>${esc(c.title)}</span>`).join('')}</div>` : ''}
   </div>`;
 }
@@ -561,7 +574,7 @@ function floorsPanel() {
     <div class="floor-legend" aria-label="Floor colors"><span><span class="swatch" style="background:#45D3BC;margin-right:7px"></span>Best to convert</span><span><span class="swatch" style="background:#DDA033;margin-right:7px"></span>Other floors</span><span><span class="swatch" style="background:#fff;border:1px solid var(--muted);margin-right:7px"></span>Selected</span></div>
     <div class="floorlist" data-building="${S.sel.property_id}" tabindex="0" role="region" aria-label="Building floors">${fl.map(f => `<button class="floor" data-act="floor" data-floor="${f.floor}" aria-pressed="${f.floor === S.floor}">
       <span class="fn">Floor ${f.floor}</span>${f.best ? '<span class="tag pass">Best</span>' : ''}<span class="fs">${f.analyzed ? 'Analyzed' : STATUS_TEXT[f.status]}</span>
-      ${f.analyzed && a.confidence != null ? `<b>${Math.round(a.confidence * 100)}%</b>` : ''}</button>`).join('') || '<div class="notice info">This building was only screened, so its floors are not listed yet.</div>'}</div>
+      ${f.analyzed && (a.classification_confidence ?? a.confidence) != null ? `<b>${Math.round((a.classification_confidence ?? a.confidence) * 100)}%</b>` : ''}</button>`).join('') || '<div class="notice info">This building was only screened, so its floors are not listed yet.</div>'}</div>
     ${same ? `<div class="card grid3">
         <div><div class="stat-num sm">${n.viable_sqft ? num(n.viable_sqft) : 'n/a'}</div><div class="stat-label">usable sq ft</div></div>
         <div><div class="stat-num sm">${n.total_units || 'n/a'}</div><div class="stat-label">apartments fit</div></div>
