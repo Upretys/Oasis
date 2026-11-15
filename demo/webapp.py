@@ -623,4 +623,9 @@ def api_quotes_send():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=int(os.environ.get("PORT", "5050")), debug=False, threaded=True)
+    # 0.0.0.0, not 127.0.0.1: a cloud host (Render, Railway, Fly.io, etc.)
+    # runs this inside a container and routes real external traffic to it -
+    # 127.0.0.1 only accepts connections from inside that same container,
+    # making the app completely unreachable once deployed. Still works
+    # identically for local dev (127.0.0.1 keeps reaching it).
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5050")), debug=False, threaded=True)
