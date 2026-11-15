@@ -156,6 +156,7 @@
       "Max depth exceeds threshold by 30.8ft in at least one spot, but 55% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Real cross-check: 20% of 15 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 15 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
+      "Not modeled (no real per-building operating-expense data exists in this kit): a vacant floor still carries real utilities, maintenance, insurance and tax cost even at $0 rent - it is not actually free to leave empty. Converting it would also eliminate that real carrying cost, so this estimate is conservative, not inflated, by leaving it out.",
       "Local apartment vacancy near this building (real, from 3 nearby comps): 7.0% - healthy local demand. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
       "Residential rent from sf-weighted avg of 3 real comps: Brava (0.3km), The Rice (0.4km), Market Square Tower (0.4km): $32.40/sf/yr."
     ],
@@ -239,6 +240,7 @@
       "Max depth exceeds threshold by 22.2ft in at least one spot, but 54% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "This simplification ignores the option value of eventually re-leasing the floor as office at market rate - a real consideration a landlord would weigh, not modeled here (no other real office buildings found in this submarket, so no real submarket cross-check was available either).",
+      "Not modeled (no real per-building operating-expense data exists in this kit): a vacant floor still carries real utilities, maintenance, insurance and tax cost even at $0 rent - it is not actually free to leave empty. Converting it would also eliminate that real carrying cost, so this estimate is conservative, not inflated, by leaving it out.",
       "Local apartment vacancy near this building (real, from 3 nearby comps): 11.2% - elevated leasing risk. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
       "Residential rent from sf-weighted avg of 3 real comps: The Bordeaux (0.3km), Astor Tanglewood (0.4km), High Point Uptown (0.5km): $21.71/sf/yr."
     ],
@@ -322,6 +324,7 @@
       "Max depth exceeds threshold by 13.9ft in at least one spot, but 56% of the floor's area still fits real units - passing on that basis.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Real cross-check: 0% of 4 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 4 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
+      "Not modeled (no real per-building operating-expense data exists in this kit): a vacant floor still carries real utilities, maintenance, insurance and tax cost even at $0 rent - it is not actually free to leave empty. Converting it would also eliminate that real carrying cost, so this estimate is conservative, not inflated, by leaving it out.",
       "Local apartment vacancy near this building (real, from 3 nearby comps): 7.2% - healthy local demand. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
       "Residential rent from sf-weighted avg of 3 real comps: Revl Med Center (0.3km), 8181 Med Center Apartments (0.5km), Lanesborough Apartments (0.8km): $27.08/sf/yr.",
       "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building."
@@ -406,6 +409,7 @@
       "Only 47% of the floor's area fits real units - partial conversion may be viable, flagging for human review rather than a flat pass/fail.",
       "No CoStar structural data available to cross-check the footprint-derived depth.",
       "Real cross-check: 0% of 4 other real office buildings in this building's own CoStar submarket are also currently vacant (real cross-check across 4 other office buildings in the same CoStar submarket). This ignores the option value of eventually re-leasing as office at market rate, but the submarket-wide vacancy suggests a real chance of re-leasing as office exists - read this result with more caution.",
+      "Not modeled (no real per-building operating-expense data exists in this kit): a vacant floor still carries real utilities, maintenance, insurance and tax cost even at $0 rent - it is not actually free to leave empty. Converting it would also eliminate that real carrying cost, so this estimate is conservative, not inflated, by leaving it out.",
       "Local apartment vacancy near this building (real, from 3 nearby comps): 10.0% - elevated leasing risk. This is independent of whether the conversion pencils financially - a cross-check CoStar's office and apartment data don't currently combine, but could.",
       "Residential rent from sf-weighted avg of 3 real comps: Tuscany Apartments (0.3km), San Felipe Square Townhomes (0.6km), Tanglebrook Apartments (0.8km): $17.24/sf/yr.",
       "Construction cost adjusted 1.10x from the flat $150-220/sf baseline based on real buildingConstructionMaterial = Masonry - real per-building adjustment, not the same flat number applied to every building."

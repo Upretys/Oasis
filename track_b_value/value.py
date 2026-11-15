@@ -615,6 +615,24 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
                 f"({submarket_source}, so no real submarket cross-check was available either)."
             )
 
+        # Real, separate simplification from the re-leasing option value
+        # above: a vacant floor still carries real utilities, maintenance,
+        # insurance and property-tax cost even while earning $0 rent - it is
+        # not actually "free" to leave empty. No real per-building operating-
+        # expense or carrying-cost field exists anywhere in this kit (checked
+        # the full schema), so this cost can't be honestly quantified per
+        # building without fabricating a number. Disclosed instead of
+        # invented: this omission makes the $0-foregone-income baseline
+        # CONSERVATIVE, not inflated - converting a vacant floor would also
+        # eliminate a real carrying cost this model doesn't credit it for, so
+        # the true benefit of conversion is understated here, not overstated.
+        notes.append(
+            "Not modeled (no real per-building operating-expense data exists in this kit): a vacant "
+            "floor still carries real utilities, maintenance, insurance and tax cost even at $0 rent - "
+            "it is not actually free to leave empty. Converting it would also eliminate that real "
+            "carrying cost, so this estimate is conservative, not inflated, by leaving it out."
+        )
+
     if office_rent is None:
         # No occupancy record at all for this floor - a genuine data gap, not
         # confirmed vacancy. Keep the conservative market-rate assumption here,
