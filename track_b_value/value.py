@@ -648,10 +648,7 @@ def run_value(property_id: int, floor_name: int, convertible_sqft: float,
                 f"combine, but could."
             )
         else:
-            notes.append(
-                "Local apartment vacancy rate unavailable - CoStar's numUnitsVacant field "
-                "exists but is not populated for any apartment comp in this dataset."
-            )
+            notes.append(f"Local apartment vacancy rate unavailable - {market.vacancy_source}.")
     if residential_rent is None:
         residential_rent = ASSUMED_RESIDENTIAL_RENT_PER_SQFT_YEAR
         rent_comp_source = f"assumed Houston-wide rate ({rent_comp_source})"
